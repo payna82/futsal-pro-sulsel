@@ -6,7 +6,6 @@ import {
   PencilLine,
   RectangleVertical,
   Timer,
-  Whistle as _unused,
 } from "lucide-react";
 import { formatClock, MATCH_EVENT_LABEL, MATCH_PERIOD_LABEL } from "@/domain/match-state";
 import type { MatchEvent, MatchEventType } from "@/domain/types";
