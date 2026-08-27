@@ -10,12 +10,31 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HasilRouteImport } from './routes/hasil'
+import { Route as JadwalRouteImport } from './routes/jadwal'
+import { Route as KlasemenRouteImport } from './routes/klasemen'
 import { Route as PutraRouteImport } from './routes/putra'
 import { Route as PutriRouteImport } from './routes/putri'
+import { Route as VenueRouteImport } from './routes/venue'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HasilRoute = HasilRouteImport.update({
+  id: '/hasil',
+  path: '/hasil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JadwalRoute = JadwalRouteImport.update({
+  id: '/jadwal',
+  path: '/jadwal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KlasemenRoute = KlasemenRouteImport.update({
+  id: '/klasemen',
+  path: '/klasemen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PutraRoute = PutraRouteImport.update({
@@ -28,35 +47,65 @@ const PutriRoute = PutriRouteImport.update({
   path: '/putri',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VenueRoute = VenueRouteImport.update({
+  id: '/venue',
+  path: '/venue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/hasil': typeof HasilRoute
+  '/jadwal': typeof JadwalRoute
+  '/klasemen': typeof KlasemenRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/venue': typeof VenueRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/hasil': typeof HasilRoute
+  '/jadwal': typeof JadwalRoute
+  '/klasemen': typeof KlasemenRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/venue': typeof VenueRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/hasil': typeof HasilRoute
+  '/jadwal': typeof JadwalRoute
+  '/klasemen': typeof KlasemenRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/venue': typeof VenueRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/putra' | '/putri'
+  fullPaths:
+    '/' | '/hasil' | '/jadwal' | '/klasemen' | '/putra' | '/putri' | '/venue'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/putra' | '/putri'
-  id: '__root__' | '/' | '/putra' | '/putri'
+  to: '/' | '/hasil' | '/jadwal' | '/klasemen' | '/putra' | '/putri' | '/venue'
+  id:
+    | '__root__'
+    | '/'
+    | '/hasil'
+    | '/jadwal'
+    | '/klasemen'
+    | '/putra'
+    | '/putri'
+    | '/venue'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HasilRoute: typeof HasilRoute
+  JadwalRoute: typeof JadwalRoute
+  KlasemenRoute: typeof KlasemenRoute
   PutraRoute: typeof PutraRoute
   PutriRoute: typeof PutriRoute
+  VenueRoute: typeof VenueRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +115,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hasil': {
+      id: '/hasil'
+      path: '/hasil'
+      fullPath: '/hasil'
+      preLoaderRoute: typeof HasilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jadwal': {
+      id: '/jadwal'
+      path: '/jadwal'
+      fullPath: '/jadwal'
+      preLoaderRoute: typeof JadwalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/klasemen': {
+      id: '/klasemen'
+      path: '/klasemen'
+      fullPath: '/klasemen'
+      preLoaderRoute: typeof KlasemenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/putra': {
@@ -82,13 +152,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PutriRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/venue': {
+      id: '/venue'
+      path: '/venue'
+      fullPath: '/venue'
+      preLoaderRoute: typeof VenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HasilRoute: HasilRoute,
+  JadwalRoute: JadwalRoute,
+  KlasemenRoute: KlasemenRoute,
   PutraRoute: PutraRoute,
   PutriRoute: PutriRoute,
+  VenueRoute: VenueRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
