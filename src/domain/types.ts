@@ -170,6 +170,7 @@ export interface Match {
   clock_seconds: number;
   home_score: number;
   away_score: number;
+  version?: number;
   stage: Group["stage"];
 }
 
@@ -182,6 +183,9 @@ export interface MatchOfficial {
   user_id: UUID;
   full_name: string;
   role: MatchOfficialRole;
+  active?: boolean;
+  effective_from?: ISODateTime;
+  effective_to?: ISODateTime;
 }
 
 export interface MatchLineupEntry {
@@ -211,6 +215,8 @@ export type MatchEventType = (typeof MATCH_EVENT_TYPES)[number];
 export interface MatchEvent {
   id: UUID;
   match_id: UUID;
+  command_id?: UUID;
+  sequence_no?: number;
   /** Detik pada periode saat event terjadi. */
   timestamp: number;
   period: MatchPeriod;
@@ -245,6 +251,8 @@ export interface AuditLog {
   entity: string;
   entity_id: UUID;
   summary: string;
+  result?: "ACCEPTED" | "REPLAYED";
+  command_id?: UUID;
   created_at: ISODateTime;
 }
 

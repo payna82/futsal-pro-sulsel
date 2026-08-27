@@ -1,0 +1,168 @@
+import type { OfficialRole, Player, Team, TeamOfficial, UUID } from "./types";
+
+export type RegistrationStatus =
+  | "DRAFT"
+  | "READY_FOR_SUBMISSION"
+  | "SUBMITTED"
+  | "UNDER_REVIEW"
+  | "REVISION_REQUIRED"
+  | "APPROVED"
+  | "LOCKED";
+
+export type AccountStatus = "INVITED" | "ACTIVE" | "SUSPENDED" | "DISABLED";
+export type DocumentStatus =
+  "MISSING" | "UPLOADED" | "UNDER_REVIEW" | "APPROVED" | "REVISION_REQUIRED" | "REJECTED";
+export type VerificationAction = "SUBMITTED" | "APPROVED" | "REVISION_REQUESTED" | "REJECTED";
+export type RegistrationEntityType = "PLAYER" | "OFFICIAL" | "TEAM";
+
+export const REGISTRATION_STATUS_LABEL: Record<RegistrationStatus, string> = {
+  DRAFT: "Draf",
+  READY_FOR_SUBMISSION: "Siap Dikirim",
+  SUBMITTED: "Dikirim",
+  UNDER_REVIEW: "Dalam Pemeriksaan",
+  REVISION_REQUIRED: "Perlu Revisi",
+  APPROVED: "Disetujui",
+  LOCKED: "Terkunci",
+};
+
+export const DOCUMENT_STATUS_LABEL: Record<DocumentStatus, string> = {
+  MISSING: "Belum Ada",
+  UPLOADED: "Terunggah",
+  UNDER_REVIEW: "Dalam Pemeriksaan",
+  APPROVED: "Disetujui",
+  REVISION_REQUIRED: "Perlu Revisi",
+  REJECTED: "Ditolak",
+};
+
+export const DOCUMENT_TYPES = [
+  { key: "IDENTITY", label: "Identitas Pemain/Ofisial" },
+  { key: "REGISTRATION", label: "Bukti Registrasi" },
+  { key: "MEDICAL", label: "Dokumen Kesehatan" },
+] as const;
+export type DocumentType = (typeof DOCUMENT_TYPES)[number]["key"];
+
+export interface TeamAccount {
+  id: UUID;
+  team_id: UUID;
+  username: string;
+  account_status: AccountStatus;
+  created_at: string;
+  updated_at: string;
+  last_login_at?: string;
+}
+
+export interface TeamProfile {
+  team_id: UUID;
+  contact_person: string;
+  contact_phone: string;
+  contact_email: string;
+  address: string;
+  training_venue?: string;
+  registration_status: RegistrationStatus;
+  updated_at: string;
+}
+
+export interface RegistrationDocument {
+  id: UUID;
+  entity_type: RegistrationEntityType;
+  entity_id: UUID;
+  type: DocumentType;
+  file_name: string;
+  storage_ref: string;
+  status: DocumentStatus;
+  uploaded_at: string;
+  reviewer_id?: UUID;
+  reviewed_at?: string;
+  revision_reason?: string;
+}
+
+export interface VerificationHistory {
+  id: UUID;
+  entity_type: RegistrationEntityType;
+  entity_id: UUID;
+  actor_id: UUID;
+  action: VerificationAction;
+  previous_status: RegistrationStatus | DocumentStatus | "ELIGIBLE" | "PENDING" | "SUSPENDED";
+  new_status: RegistrationStatus | DocumentStatus | "ELIGIBLE" | "PENDING" | "SUSPENDED";
+  reason?: string;
+  created_at: string;
+}
+
+export interface TeamRegistrationSummary {
+  team: Team;
+  profile: TeamProfile;
+  players: Player[];
+  officials: TeamOfficial[];
+  documents: RegistrationDocument[];
+  pending_count: number;
+  revision_count: number;
+  approved_player_count: number;
+  is_ready: boolean;
+}
+
+export const REGISTRATION_TRANSITIONS: Record<RegistrationStatus, RegistrationStatus[]> = {
+  DRAFT: ["READY_FOR_SUBMISSION"],
+  READY_FOR_SUBMISSION: ["SUBMITTED", "DRAFT"],
+  SUBMITTED: ["UNDER_REVIEW"],
+  UNDER_REVIEW: ["REVISION_REQUIRED", "APPROVED"],
+  REVISION_REQUIRED: ["SUBMITTED", "DRAFT"],
+  APPROVED: ["LOCKED"],
+  LOCKED: [],
+};
+
+export function canTransitionRegistration(from: RegistrationStatus, to: RegistrationStatus) {
+  return REGISTRATION_TRANSITIONS[from].includes(to);
+}
+
+export function isRegistrationLocked(status: RegistrationStatus) {
+  return status === "APPROVED" || status === "LOCKED";
+}
+
+export function isDocumentApproved(documents: RegistrationDocument[], entityId: UUID) {
+  return DOCUMENT_TYPES.every((required) =>
+    documents.some(
+      (document) =>
+        document.entity_id === entityId &&
+        document.type === required.key &&
+        document.status === "APPROVED",
+    ),
+  );
+}
+
+export function registrationSummary(
+  team: Team,
+  profile: TeamProfile,
+  players: Player[],
+  officials: TeamOfficial[],
+  documents: RegistrationDocument[],
+): TeamRegistrationSummary {
+  const related = [...players, ...officials].map((item) => item.id);
+  const pending_count = related.filter((id) =>
+    documents.some(
+      (doc) => doc.entity_id === id && ["UPLOADED", "UNDER_REVIEW"].includes(doc.status),
+    ),
+  ).length;
+  const revision_count = documents
+    .filter((doc) => doc.entity_id === team.id || related.includes(doc.entity_id))
+    .filter((doc) => doc.status === "REVISION_REQUIRED").length;
+  const approved_player_count = players.filter(
+    (player) => player.status === "ELIGIBLE" && isDocumentApproved(documents, player.id),
+  ).length;
+  const is_ready =
+    profile.registration_status !== "LOCKED" &&
+    players.length > 0 &&
+    officials.length > 0 &&
+    players.every((player) => isDocumentApproved(documents, player.id)) &&
+    officials.every((official) => isDocumentApproved(documents, official.id));
+  return {
+    team,
+    profile,
+    players,
+    officials,
+    documents,
+    pending_count,
+    revision_count,
+    approved_player_count,
+    is_ready,
+  };
+}

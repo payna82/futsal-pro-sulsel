@@ -8,6 +8,8 @@ export interface SessionUser {
   full_name: string;
   email: string;
   role: RoleKey;
+  team_id?: string;
+  account_type?: "ADMIN" | "TEAM";
 }
 
 interface SessionContextValue {
@@ -31,6 +33,7 @@ const DEMO_USER: SessionUser = {
   full_name: "Andi Baso Mappasessu",
   email: "superadmin@porprovsulsel.id",
   role: "SUPER_ADMIN",
+  account_type: "ADMIN",
 };
 
 export function SessionProvider({ children }: { children: ReactNode }) {

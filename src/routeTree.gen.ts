@@ -19,6 +19,7 @@ import { Route as MasukRouteImport } from './routes/masuk'
 import { Route as PemainRouteImport } from './routes/pemain'
 import { Route as PutraRouteImport } from './routes/putra'
 import { Route as PutriRouteImport } from './routes/putri'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as TimRouteImport } from './routes/tim'
 import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
@@ -40,9 +41,20 @@ import { Route as AdminTeamsRouteImport } from './routes/admin.teams'
 import { Route as AdminTournamentsRouteImport } from './routes/admin.tournaments'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminVenuesRouteImport } from './routes/admin.venues'
+import { Route as AdminVerificationRouteImport } from './routes/admin.verification'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
+import { Route as TeamDocumentsRouteImport } from './routes/team.documents'
+import { Route as TeamLoginRouteImport } from './routes/team.login'
+import { Route as TeamOfficialsRouteImport } from './routes/team.officials'
+import { Route as TeamPlayersRouteImport } from './routes/team.players'
+import { Route as TeamProfileRouteImport } from './routes/team.profile'
+import { Route as TeamSubmissionRouteImport } from './routes/team.submission'
 import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
+import { Route as AdminTeamsTeamIdRouteImport } from './routes/admin.teams.$teamId'
+import { Route as AdminTeamsNewRouteImport } from './routes/admin.teams.new'
 import { Route as MatchMatchIdControlRouteImport } from './routes/match.$matchId.control'
+import { Route as TeamOfficialsNewRouteImport } from './routes/team.officials.new'
+import { Route as TeamPlayersNewRouteImport } from './routes/team.players.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -92,6 +104,11 @@ const PutraRoute = PutraRouteImport.update({
 const PutriRoute = PutriRouteImport.update({
   id: '/putri',
   path: '/putri',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TimRoute = TimRouteImport.update({
@@ -199,20 +216,75 @@ const AdminVenuesRoute = AdminVenuesRouteImport.update({
   path: '/venues',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminVerificationRoute = AdminVerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PertandinganMatchIdRoute = PertandinganMatchIdRouteImport.update({
   id: '/pertandingan/$matchId',
   path: '/pertandingan/$matchId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TeamDocumentsRoute = TeamDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => TeamRoute,
+} as any)
+const TeamLoginRoute = TeamLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => TeamRoute,
+} as any)
+const TeamOfficialsRoute = TeamOfficialsRouteImport.update({
+  id: '/officials',
+  path: '/officials',
+  getParentRoute: () => TeamRoute,
+} as any)
+const TeamPlayersRoute = TeamPlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => TeamRoute,
+} as any)
+const TeamProfileRoute = TeamProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => TeamRoute,
+} as any)
+const TeamSubmissionRoute = TeamSubmissionRouteImport.update({
+  id: '/submission',
+  path: '/submission',
+  getParentRoute: () => TeamRoute,
 } as any)
 const TimTeamIdRoute = TimTeamIdRouteImport.update({
   id: '/$teamId',
   path: '/$teamId',
   getParentRoute: () => TimRoute,
 } as any)
+const AdminTeamsTeamIdRoute = AdminTeamsTeamIdRouteImport.update({
+  id: '/$teamId',
+  path: '/$teamId',
+  getParentRoute: () => AdminTeamsRoute,
+} as any)
+const AdminTeamsNewRoute = AdminTeamsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminTeamsRoute,
+} as any)
 const MatchMatchIdControlRoute = MatchMatchIdControlRouteImport.update({
   id: '/match/$matchId/control',
   path: '/match/$matchId/control',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TeamOfficialsNewRoute = TeamOfficialsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => TeamOfficialsRoute,
+} as any)
+const TeamPlayersNewRoute = TeamPlayersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => TeamPlayersRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -226,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/pemain': typeof PemainRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/team': typeof TeamRouteWithChildren
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
@@ -242,14 +315,25 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
-  '/admin/teams': typeof AdminTeamsRoute
+  '/admin/teams': typeof AdminTeamsRouteWithChildren
   '/admin/tournaments': typeof AdminTournamentsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/venues': typeof AdminVenuesRoute
+  '/admin/verification': typeof AdminVerificationRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
+  '/team/documents': typeof TeamDocumentsRoute
+  '/team/login': typeof TeamLoginRoute
+  '/team/officials': typeof TeamOfficialsRouteWithChildren
+  '/team/players': typeof TeamPlayersRouteWithChildren
+  '/team/profile': typeof TeamProfileRoute
+  '/team/submission': typeof TeamSubmissionRoute
   '/tim/$teamId': typeof TimTeamIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/teams/$teamId': typeof AdminTeamsTeamIdRoute
+  '/admin/teams/new': typeof AdminTeamsNewRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
+  '/team/officials/new': typeof TeamOfficialsNewRoute
+  '/team/players/new': typeof TeamPlayersNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -261,6 +345,7 @@ export interface FileRoutesByTo {
   '/pemain': typeof PemainRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/team': typeof TeamRouteWithChildren
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
@@ -277,14 +362,25 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
-  '/admin/teams': typeof AdminTeamsRoute
+  '/admin/teams': typeof AdminTeamsRouteWithChildren
   '/admin/tournaments': typeof AdminTournamentsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/venues': typeof AdminVenuesRoute
+  '/admin/verification': typeof AdminVerificationRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
+  '/team/documents': typeof TeamDocumentsRoute
+  '/team/login': typeof TeamLoginRoute
+  '/team/officials': typeof TeamOfficialsRouteWithChildren
+  '/team/players': typeof TeamPlayersRouteWithChildren
+  '/team/profile': typeof TeamProfileRoute
+  '/team/submission': typeof TeamSubmissionRoute
   '/tim/$teamId': typeof TimTeamIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/teams/$teamId': typeof AdminTeamsTeamIdRoute
+  '/admin/teams/new': typeof AdminTeamsNewRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
+  '/team/officials/new': typeof TeamOfficialsNewRoute
+  '/team/players/new': typeof TeamPlayersNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -298,6 +394,7 @@ export interface FileRoutesById {
   '/pemain': typeof PemainRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/team': typeof TeamRouteWithChildren
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
@@ -314,14 +411,25 @@ export interface FileRoutesById {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
-  '/admin/teams': typeof AdminTeamsRoute
+  '/admin/teams': typeof AdminTeamsRouteWithChildren
   '/admin/tournaments': typeof AdminTournamentsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/venues': typeof AdminVenuesRoute
+  '/admin/verification': typeof AdminVerificationRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
+  '/team/documents': typeof TeamDocumentsRoute
+  '/team/login': typeof TeamLoginRoute
+  '/team/officials': typeof TeamOfficialsRouteWithChildren
+  '/team/players': typeof TeamPlayersRouteWithChildren
+  '/team/profile': typeof TeamProfileRoute
+  '/team/submission': typeof TeamSubmissionRoute
   '/tim/$teamId': typeof TimTeamIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/teams/$teamId': typeof AdminTeamsTeamIdRoute
+  '/admin/teams/new': typeof AdminTeamsNewRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
+  '/team/officials/new': typeof TeamOfficialsNewRoute
+  '/team/players/new': typeof TeamPlayersNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -336,6 +444,7 @@ export interface FileRouteTypes {
     | '/pemain'
     | '/putra'
     | '/putri'
+    | '/team'
     | '/tim'
     | '/top-skor'
     | '/venue'
@@ -356,10 +465,21 @@ export interface FileRouteTypes {
     | '/admin/tournaments'
     | '/admin/users'
     | '/admin/venues'
+    | '/admin/verification'
     | '/pertandingan/$matchId'
+    | '/team/documents'
+    | '/team/login'
+    | '/team/officials'
+    | '/team/players'
+    | '/team/profile'
+    | '/team/submission'
     | '/tim/$teamId'
     | '/admin/'
+    | '/admin/teams/$teamId'
+    | '/admin/teams/new'
     | '/match/$matchId/control'
+    | '/team/officials/new'
+    | '/team/players/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -371,6 +491,7 @@ export interface FileRouteTypes {
     | '/pemain'
     | '/putra'
     | '/putri'
+    | '/team'
     | '/tim'
     | '/top-skor'
     | '/venue'
@@ -391,10 +512,21 @@ export interface FileRouteTypes {
     | '/admin/tournaments'
     | '/admin/users'
     | '/admin/venues'
+    | '/admin/verification'
     | '/pertandingan/$matchId'
+    | '/team/documents'
+    | '/team/login'
+    | '/team/officials'
+    | '/team/players'
+    | '/team/profile'
+    | '/team/submission'
     | '/tim/$teamId'
     | '/admin'
+    | '/admin/teams/$teamId'
+    | '/admin/teams/new'
     | '/match/$matchId/control'
+    | '/team/officials/new'
+    | '/team/players/new'
   id:
     | '__root__'
     | '/'
@@ -407,6 +539,7 @@ export interface FileRouteTypes {
     | '/pemain'
     | '/putra'
     | '/putri'
+    | '/team'
     | '/tim'
     | '/top-skor'
     | '/venue'
@@ -427,10 +560,21 @@ export interface FileRouteTypes {
     | '/admin/tournaments'
     | '/admin/users'
     | '/admin/venues'
+    | '/admin/verification'
     | '/pertandingan/$matchId'
+    | '/team/documents'
+    | '/team/login'
+    | '/team/officials'
+    | '/team/players'
+    | '/team/profile'
+    | '/team/submission'
     | '/tim/$teamId'
     | '/admin/'
+    | '/admin/teams/$teamId'
+    | '/admin/teams/new'
     | '/match/$matchId/control'
+    | '/team/officials/new'
+    | '/team/players/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -444,6 +588,7 @@ export interface RootRouteChildren {
   PemainRoute: typeof PemainRoute
   PutraRoute: typeof PutraRoute
   PutriRoute: typeof PutriRoute
+  TeamRoute: typeof TeamRouteWithChildren
   TimRoute: typeof TimRouteWithChildren
   TopSkorRoute: typeof TopSkorRoute
   VenueRoute: typeof VenueRoute
@@ -521,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/putri'
       fullPath: '/putri'
       preLoaderRoute: typeof PutriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tim': {
@@ -670,12 +822,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVenuesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/verification': {
+      id: '/admin/verification'
+      path: '/verification'
+      fullPath: '/admin/verification'
+      preLoaderRoute: typeof AdminVerificationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/pertandingan/$matchId': {
       id: '/pertandingan/$matchId'
       path: '/pertandingan/$matchId'
       fullPath: '/pertandingan/$matchId'
       preLoaderRoute: typeof PertandinganMatchIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/team/documents': {
+      id: '/team/documents'
+      path: '/documents'
+      fullPath: '/team/documents'
+      preLoaderRoute: typeof TeamDocumentsRouteImport
+      parentRoute: typeof TeamRoute
+    }
+    '/team/login': {
+      id: '/team/login'
+      path: '/login'
+      fullPath: '/team/login'
+      preLoaderRoute: typeof TeamLoginRouteImport
+      parentRoute: typeof TeamRoute
+    }
+    '/team/officials': {
+      id: '/team/officials'
+      path: '/officials'
+      fullPath: '/team/officials'
+      preLoaderRoute: typeof TeamOfficialsRouteImport
+      parentRoute: typeof TeamRoute
+    }
+    '/team/players': {
+      id: '/team/players'
+      path: '/players'
+      fullPath: '/team/players'
+      preLoaderRoute: typeof TeamPlayersRouteImport
+      parentRoute: typeof TeamRoute
+    }
+    '/team/profile': {
+      id: '/team/profile'
+      path: '/profile'
+      fullPath: '/team/profile'
+      preLoaderRoute: typeof TeamProfileRouteImport
+      parentRoute: typeof TeamRoute
+    }
+    '/team/submission': {
+      id: '/team/submission'
+      path: '/submission'
+      fullPath: '/team/submission'
+      preLoaderRoute: typeof TeamSubmissionRouteImport
+      parentRoute: typeof TeamRoute
     }
     '/tim/$teamId': {
       id: '/tim/$teamId'
@@ -684,6 +885,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimTeamIdRouteImport
       parentRoute: typeof TimRoute
     }
+    '/admin/teams/$teamId': {
+      id: '/admin/teams/$teamId'
+      path: '/$teamId'
+      fullPath: '/admin/teams/$teamId'
+      preLoaderRoute: typeof AdminTeamsTeamIdRouteImport
+      parentRoute: typeof AdminTeamsRoute
+    }
+    '/admin/teams/new': {
+      id: '/admin/teams/new'
+      path: '/new'
+      fullPath: '/admin/teams/new'
+      preLoaderRoute: typeof AdminTeamsNewRouteImport
+      parentRoute: typeof AdminTeamsRoute
+    }
     '/match/$matchId/control': {
       id: '/match/$matchId/control'
       path: '/match/$matchId/control'
@@ -691,8 +906,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchMatchIdControlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team/officials/new': {
+      id: '/team/officials/new'
+      path: '/new'
+      fullPath: '/team/officials/new'
+      preLoaderRoute: typeof TeamOfficialsNewRouteImport
+      parentRoute: typeof TeamOfficialsRoute
+    }
+    '/team/players/new': {
+      id: '/team/players/new'
+      path: '/new'
+      fullPath: '/team/players/new'
+      preLoaderRoute: typeof TeamPlayersNewRouteImport
+      parentRoute: typeof TeamPlayersRoute
+    }
   }
 }
+
+interface AdminTeamsRouteChildren {
+  AdminTeamsTeamIdRoute: typeof AdminTeamsTeamIdRoute
+  AdminTeamsNewRoute: typeof AdminTeamsNewRoute
+}
+
+const AdminTeamsRouteChildren: AdminTeamsRouteChildren = {
+  AdminTeamsTeamIdRoute: AdminTeamsTeamIdRoute,
+  AdminTeamsNewRoute: AdminTeamsNewRoute,
+}
+
+const AdminTeamsRouteWithChildren = AdminTeamsRoute._addFileChildren(
+  AdminTeamsRouteChildren,
+)
 
 interface AdminRouteChildren {
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
@@ -708,10 +951,11 @@ interface AdminRouteChildren {
   AdminRolesRoute: typeof AdminRolesRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
   AdminStatisticsRoute: typeof AdminStatisticsRoute
-  AdminTeamsRoute: typeof AdminTeamsRoute
+  AdminTeamsRoute: typeof AdminTeamsRouteWithChildren
   AdminTournamentsRoute: typeof AdminTournamentsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVenuesRoute: typeof AdminVenuesRoute
+  AdminVerificationRoute: typeof AdminVerificationRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -729,14 +973,59 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRolesRoute: AdminRolesRoute,
   AdminScheduleRoute: AdminScheduleRoute,
   AdminStatisticsRoute: AdminStatisticsRoute,
-  AdminTeamsRoute: AdminTeamsRoute,
+  AdminTeamsRoute: AdminTeamsRouteWithChildren,
   AdminTournamentsRoute: AdminTournamentsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVenuesRoute: AdminVenuesRoute,
+  AdminVerificationRoute: AdminVerificationRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface TeamOfficialsRouteChildren {
+  TeamOfficialsNewRoute: typeof TeamOfficialsNewRoute
+}
+
+const TeamOfficialsRouteChildren: TeamOfficialsRouteChildren = {
+  TeamOfficialsNewRoute: TeamOfficialsNewRoute,
+}
+
+const TeamOfficialsRouteWithChildren = TeamOfficialsRoute._addFileChildren(
+  TeamOfficialsRouteChildren,
+)
+
+interface TeamPlayersRouteChildren {
+  TeamPlayersNewRoute: typeof TeamPlayersNewRoute
+}
+
+const TeamPlayersRouteChildren: TeamPlayersRouteChildren = {
+  TeamPlayersNewRoute: TeamPlayersNewRoute,
+}
+
+const TeamPlayersRouteWithChildren = TeamPlayersRoute._addFileChildren(
+  TeamPlayersRouteChildren,
+)
+
+interface TeamRouteChildren {
+  TeamDocumentsRoute: typeof TeamDocumentsRoute
+  TeamLoginRoute: typeof TeamLoginRoute
+  TeamOfficialsRoute: typeof TeamOfficialsRouteWithChildren
+  TeamPlayersRoute: typeof TeamPlayersRouteWithChildren
+  TeamProfileRoute: typeof TeamProfileRoute
+  TeamSubmissionRoute: typeof TeamSubmissionRoute
+}
+
+const TeamRouteChildren: TeamRouteChildren = {
+  TeamDocumentsRoute: TeamDocumentsRoute,
+  TeamLoginRoute: TeamLoginRoute,
+  TeamOfficialsRoute: TeamOfficialsRouteWithChildren,
+  TeamPlayersRoute: TeamPlayersRouteWithChildren,
+  TeamProfileRoute: TeamProfileRoute,
+  TeamSubmissionRoute: TeamSubmissionRoute,
+}
+
+const TeamRouteWithChildren = TeamRoute._addFileChildren(TeamRouteChildren)
 
 interface TimRouteChildren {
   TimTeamIdRoute: typeof TimTeamIdRoute
@@ -759,6 +1048,7 @@ const rootRouteChildren: RootRouteChildren = {
   PemainRoute: PemainRoute,
   PutraRoute: PutraRoute,
   PutriRoute: PutriRoute,
+  TeamRoute: TeamRouteWithChildren,
   TimRoute: TimRouteWithChildren,
   TopSkorRoute: TopSkorRoute,
   VenueRoute: VenueRoute,

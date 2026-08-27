@@ -61,3 +61,32 @@ export const usersQuery = () =>
 
 export const auditLogsQuery = () =>
   queryOptions({ queryKey: ["audit-logs"], queryFn: () => repository.listAuditLogs() });
+
+export const teamAccountsQuery = () =>
+  queryOptions({ queryKey: ["team-accounts"], queryFn: () => repository.listTeamAccounts() });
+export const teamRegistrationQuery = (teamId: UUID) =>
+  queryOptions({
+    queryKey: ["team-registration", teamId],
+    queryFn: () => repository.getTeamRegistration(teamId),
+  });
+export const teamProfileQuery = (teamId: UUID) =>
+  queryOptions({
+    queryKey: ["team-profile", teamId],
+    queryFn: () => repository.getTeamProfile(teamId),
+  });
+export const registrationDocumentsQuery = (
+  entityType?: "PLAYER" | "OFFICIAL" | "TEAM",
+  entityId?: UUID,
+) =>
+  queryOptions({
+    queryKey: ["registration-documents", entityType, entityId],
+    queryFn: () => repository.listRegistrationDocuments(entityType, entityId),
+  });
+export const verificationHistoryQuery = (
+  entityType: "PLAYER" | "OFFICIAL" | "TEAM",
+  entityId: UUID,
+) =>
+  queryOptions({
+    queryKey: ["verification-history", entityType, entityId],
+    queryFn: () => repository.listVerificationHistory(entityType, entityId),
+  });

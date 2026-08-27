@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { AdminPage } from "@/components/admin/AdminPage";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { TeamCrest } from "@/components/common/TeamCrest";
@@ -70,6 +71,17 @@ function AdminTeamsRoute() {
       header: "Status",
       cell: (t) => <span className="label-caps">{TEAM_STATUS_LABEL[t.status]}</span>,
     },
+    {
+      key: "actions",
+      header: "Aksi",
+      cell: (t) => (
+        <Button asChild size="sm" variant="outline">
+          <Link to="/admin/teams/$teamId" params={{ teamId: t.id }}>
+            Detail
+          </Link>
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -77,6 +89,11 @@ function AdminTeamsRoute() {
       permission="team.manage"
       title="Tim Peserta"
       description="Tim futsal putra dan putri yang terdaftar pada turnamen."
+      actions={
+        <Button asChild>
+          <Link to="/admin/teams/new">Tambah Tim</Link>
+        </Button>
+      }
       isLoading={data.isLoading}
     >
       <div className="mt-6">

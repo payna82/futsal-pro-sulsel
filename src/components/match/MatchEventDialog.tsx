@@ -36,7 +36,7 @@ export interface MatchEventDialogProps {
   period: MatchPeriod;
   clockSeconds: number;
   isPending: boolean;
-  onSubmit: (input: Omit<NewMatchEventInput, "match_id" | "operator_id">) => void;
+  onSubmit: (input: Omit<NewMatchEventInput, "match_id" | "operator_id" | "command_id">) => void;
 }
 
 /** Formulir input kejadian. Validasi akhir tetap di lapisan domain/repository. */

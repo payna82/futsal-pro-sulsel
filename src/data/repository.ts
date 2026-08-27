@@ -1,4 +1,16 @@
 import type { NewMatchEventInput } from "@/domain/match-operations";
+import type {
+  AccountStatus,
+  DocumentStatus,
+  DocumentType,
+  RegistrationDocument,
+  RegistrationEntityType,
+  TeamAccount,
+  TeamProfile,
+  TeamRegistrationSummary,
+  VerificationAction,
+  VerificationHistory,
+} from "@/domain/registration";
 import type { MatchOfficialRole, MatchStatus } from "@/domain/types";
 import type {
   AuditLog,
@@ -35,13 +47,29 @@ export interface CompetitionRepository {
   listVenues(): Promise<Venue[]>;
   listMatches(): Promise<Match[]>;
   getMatch(id: UUID): Promise<Match | null>;
-  listMatchOfficials(matchId: UUID): Promise<MatchOfficial[]>;
+  listMatchOfficials(
+    matchId: UUID,
+    options?: { includeHistory?: boolean },
+  ): Promise<MatchOfficial[]>;
   listLineup(matchId: UUID): Promise<MatchLineupEntry[]>;
   listMatchEvents(matchId: UUID): Promise<MatchEvent[]>;
   listStandings(categoryId: UUID): Promise<StandingRow[]>;
   listTopScorers(categoryId: UUID): Promise<TopScorerRow[]>;
   listUsers(): Promise<User[]>;
   listAuditLogs(): Promise<AuditLog[]>;
+  listTeamAccounts(): Promise<TeamAccount[]>;
+  getTeamAccountByUsername(username: string): Promise<TeamAccount | null>;
+  authenticateTeam(username: string, password: string): Promise<TeamAccount | null>;
+  getTeamProfile(teamId: UUID): Promise<TeamProfile>;
+  getTeamRegistration(teamId: UUID): Promise<TeamRegistrationSummary>;
+  listRegistrationDocuments(
+    entityType?: RegistrationEntityType,
+    entityId?: UUID,
+  ): Promise<RegistrationDocument[]>;
+  listVerificationHistory(
+    entityType: RegistrationEntityType,
+    entityId: UUID,
+  ): Promise<VerificationHistory[]>;
 
   /* ------------------------------- Mutations ------------------------------ */
   /** Menyimpan event pertandingan (immutable append) dan menurunkan ulang skor. */
@@ -50,11 +78,22 @@ export interface CompetitionRepository {
   transitionMatchStatus(input: {
     match_id: UUID;
     to: MatchStatus;
-    operator_id: UUID;
+    operator_id?: UUID;
+    command_id?: UUID;
+    expected_version?: number;
   }): Promise<Match>;
-  updateMatchClock(input: { match_id: UUID; clock_seconds: number }): Promise<Match>;
+  updateMatchClock(input: {
+    match_id: UUID;
+    clock_seconds: number;
+    operator_id?: UUID;
+    command_id?: UUID;
+    expected_version?: number;
+  }): Promise<Match>;
   updateMatchSchedule(input: {
     match_id: UUID;
+    operator_id?: UUID;
+    command_id?: UUID;
+    expected_version?: number;
     kickoff_at?: string;
     venue_id?: UUID;
     court?: number;
@@ -63,6 +102,67 @@ export interface CompetitionRepository {
     match_id: UUID;
     role: MatchOfficialRole;
     user_id: UUID;
-    operator_id: UUID;
+    operator_id?: UUID;
+    command_id?: UUID;
+    expected_version?: number;
   }): Promise<MatchOfficial[]>;
+  createTeamAccount(input: {
+    team_id: UUID;
+    username: string;
+    password: string;
+    operator_id?: UUID;
+  }): Promise<TeamAccount>;
+  createTeam(input: Omit<Team, "id" | "status"> & { operator_id?: UUID }): Promise<Team>;
+  updateTeamAccountStatus(input: {
+    team_id: UUID;
+    status: AccountStatus;
+    operator_id?: UUID;
+  }): Promise<TeamAccount>;
+  resetTeamCredential(input: {
+    team_id: UUID;
+    password: string;
+    operator_id?: UUID;
+  }): Promise<TeamAccount>;
+  updateTeamProfile(input: {
+    team_id: UUID;
+    profile: Omit<TeamProfile, "team_id" | "updated_at">;
+    operator_id?: UUID;
+  }): Promise<TeamProfile>;
+  createPlayer(
+    input: Omit<Player, "id" | "status" | "nik_verified"> & { operator_id?: UUID },
+  ): Promise<Player>;
+  updatePlayer(input: {
+    id: UUID;
+    changes: Partial<
+      Pick<Player, "full_name" | "jersey_number" | "position" | "birth_date" | "is_captain">
+    >;
+    operator_id?: UUID;
+  }): Promise<Player>;
+  createTeamOfficial(
+    input: Omit<TeamOfficial, "id"> & { operator_id?: UUID },
+  ): Promise<TeamOfficial>;
+  updateTeamOfficial(input: {
+    id: UUID;
+    changes: Partial<Pick<TeamOfficial, "full_name" | "role" | "license_number">>;
+    operator_id?: UUID;
+  }): Promise<TeamOfficial>;
+  submitRegistration(input: {
+    entityType: RegistrationEntityType;
+    entityId: UUID;
+    operator_id?: UUID;
+  }): Promise<void>;
+  uploadRegistrationDocument(input: {
+    entityType: RegistrationEntityType;
+    entityId: UUID;
+    type: DocumentType;
+    file_name: string;
+    operator_id?: UUID;
+  }): Promise<RegistrationDocument>;
+  reviewRegistration(input: {
+    entityType: RegistrationEntityType;
+    entityId: UUID;
+    action: VerificationAction;
+    reason?: string;
+    operator_id?: UUID;
+  }): Promise<void>;
 }

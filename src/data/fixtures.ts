@@ -19,6 +19,12 @@ import type {
   User,
   Venue,
 } from "@/domain/types";
+import type {
+  RegistrationDocument,
+  TeamAccount,
+  TeamProfile,
+  VerificationHistory,
+} from "@/domain/registration";
 
 const DAY = "2026-09-";
 
@@ -250,6 +256,7 @@ function makeMatch(
     clock_seconds: status === "LIVE" ? 1114 : 0,
     home_score,
     away_score,
+    version: 0,
     stage: "GROUP",
     ...extra,
   };
@@ -284,6 +291,8 @@ export const matchOfficials: MatchOfficial[] = matches.flatMap((m, i) => [
     user_id: "usr-ref-1",
     full_name: "Andi Muharram",
     role: "REFEREE_1" as const,
+    active: true,
+    effective_from: m.kickoff_at,
   },
   {
     id: `mo-${m.id}-2`,
@@ -291,6 +300,8 @@ export const matchOfficials: MatchOfficial[] = matches.flatMap((m, i) => [
     user_id: "usr-ref-2",
     full_name: "Hasbi Rahman",
     role: "REFEREE_2" as const,
+    active: true,
+    effective_from: m.kickoff_at,
   },
   {
     id: `mo-${m.id}-3`,
@@ -298,6 +309,8 @@ export const matchOfficials: MatchOfficial[] = matches.flatMap((m, i) => [
     user_id: "usr-tk-1",
     full_name: "Rusdi Tahir",
     role: "TIMEKEEPER" as const,
+    active: true,
+    effective_from: m.kickoff_at,
   },
   {
     id: `mo-${m.id}-4`,
@@ -305,6 +318,8 @@ export const matchOfficials: MatchOfficial[] = matches.flatMap((m, i) => [
     user_id: "usr-cm-1",
     full_name: `Komisaris ${i + 1}`,
     role: "COMMISSIONER" as const,
+    active: true,
+    effective_from: m.kickoff_at,
   },
 ]);
 
@@ -538,3 +553,58 @@ export const auditLogs: AuditLog[] = [
     created_at: `${DAY}06T16:20:00+08:00`,
   },
 ];
+
+// DEMO ONLY: credentials are represented by a non-production digest in memory.
+export const teamAccounts: Array<TeamAccount & { credential_digest: string }> = [
+  {
+    id: "ta-1",
+    team_id: "tm-m1",
+    username: "makassar.putra",
+    account_status: "ACTIVE",
+    credential_digest: "demo:makassar2026",
+    created_at: `${DAY}01T09:00:00+08:00`,
+    updated_at: `${DAY}01T09:00:00+08:00`,
+  },
+  {
+    id: "ta-2",
+    team_id: "tm-w1",
+    username: "makassar.putri",
+    account_status: "ACTIVE",
+    credential_digest: "demo:putri2026",
+    created_at: `${DAY}01T09:10:00+08:00`,
+    updated_at: `${DAY}01T09:10:00+08:00`,
+  },
+];
+
+export const teamProfiles: TeamProfile[] = teams.map((team) => ({
+  team_id: team.id,
+  contact_person: `Manajer ${team.short_name}`,
+  contact_phone: "0812-0000-2026",
+  contact_email: `${team.short_name.toLowerCase()}@porprov.demo`,
+  address: "Makassar, Sulawesi Selatan",
+  training_venue: "GOR Sudiang",
+  registration_status: team.id === "tm-m1" ? "UNDER_REVIEW" : "DRAFT",
+  updated_at: `${DAY}07T10:00:00+08:00`,
+}));
+
+export const registrationDocuments: RegistrationDocument[] = teams.flatMap((team) => {
+  const player = players.find((item) => item.team_id === team.id);
+  if (!player) return [];
+  return [
+    {
+      id: `doc-${team.id}-1`,
+      entity_type: "PLAYER",
+      entity_id: player.id,
+      type: "IDENTITY",
+      file_name: `${player.full_name.replaceAll(" ", "-")}-identitas.pdf`,
+      storage_ref: `demo-private/${player.id}/identity.pdf`,
+      status: team.id === "tm-m1" ? "APPROVED" : "REVISION_REQUIRED",
+      uploaded_at: `${DAY}07T10:30:00+08:00`,
+      ...(team.id !== "tm-m1"
+        ? { revision_reason: "Dokumen identitas tidak terbaca. Silakan unggah ulang." }
+        : {}),
+    } satisfies RegistrationDocument,
+  ];
+});
+
+export const verificationHistory: VerificationHistory[] = [];

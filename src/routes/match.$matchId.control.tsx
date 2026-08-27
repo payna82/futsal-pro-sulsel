@@ -193,7 +193,9 @@ function MatchControlRoute() {
   const statusPermission = (to: MatchStatus) =>
     to === "CONFIRMED" ? canConfirm : to === "PUBLISHED" ? canPublish : canManage;
 
-  const submitEvent = (input: Omit<NewMatchEventInput, "match_id" | "operator_id">) => {
+  const submitEvent = (
+    input: Omit<NewMatchEventInput, "match_id" | "operator_id" | "command_id">,
+  ) => {
     if (!session.user) return;
     if (!canRecord) {
       toast.error("Anda tidak memiliki izin mencatat kejadian.");
@@ -203,6 +205,7 @@ function MatchControlRoute() {
       ...input,
       match_id: matchId,
       operator_id: session.user.id,
+      command_id: `event-${matchId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
     };
     const error = validateMatchEvent(payload, {
       status: m.status,
