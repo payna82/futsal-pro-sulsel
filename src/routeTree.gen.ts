@@ -10,33 +10,205 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HasilRouteImport } from './routes/hasil'
+import { Route as JadwalRouteImport } from './routes/jadwal'
+import { Route as KlasemenRouteImport } from './routes/klasemen'
+import { Route as LiveRouteImport } from './routes/live'
+import { Route as MasukRouteImport } from './routes/masuk'
+import { Route as PemainRouteImport } from './routes/pemain'
+import { Route as PutraRouteImport } from './routes/putra'
+import { Route as PutriRouteImport } from './routes/putri'
+import { Route as TimRouteImport } from './routes/tim'
+import { Route as TopSkorRouteImport } from './routes/top-skor'
+import { Route as VenueRouteImport } from './routes/venue'
+import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
+import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HasilRoute = HasilRouteImport.update({
+  id: '/hasil',
+  path: '/hasil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JadwalRoute = JadwalRouteImport.update({
+  id: '/jadwal',
+  path: '/jadwal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KlasemenRoute = KlasemenRouteImport.update({
+  id: '/klasemen',
+  path: '/klasemen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasukRoute = MasukRouteImport.update({
+  id: '/masuk',
+  path: '/masuk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PemainRoute = PemainRouteImport.update({
+  id: '/pemain',
+  path: '/pemain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PutraRoute = PutraRouteImport.update({
+  id: '/putra',
+  path: '/putra',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PutriRoute = PutriRouteImport.update({
+  id: '/putri',
+  path: '/putri',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimRoute = TimRouteImport.update({
+  id: '/tim',
+  path: '/tim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopSkorRoute = TopSkorRouteImport.update({
+  id: '/top-skor',
+  path: '/top-skor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VenueRoute = VenueRouteImport.update({
+  id: '/venue',
+  path: '/venue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PertandinganMatchIdRoute = PertandinganMatchIdRouteImport.update({
+  id: '/pertandingan/$matchId',
+  path: '/pertandingan/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimTeamIdRoute = TimTeamIdRouteImport.update({
+  id: '/$teamId',
+  path: '/$teamId',
+  getParentRoute: () => TimRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/hasil': typeof HasilRoute
+  '/jadwal': typeof JadwalRoute
+  '/klasemen': typeof KlasemenRoute
+  '/live': typeof LiveRoute
+  '/masuk': typeof MasukRoute
+  '/pemain': typeof PemainRoute
+  '/putra': typeof PutraRoute
+  '/putri': typeof PutriRoute
+  '/tim': typeof TimRouteWithChildren
+  '/top-skor': typeof TopSkorRoute
+  '/venue': typeof VenueRoute
+  '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
+  '/tim/$teamId': typeof TimTeamIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/hasil': typeof HasilRoute
+  '/jadwal': typeof JadwalRoute
+  '/klasemen': typeof KlasemenRoute
+  '/live': typeof LiveRoute
+  '/masuk': typeof MasukRoute
+  '/pemain': typeof PemainRoute
+  '/putra': typeof PutraRoute
+  '/putri': typeof PutriRoute
+  '/tim': typeof TimRouteWithChildren
+  '/top-skor': typeof TopSkorRoute
+  '/venue': typeof VenueRoute
+  '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
+  '/tim/$teamId': typeof TimTeamIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/hasil': typeof HasilRoute
+  '/jadwal': typeof JadwalRoute
+  '/klasemen': typeof KlasemenRoute
+  '/live': typeof LiveRoute
+  '/masuk': typeof MasukRoute
+  '/pemain': typeof PemainRoute
+  '/putra': typeof PutraRoute
+  '/putri': typeof PutriRoute
+  '/tim': typeof TimRouteWithChildren
+  '/top-skor': typeof TopSkorRoute
+  '/venue': typeof VenueRoute
+  '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
+  '/tim/$teamId': typeof TimTeamIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/hasil'
+    | '/jadwal'
+    | '/klasemen'
+    | '/live'
+    | '/masuk'
+    | '/pemain'
+    | '/putra'
+    | '/putri'
+    | '/tim'
+    | '/top-skor'
+    | '/venue'
+    | '/pertandingan/$matchId'
+    | '/tim/$teamId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/hasil'
+    | '/jadwal'
+    | '/klasemen'
+    | '/live'
+    | '/masuk'
+    | '/pemain'
+    | '/putra'
+    | '/putri'
+    | '/tim'
+    | '/top-skor'
+    | '/venue'
+    | '/pertandingan/$matchId'
+    | '/tim/$teamId'
+  id:
+    | '__root__'
+    | '/'
+    | '/hasil'
+    | '/jadwal'
+    | '/klasemen'
+    | '/live'
+    | '/masuk'
+    | '/pemain'
+    | '/putra'
+    | '/putri'
+    | '/tim'
+    | '/top-skor'
+    | '/venue'
+    | '/pertandingan/$matchId'
+    | '/tim/$teamId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HasilRoute: typeof HasilRoute
+  JadwalRoute: typeof JadwalRoute
+  KlasemenRoute: typeof KlasemenRoute
+  LiveRoute: typeof LiveRoute
+  MasukRoute: typeof MasukRoute
+  PemainRoute: typeof PemainRoute
+  PutraRoute: typeof PutraRoute
+  PutriRoute: typeof PutriRoute
+  TimRoute: typeof TimRouteWithChildren
+  TopSkorRoute: typeof TopSkorRoute
+  VenueRoute: typeof VenueRoute
+  PertandinganMatchIdRoute: typeof PertandinganMatchIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +220,124 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hasil': {
+      id: '/hasil'
+      path: '/hasil'
+      fullPath: '/hasil'
+      preLoaderRoute: typeof HasilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jadwal': {
+      id: '/jadwal'
+      path: '/jadwal'
+      fullPath: '/jadwal'
+      preLoaderRoute: typeof JadwalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/klasemen': {
+      id: '/klasemen'
+      path: '/klasemen'
+      fullPath: '/klasemen'
+      preLoaderRoute: typeof KlasemenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/masuk': {
+      id: '/masuk'
+      path: '/masuk'
+      fullPath: '/masuk'
+      preLoaderRoute: typeof MasukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pemain': {
+      id: '/pemain'
+      path: '/pemain'
+      fullPath: '/pemain'
+      preLoaderRoute: typeof PemainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/putra': {
+      id: '/putra'
+      path: '/putra'
+      fullPath: '/putra'
+      preLoaderRoute: typeof PutraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/putri': {
+      id: '/putri'
+      path: '/putri'
+      fullPath: '/putri'
+      preLoaderRoute: typeof PutriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tim': {
+      id: '/tim'
+      path: '/tim'
+      fullPath: '/tim'
+      preLoaderRoute: typeof TimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/top-skor': {
+      id: '/top-skor'
+      path: '/top-skor'
+      fullPath: '/top-skor'
+      preLoaderRoute: typeof TopSkorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/venue': {
+      id: '/venue'
+      path: '/venue'
+      fullPath: '/venue'
+      preLoaderRoute: typeof VenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pertandingan/$matchId': {
+      id: '/pertandingan/$matchId'
+      path: '/pertandingan/$matchId'
+      fullPath: '/pertandingan/$matchId'
+      preLoaderRoute: typeof PertandinganMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tim/$teamId': {
+      id: '/tim/$teamId'
+      path: '/$teamId'
+      fullPath: '/tim/$teamId'
+      preLoaderRoute: typeof TimTeamIdRouteImport
+      parentRoute: typeof TimRoute
+    }
   }
 }
 
+interface TimRouteChildren {
+  TimTeamIdRoute: typeof TimTeamIdRoute
+}
+
+const TimRouteChildren: TimRouteChildren = {
+  TimTeamIdRoute: TimTeamIdRoute,
+}
+
+const TimRouteWithChildren = TimRoute._addFileChildren(TimRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HasilRoute: HasilRoute,
+  JadwalRoute: JadwalRoute,
+  KlasemenRoute: KlasemenRoute,
+  LiveRoute: LiveRoute,
+  MasukRoute: MasukRoute,
+  PemainRoute: PemainRoute,
+  PutraRoute: PutraRoute,
+  PutriRoute: PutriRoute,
+  TimRoute: TimRouteWithChildren,
+  TopSkorRoute: TopSkorRoute,
+  VenueRoute: VenueRoute,
+  PertandinganMatchIdRoute: PertandinganMatchIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
