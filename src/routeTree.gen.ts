@@ -30,6 +30,7 @@ import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminOfficialsRouteImport } from './routes/admin.officials'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminScheduleRouteImport } from './routes/admin.schedule'
 import { Route as AdminStatisticsRouteImport } from './routes/admin.statistics'
 import { Route as AdminTeamsRouteImport } from './routes/admin.teams'
@@ -144,6 +145,11 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminScheduleRoute = AdminScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/roles': typeof AdminRolesRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByTo {
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/roles': typeof AdminRolesRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/roles': typeof AdminRolesRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/admin/officials'
     | '/admin/players'
     | '/admin/reports'
+    | '/admin/roles'
     | '/admin/schedule'
     | '/admin/statistics'
     | '/admin/teams'
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/officials'
     | '/admin/players'
     | '/admin/reports'
+    | '/admin/roles'
     | '/admin/schedule'
     | '/admin/statistics'
     | '/admin/teams'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/admin/officials'
     | '/admin/players'
     | '/admin/reports'
+    | '/admin/roles'
     | '/admin/schedule'
     | '/admin/statistics'
     | '/admin/teams'
@@ -540,6 +552,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/schedule': {
       id: '/admin/schedule'
       path: '/schedule'
@@ -607,6 +626,7 @@ interface AdminRouteChildren {
   AdminOfficialsRoute: typeof AdminOfficialsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminRolesRoute: typeof AdminRolesRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
   AdminStatisticsRoute: typeof AdminStatisticsRoute
   AdminTeamsRoute: typeof AdminTeamsRoute
@@ -623,6 +643,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOfficialsRoute: AdminOfficialsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminReportsRoute: AdminReportsRoute,
+  AdminRolesRoute: AdminRolesRoute,
   AdminScheduleRoute: AdminScheduleRoute,
   AdminStatisticsRoute: AdminStatisticsRoute,
   AdminTeamsRoute: AdminTeamsRoute,
