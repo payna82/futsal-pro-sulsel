@@ -36,6 +36,7 @@ import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminScheduleRouteImport } from './routes/admin.schedule'
 import { Route as AdminStatisticsRouteImport } from './routes/admin.statistics'
 import { Route as AdminTeamsRouteImport } from './routes/admin.teams'
+import { Route as AdminTournamentsRouteImport } from './routes/admin.tournaments'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminVenuesRouteImport } from './routes/admin.venues'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
@@ -177,6 +178,11 @@ const AdminTeamsRoute = AdminTeamsRouteImport.update({
   path: '/teams',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTournamentsRoute = AdminTournamentsRouteImport.update({
+  id: '/tournaments',
+  path: '/tournaments',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
+  '/admin/tournaments': typeof AdminTournamentsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
+  '/admin/tournaments': typeof AdminTournamentsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
+  '/admin/tournaments': typeof AdminTournamentsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/admin/schedule'
     | '/admin/statistics'
     | '/admin/teams'
+    | '/admin/tournaments'
     | '/admin/users'
     | '/admin/venues'
     | '/pertandingan/$matchId'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin/schedule'
     | '/admin/statistics'
     | '/admin/teams'
+    | '/admin/tournaments'
     | '/admin/users'
     | '/admin/venues'
     | '/pertandingan/$matchId'
@@ -401,6 +412,7 @@ export interface FileRouteTypes {
     | '/admin/schedule'
     | '/admin/statistics'
     | '/admin/teams'
+    | '/admin/tournaments'
     | '/admin/users'
     | '/admin/venues'
     | '/pertandingan/$matchId'
@@ -618,6 +630,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTeamsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tournaments': {
+      id: '/admin/tournaments'
+      path: '/tournaments'
+      fullPath: '/admin/tournaments'
+      preLoaderRoute: typeof AdminTournamentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -670,6 +689,7 @@ interface AdminRouteChildren {
   AdminScheduleRoute: typeof AdminScheduleRoute
   AdminStatisticsRoute: typeof AdminStatisticsRoute
   AdminTeamsRoute: typeof AdminTeamsRoute
+  AdminTournamentsRoute: typeof AdminTournamentsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVenuesRoute: typeof AdminVenuesRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -689,6 +709,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminScheduleRoute: AdminScheduleRoute,
   AdminStatisticsRoute: AdminStatisticsRoute,
   AdminTeamsRoute: AdminTeamsRoute,
+  AdminTournamentsRoute: AdminTournamentsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVenuesRoute: AdminVenuesRoute,
   AdminIndexRoute: AdminIndexRoute,
