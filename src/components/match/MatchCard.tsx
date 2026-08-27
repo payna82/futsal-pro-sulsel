@@ -71,7 +71,9 @@ export function MatchCard({
           {venueName} • Lap. {match.court}
         </span>
         {isLive ? (
-          <span className="clock-numeral ml-auto text-live">{formatClock(match.clock_seconds)}</span>
+          <span className="clock-numeral ml-auto text-live">
+            {formatClock(match.clock_seconds)}
+          </span>
         ) : null}
       </div>
     </Link>

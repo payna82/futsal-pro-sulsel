@@ -41,7 +41,11 @@ function AdminPlayersRoute() {
   const rows = (players.data ?? []).filter((p) => teamIds.has(p.team_id));
 
   const columns: Column<Player>[] = [
-    { key: "no", header: "No", cell: (p) => <span className="score-numeral">{p.jersey_number}</span> },
+    {
+      key: "no",
+      header: "No",
+      cell: (p) => <span className="score-numeral">{p.jersey_number}</span>,
+    },
     {
       key: "name",
       header: "Nama Pemain",
@@ -59,17 +63,30 @@ function AdminPlayersRoute() {
       hideOnMobile: true,
       cell: () => data.categories.find((c) => c.id === categoryId)?.name ?? "—",
     },
-    { key: "position", header: "Posisi", hideOnMobile: true, cell: (p) => POSITION_LABEL[p.position] },
+    {
+      key: "position",
+      header: "Posisi",
+      hideOnMobile: true,
+      cell: (p) => POSITION_LABEL[p.position],
+    },
     {
       key: "eligibility",
       header: "Keabsahan",
       cell: (p) => (
-        <span className={p.nik_verified ? "label-caps text-success" : "label-caps text-warning-foreground"}>
+        <span
+          className={
+            p.nik_verified ? "label-caps text-success" : "label-caps text-warning-foreground"
+          }
+        >
           {p.nik_verified ? "Terverifikasi" : "Belum Diverifikasi"}
         </span>
       ),
     },
-    { key: "status", header: "Registrasi", cell: (p) => <span className="label-caps">{STATUS_LABEL[p.status]}</span> },
+    {
+      key: "status",
+      header: "Registrasi",
+      cell: (p) => <span className="label-caps">{STATUS_LABEL[p.status]}</span>,
+    },
   ];
 
   return (

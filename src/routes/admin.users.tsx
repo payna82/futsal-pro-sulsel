@@ -36,7 +36,9 @@ function AdminUsersRoute() {
       key: "status",
       header: "Status",
       cell: (u) => (
-        <span className={u.is_active ? "label-caps text-success" : "label-caps text-muted-foreground"}>
+        <span
+          className={u.is_active ? "label-caps text-success" : "label-caps text-muted-foreground"}
+        >
           {u.is_active ? "Aktif" : "Non-aktif"}
         </span>
       ),

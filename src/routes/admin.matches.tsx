@@ -21,7 +21,11 @@ function AdminMatchesRoute() {
   const data = useCompetitionData();
 
   const columns: Column<Match>[] = [
-    { key: "no", header: "No", cell: (m) => <span className="score-numeral">#{m.match_number}</span> },
+    {
+      key: "no",
+      header: "No",
+      cell: (m) => <span className="score-numeral">#{m.match_number}</span>,
+    },
     {
       key: "category",
       header: "Nomor",
@@ -31,7 +35,12 @@ function AdminMatchesRoute() {
     { key: "stage", header: "Babak", hideOnMobile: true, cell: (m) => data.groupName(m.group_id) },
     { key: "home", header: "Tuan Rumah", cell: (m) => data.teamName(m.home_team_id) },
     { key: "away", header: "Tamu", cell: (m) => data.teamName(m.away_team_id) },
-    { key: "date", header: "Tanggal", hideOnMobile: true, cell: (m) => formatShortDate(m.kickoff_at) },
+    {
+      key: "date",
+      header: "Tanggal",
+      hideOnMobile: true,
+      cell: (m) => formatShortDate(m.kickoff_at),
+    },
     { key: "time", header: "Jam", hideOnMobile: true, cell: (m) => formatTime(m.kickoff_at) },
     {
       key: "venue",

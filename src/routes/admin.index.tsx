@@ -99,12 +99,7 @@ function AdminDashboardRoute() {
         <StatCard label="Pertandingan Hari Ini" value={today.length} icon={CalendarDays} />
         <StatCard label="Sedang Berlangsung" value={live.length} icon={Activity} tone="live" />
         <StatCard label="Akan Datang" value={upcoming.length} icon={CalendarCheck} />
-        <StatCard
-          label="Selesai"
-          value={finished.length}
-          icon={CircleCheck}
-          tone="success"
-        />
+        <StatCard label="Selesai" value={finished.length} icon={CircleCheck} tone="success" />
         <StatCard label="Kontingen" value={contingents.data?.length ?? 0} icon={Building2} />
         <StatCard label="Tim Terdaftar" value={data.teams.length} icon={UsersRound} />
         <StatCard label="Pemain Terdaftar" value={players.data?.length ?? 0} icon={Users} />

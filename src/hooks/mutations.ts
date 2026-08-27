@@ -48,12 +48,8 @@ export function useUpdateMatchClock(matchId: UUID) {
 export function useUpdateMatchSchedule() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: {
-      match_id: UUID;
-      kickoff_at?: string;
-      venue_id?: UUID;
-      court?: number;
-    }) => repository.updateMatchSchedule(input),
+    mutationFn: (input: { match_id: UUID; kickoff_at?: string; venue_id?: UUID; court?: number }) =>
+      repository.updateMatchSchedule(input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["matches"] }),
   });
 }

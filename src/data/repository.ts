@@ -1,7 +1,6 @@
 import type { NewMatchEventInput } from "@/domain/match-operations";
 import type { MatchOfficialRole, MatchStatus } from "@/domain/types";
 import type {
-
   AuditLog,
   Category,
   Contingent,
@@ -67,4 +66,3 @@ export interface CompetitionRepository {
     operator_id: UUID;
   }): Promise<MatchOfficial[]>;
 }
-

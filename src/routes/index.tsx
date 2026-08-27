@@ -65,7 +65,11 @@ function HomePage() {
               <Radio className="size-4" /> Skor Langsung
             </Link>
           </Button>
-          <Button asChild variant="outline" className="border-white/25 bg-transparent text-pitch-foreground hover:bg-white/10 hover:text-pitch-foreground">
+          <Button
+            asChild
+            variant="outline"
+            className="border-white/25 bg-transparent text-pitch-foreground hover:bg-white/10 hover:text-pitch-foreground"
+          >
             <Link to="/jadwal">
               <CalendarDays className="size-4" /> Jadwal Pertandingan
             </Link>

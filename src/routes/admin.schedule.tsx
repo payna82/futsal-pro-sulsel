@@ -62,7 +62,11 @@ function AdminScheduleRoute() {
     .sort((a, b) => a.kickoff_at.localeCompare(b.kickoff_at));
 
   const columns: Column<Match>[] = [
-    { key: "no", header: "No", cell: (m) => <span className="score-numeral">#{m.match_number}</span> },
+    {
+      key: "no",
+      header: "No",
+      cell: (m) => <span className="score-numeral">#{m.match_number}</span>,
+    },
     {
       key: "category",
       header: "Nomor",
@@ -107,10 +111,42 @@ function AdminScheduleRoute() {
       isLoading={data.isLoading}
     >
       <div className="mt-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <FilterSelect label="Nomor" value={category} onChange={setCategory} options={[{ value: ALL, label: "Semua nomor" }, ...data.categories.map((c) => ({ value: c.id, label: c.name }))]} />
-        <FilterSelect label="Venue" value={venue} onChange={setVenue} options={[{ value: ALL, label: "Semua venue" }, ...data.venues.map((v) => ({ value: v.id, label: v.name }))]} />
-        <FilterSelect label="Status" value={status} onChange={setStatus} options={[{ value: ALL, label: "Semua status" }, ...MATCH_STATUSES.map((s) => ({ value: s, label: MATCH_STATUS_LABEL[s] }))]} />
-        <FilterSelect label="Tanggal" value={day} onChange={setDay} options={[{ value: ALL, label: "Semua tanggal" }, ...days.map((d) => ({ value: d, label: formatShortDate(d) }))]} />
+        <FilterSelect
+          label="Nomor"
+          value={category}
+          onChange={setCategory}
+          options={[
+            { value: ALL, label: "Semua nomor" },
+            ...data.categories.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
+        <FilterSelect
+          label="Venue"
+          value={venue}
+          onChange={setVenue}
+          options={[
+            { value: ALL, label: "Semua venue" },
+            ...data.venues.map((v) => ({ value: v.id, label: v.name })),
+          ]}
+        />
+        <FilterSelect
+          label="Status"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: ALL, label: "Semua status" },
+            ...MATCH_STATUSES.map((s) => ({ value: s, label: MATCH_STATUS_LABEL[s] })),
+          ]}
+        />
+        <FilterSelect
+          label="Tanggal"
+          value={day}
+          onChange={setDay}
+          options={[
+            { value: ALL, label: "Semua tanggal" },
+            ...days.map((d) => ({ value: d, label: formatShortDate(d) })),
+          ]}
+        />
       </div>
 
       <div className="mt-4">
@@ -136,7 +172,8 @@ function AdminScheduleRoute() {
               toast.success("Jadwal diperbarui.");
               setEditing(null);
             },
-            onError: (err) => toast.error(err instanceof Error ? err.message : "Gagal memperbarui jadwal."),
+            onError: (err) =>
+              toast.error(err instanceof Error ? err.message : "Gagal memperbarui jadwal."),
           });
         }}
       />
@@ -185,7 +222,12 @@ function EditScheduleDialog({
   onClose: () => void;
   venues: Array<{ id: string; name: string; courts: number }>;
   isPending: boolean;
-  onSubmit: (input: { match_id: string; kickoff_at?: string; venue_id?: string; court?: number }) => void;
+  onSubmit: (input: {
+    match_id: string;
+    kickoff_at?: string;
+    venue_id?: string;
+    court?: number;
+  }) => void;
 }) {
   const [kickoff, setKickoff] = useState("");
   const [venueId, setVenueId] = useState("");

@@ -76,8 +76,8 @@ export function MatchEventDialog({
   const submit = () => {
     if (!type) return;
     const metadata: Record<string, string> = {};
-    if (type === "CARD") metadata['card'] = card;
-    if (type === "SUBSTITUTION") metadata['player_in'] = playerIn;
+    if (type === "CARD") metadata["card"] = card;
+    if (type === "SUBSTITUTION") metadata["player_in"] = playerIn;
     onSubmit({
       type,
       period,

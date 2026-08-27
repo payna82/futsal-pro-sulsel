@@ -111,7 +111,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 hidden w-64 overflow-y-auto bg-sidebar lg:block">
-        <Link to="/admin" className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
+        <Link
+          to="/admin"
+          className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4"
+        >
           <span className="flex size-9 items-center justify-center rounded-sm bg-sidebar-primary text-sidebar-primary-foreground">
             <span className="score-numeral text-base">PS</span>
           </span>
@@ -127,7 +130,12 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-card px-4">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button size="icon" variant="ghost" className="lg:hidden" aria-label="Buka menu admin">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="lg:hidden"
+                aria-label="Buka menu admin"
+              >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>

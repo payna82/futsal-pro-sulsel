@@ -34,21 +34,31 @@ function AdminOfficialsRoute() {
   const users = useQuery(usersQuery());
 
   const teamColumns: Column<TeamOfficial>[] = [
-    { key: "name", header: "Nama", cell: (o) => <span className="font-medium">{o.full_name}</span> },
+    {
+      key: "name",
+      header: "Nama",
+      cell: (o) => <span className="font-medium">{o.full_name}</span>,
+    },
     { key: "role", header: "Peran", cell: (o) => TEAM_ROLE_LABEL[o.role] },
     { key: "team", header: "Tim", cell: (o) => data.teamName(o.team_id) },
     { key: "license", header: "Lisensi", hideOnMobile: true, cell: (o) => o.license_number ?? "—" },
   ];
 
   const matchColumns: Column<User>[] = [
-    { key: "name", header: "Nama", cell: (u) => <span className="font-medium">{u.full_name}</span> },
+    {
+      key: "name",
+      header: "Nama",
+      cell: (u) => <span className="font-medium">{u.full_name}</span>,
+    },
     { key: "role", header: "Peran", cell: (u) => ROLE_LABEL[u.role] },
     { key: "email", header: "Email", hideOnMobile: true, cell: (u) => u.email },
     {
       key: "status",
       header: "Status",
       cell: (u) => (
-        <span className={u.is_active ? "label-caps text-success" : "label-caps text-muted-foreground"}>
+        <span
+          className={u.is_active ? "label-caps text-success" : "label-caps text-muted-foreground"}
+        >
           {u.is_active ? "Aktif" : "Non-aktif"}
         </span>
       ),

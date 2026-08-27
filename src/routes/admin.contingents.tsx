@@ -35,7 +35,11 @@ function AdminContingentsRoute() {
   };
 
   const columns: Column<Contingent>[] = [
-    { key: "name", header: "Kontingen", cell: (c) => <span className="font-semibold">{c.name}</span> },
+    {
+      key: "name",
+      header: "Kontingen",
+      cell: (c) => <span className="font-semibold">{c.name}</span>,
+    },
     { key: "region", header: "Kode Wilayah", hideOnMobile: true, cell: (c) => c.region_code },
     { key: "teams", header: "Tim", cell: (c) => teamsOf(c.id).length },
     { key: "players", header: "Pemain", cell: (c) => playerCount(c.id) },

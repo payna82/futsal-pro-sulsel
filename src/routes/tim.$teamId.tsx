@@ -59,9 +59,7 @@ function TeamDetailPage() {
   const team = teams.find((t) => t.id === teamId);
   const squad = players.filter((p) => p.team_id === teamId);
   const staff = officials.filter((o) => o.team_id === teamId);
-  const teamMatches = matches.filter(
-    (m) => m.home_team_id === teamId || m.away_team_id === teamId,
-  );
+  const teamMatches = matches.filter((m) => m.home_team_id === teamId || m.away_team_id === teamId);
 
   if (!team) {
     return (

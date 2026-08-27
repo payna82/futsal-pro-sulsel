@@ -14,13 +14,7 @@ const STYLES: Record<MatchStatus, string> = {
   PUBLISHED: "bg-success text-success-foreground border-success",
 };
 
-export function StatusBadge({
-  status,
-  className,
-}: {
-  status: MatchStatus;
-  className?: string;
-}) {
+export function StatusBadge({ status, className }: { status: MatchStatus; className?: string }) {
   return (
     <span
       className={cn(

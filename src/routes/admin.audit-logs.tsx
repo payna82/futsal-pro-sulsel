@@ -23,9 +23,18 @@ function AdminAuditLogsRoute() {
   const columns: Column<AuditLog>[] = [
     { key: "time", header: "Waktu", cell: (l) => formatDateTime(l.created_at) },
     { key: "actor", header: "Aktor", cell: (l) => l.actor_name },
-    { key: "action", header: "Aksi", cell: (l) => <code className="font-mono text-xs">{l.action}</code> },
+    {
+      key: "action",
+      header: "Aksi",
+      cell: (l) => <code className="font-mono text-xs">{l.action}</code>,
+    },
     { key: "entity", header: "Sumber Daya", hideOnMobile: true, cell: (l) => l.entity },
-    { key: "entity_id", header: "ID", hideOnMobile: true, cell: (l) => <code className="font-mono text-xs">{l.entity_id}</code> },
+    {
+      key: "entity_id",
+      header: "ID",
+      hideOnMobile: true,
+      cell: (l) => <code className="font-mono text-xs">{l.entity_id}</code>,
+    },
     { key: "summary", header: "Hasil", cell: (l) => l.summary },
   ];
 
