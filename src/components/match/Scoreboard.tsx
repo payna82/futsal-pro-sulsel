@@ -12,8 +12,8 @@ export interface ScoreboardProps {
   period: MatchPeriod;
   status: MatchStatus;
   clockSeconds: number;
-  homeFouls?: number;
-  awayFouls?: number;
+  homeFouls?: number | undefined;
+  awayFouls?: number | undefined;
   size?: "compact" | "full";
   className?: string;
 }
@@ -89,7 +89,7 @@ function TeamSide({
 }: {
   name: string;
   short: string;
-  fouls?: number;
+  fouls?: number | undefined;
   align: "left" | "right";
 }) {
   return (

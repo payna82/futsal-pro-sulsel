@@ -157,7 +157,7 @@ export interface Match {
   id: UUID;
   tournament_id: UUID;
   category_id: UUID;
-  group_id?: UUID;
+  group_id?: UUID | undefined;
   match_number: number;
   home_team_id: UUID;
   away_team_id: UUID;

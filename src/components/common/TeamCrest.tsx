@@ -7,7 +7,7 @@ export function TeamCrest({
   className,
 }: {
   shortName: string;
-  color?: string;
+  color?: string | undefined;
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as HasilRouteImport } from './routes/hasil'
 import { Route as JadwalRouteImport } from './routes/jadwal'
 import { Route as KlasemenRouteImport } from './routes/klasemen'
@@ -23,10 +24,16 @@ import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
 import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
+import { Route as MatchMatchIdControlRouteImport } from './routes/match.$matchId.control'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HasilRoute = HasilRouteImport.update({
@@ -94,9 +101,15 @@ const TimTeamIdRoute = TimTeamIdRouteImport.update({
   path: '/$teamId',
   getParentRoute: () => TimRoute,
 } as any)
+const MatchMatchIdControlRoute = MatchMatchIdControlRouteImport.update({
+  id: '/match/$matchId/control',
+  path: '/match/$matchId/control',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -110,9 +123,11 @@ export interface FileRoutesByFullPath {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -126,10 +141,12 @@ export interface FileRoutesByTo {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -143,11 +160,13 @@ export interface FileRoutesById {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/hasil'
     | '/jadwal'
     | '/klasemen'
@@ -161,9 +180,11 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/match/$matchId/control'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/hasil'
     | '/jadwal'
     | '/klasemen'
@@ -177,9 +198,11 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/match/$matchId/control'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/hasil'
     | '/jadwal'
     | '/klasemen'
@@ -193,10 +216,12 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/match/$matchId/control'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   HasilRoute: typeof HasilRoute
   JadwalRoute: typeof JadwalRoute
   KlasemenRoute: typeof KlasemenRoute
@@ -209,6 +234,7 @@ export interface RootRouteChildren {
   TopSkorRoute: typeof TopSkorRoute
   VenueRoute: typeof VenueRoute
   PertandinganMatchIdRoute: typeof PertandinganMatchIdRoute
+  MatchMatchIdControlRoute: typeof MatchMatchIdControlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -218,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hasil': {
@@ -311,6 +344,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimTeamIdRouteImport
       parentRoute: typeof TimRoute
     }
+    '/match/$matchId/control': {
+      id: '/match/$matchId/control'
+      path: '/match/$matchId/control'
+      fullPath: '/match/$matchId/control'
+      preLoaderRoute: typeof MatchMatchIdControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -326,6 +366,7 @@ const TimRouteWithChildren = TimRoute._addFileChildren(TimRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   HasilRoute: HasilRoute,
   JadwalRoute: JadwalRoute,
   KlasemenRoute: KlasemenRoute,
@@ -338,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   TopSkorRoute: TopSkorRoute,
   VenueRoute: VenueRoute,
   PertandinganMatchIdRoute: PertandinganMatchIdRoute,
+  MatchMatchIdControlRoute: MatchMatchIdControlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
