@@ -22,6 +22,7 @@ import { Route as PutriRouteImport } from './routes/putri'
 import { Route as TimRouteImport } from './routes/tim'
 import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
 import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
 import { Route as MatchMatchIdControlRouteImport } from './routes/match.$matchId.control'
@@ -91,6 +92,11 @@ const VenueRoute = VenueRouteImport.update({
   path: '/venue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PertandinganMatchIdRoute = PertandinganMatchIdRouteImport.update({
   id: '/pertandingan/$matchId',
   path: '/pertandingan/$matchId',
@@ -109,7 +115,7 @@ const MatchMatchIdControlRoute = MatchMatchIdControlRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -123,11 +129,11 @@ export interface FileRoutesByFullPath {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -141,12 +147,13 @@ export interface FileRoutesByTo {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/admin': typeof AdminIndexRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -160,6 +167,7 @@ export interface FileRoutesById {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRouteTypes {
@@ -180,11 +188,11 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/admin/'
     | '/match/$matchId/control'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/hasil'
     | '/jadwal'
     | '/klasemen'
@@ -198,6 +206,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/admin'
     | '/match/$matchId/control'
   id:
     | '__root__'
@@ -216,12 +225,13 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/admin/'
     | '/match/$matchId/control'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   HasilRoute: typeof HasilRoute
   JadwalRoute: typeof JadwalRoute
   KlasemenRoute: typeof KlasemenRoute
@@ -330,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/pertandingan/$matchId': {
       id: '/pertandingan/$matchId'
       path: '/pertandingan/$matchId'
@@ -354,6 +371,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface TimRouteChildren {
   TimTeamIdRoute: typeof TimTeamIdRoute
 }
@@ -366,7 +393,7 @@ const TimRouteWithChildren = TimRoute._addFileChildren(TimRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   HasilRoute: HasilRoute,
   JadwalRoute: JadwalRoute,
   KlasemenRoute: KlasemenRoute,
