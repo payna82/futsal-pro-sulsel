@@ -23,8 +23,8 @@ export function MatchCard({
   awayName: string;
   homeShort: string;
   awayShort: string;
-  homeColor?: string;
-  awayColor?: string;
+  homeColor?: string | undefined;
+  awayColor?: string | undefined;
   venueName: string;
   groupName: string;
 }) {
@@ -87,8 +87,8 @@ function TeamRow({
 }: {
   name: string;
   short: string;
-  color?: string;
-  score?: number;
+  color?: string | undefined;
+  score?: number | undefined;
   winner: boolean;
 }) {
   return (
