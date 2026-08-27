@@ -40,4 +40,28 @@ export interface CompetitionRepository {
   listTopScorers(categoryId: UUID): Promise<TopScorerRow[]>;
   listUsers(): Promise<User[]>;
   listAuditLogs(): Promise<AuditLog[]>;
+
+  /* ------------------------------- Mutations ------------------------------ */
+  /** Menyimpan event pertandingan (immutable append) dan menurunkan ulang skor. */
+  recordMatchEvent(input: NewMatchEventInput): Promise<MatchEvent>;
+  /** Perpindahan status. Transisi ilegal ditolak. */
+  transitionMatchStatus(input: {
+    match_id: UUID;
+    to: MatchStatus;
+    operator_id: UUID;
+  }): Promise<Match>;
+  updateMatchClock(input: { match_id: UUID; clock_seconds: number }): Promise<Match>;
+  updateMatchSchedule(input: {
+    match_id: UUID;
+    kickoff_at?: string;
+    venue_id?: UUID;
+    court?: number;
+  }): Promise<Match>;
+  assignMatchOfficial(input: {
+    match_id: UUID;
+    role: MatchOfficialRole;
+    user_id: UUID;
+    operator_id: UUID;
+  }): Promise<MatchOfficial[]>;
 }
+
