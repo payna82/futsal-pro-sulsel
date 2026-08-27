@@ -13,9 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as HasilRouteImport } from './routes/hasil'
 import { Route as JadwalRouteImport } from './routes/jadwal'
 import { Route as KlasemenRouteImport } from './routes/klasemen'
+import { Route as PemainRouteImport } from './routes/pemain'
 import { Route as PutraRouteImport } from './routes/putra'
 import { Route as PutriRouteImport } from './routes/putri'
+import { Route as TimRouteImport } from './routes/tim'
+import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
+import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +41,11 @@ const KlasemenRoute = KlasemenRouteImport.update({
   path: '/klasemen',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PemainRoute = PemainRouteImport.update({
+  id: '/pemain',
+  path: '/pemain',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PutraRoute = PutraRouteImport.update({
   id: '/putra',
   path: '/putra',
@@ -47,10 +56,25 @@ const PutriRoute = PutriRouteImport.update({
   path: '/putri',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TimRoute = TimRouteImport.update({
+  id: '/tim',
+  path: '/tim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopSkorRoute = TopSkorRouteImport.update({
+  id: '/top-skor',
+  path: '/top-skor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VenueRoute = VenueRouteImport.update({
   id: '/venue',
   path: '/venue',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TimTeamIdRoute = TimTeamIdRouteImport.update({
+  id: '/$teamId',
+  path: '/$teamId',
+  getParentRoute: () => TimRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -58,18 +82,26 @@ export interface FileRoutesByFullPath {
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
+  '/pemain': typeof PemainRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/tim': typeof TimRouteWithChildren
+  '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/tim/$teamId': typeof TimTeamIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
+  '/pemain': typeof PemainRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/tim': typeof TimRouteWithChildren
+  '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/tim/$teamId': typeof TimTeamIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,25 +109,54 @@ export interface FileRoutesById {
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
+  '/pemain': typeof PemainRoute
   '/putra': typeof PutraRoute
   '/putri': typeof PutriRoute
+  '/tim': typeof TimRouteWithChildren
+  '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/tim/$teamId': typeof TimTeamIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/hasil' | '/jadwal' | '/klasemen' | '/putra' | '/putri' | '/venue'
+    | '/'
+    | '/hasil'
+    | '/jadwal'
+    | '/klasemen'
+    | '/pemain'
+    | '/putra'
+    | '/putri'
+    | '/tim'
+    | '/top-skor'
+    | '/venue'
+    | '/tim/$teamId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hasil' | '/jadwal' | '/klasemen' | '/putra' | '/putri' | '/venue'
+  to:
+    | '/'
+    | '/hasil'
+    | '/jadwal'
+    | '/klasemen'
+    | '/pemain'
+    | '/putra'
+    | '/putri'
+    | '/tim'
+    | '/top-skor'
+    | '/venue'
+    | '/tim/$teamId'
   id:
     | '__root__'
     | '/'
     | '/hasil'
     | '/jadwal'
     | '/klasemen'
+    | '/pemain'
     | '/putra'
     | '/putri'
+    | '/tim'
+    | '/top-skor'
     | '/venue'
+    | '/tim/$teamId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -103,8 +164,11 @@ export interface RootRouteChildren {
   HasilRoute: typeof HasilRoute
   JadwalRoute: typeof JadwalRoute
   KlasemenRoute: typeof KlasemenRoute
+  PemainRoute: typeof PemainRoute
   PutraRoute: typeof PutraRoute
   PutriRoute: typeof PutriRoute
+  TimRoute: typeof TimRouteWithChildren
+  TopSkorRoute: typeof TopSkorRoute
   VenueRoute: typeof VenueRoute
 }
 
@@ -138,6 +202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KlasemenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pemain': {
+      id: '/pemain'
+      path: '/pemain'
+      fullPath: '/pemain'
+      preLoaderRoute: typeof PemainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/putra': {
       id: '/putra'
       path: '/putra'
@@ -152,6 +223,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PutriRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tim': {
+      id: '/tim'
+      path: '/tim'
+      fullPath: '/tim'
+      preLoaderRoute: typeof TimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/top-skor': {
+      id: '/top-skor'
+      path: '/top-skor'
+      fullPath: '/top-skor'
+      preLoaderRoute: typeof TopSkorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/venue': {
       id: '/venue'
       path: '/venue'
@@ -159,16 +244,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tim/$teamId': {
+      id: '/tim/$teamId'
+      path: '/$teamId'
+      fullPath: '/tim/$teamId'
+      preLoaderRoute: typeof TimTeamIdRouteImport
+      parentRoute: typeof TimRoute
+    }
   }
 }
+
+interface TimRouteChildren {
+  TimTeamIdRoute: typeof TimTeamIdRoute
+}
+
+const TimRouteChildren: TimRouteChildren = {
+  TimTeamIdRoute: TimTeamIdRoute,
+}
+
+const TimRouteWithChildren = TimRoute._addFileChildren(TimRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HasilRoute: HasilRoute,
   JadwalRoute: JadwalRoute,
   KlasemenRoute: KlasemenRoute,
+  PemainRoute: PemainRoute,
   PutraRoute: PutraRoute,
   PutriRoute: PutriRoute,
+  TimRoute: TimRouteWithChildren,
+  TopSkorRoute: TopSkorRoute,
   VenueRoute: VenueRoute,
 }
 export const routeTree = rootRouteImport
