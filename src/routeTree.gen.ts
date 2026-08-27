@@ -24,6 +24,7 @@ import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
 import { Route as AdminContingentsRouteImport } from './routes/admin.contingents'
 import { Route as AdminGroupsRouteImport } from './routes/admin.groups'
 import { Route as AdminMatchOfficialsRouteImport } from './routes/admin.match-officials'
@@ -116,6 +117,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
   id: '/audit-logs',
   path: '/audit-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCompetitionsRoute = AdminCompetitionsRouteImport.update({
+  id: '/competitions',
+  path: '/competitions',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContingentsRoute = AdminContingentsRouteImport.update({
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/top-skor'
     | '/venue'
     | '/admin/audit-logs'
+    | '/admin/competitions'
     | '/admin/contingents'
     | '/admin/groups'
     | '/admin/match-officials'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/top-skor'
     | '/venue'
     | '/admin/audit-logs'
+    | '/admin/competitions'
     | '/admin/contingents'
     | '/admin/groups'
     | '/admin/match-officials'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/top-skor'
     | '/venue'
     | '/admin/audit-logs'
+    | '/admin/competitions'
     | '/admin/contingents'
     | '/admin/groups'
     | '/admin/match-officials'
@@ -546,6 +558,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditLogsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/competitions': {
+      id: '/admin/competitions'
+      path: '/competitions'
+      fullPath: '/admin/competitions'
+      preLoaderRoute: typeof AdminCompetitionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/contingents': {
       id: '/admin/contingents'
       path: '/contingents'
@@ -677,6 +696,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminCompetitionsRoute: typeof AdminCompetitionsRoute
   AdminContingentsRoute: typeof AdminContingentsRoute
   AdminGroupsRoute: typeof AdminGroupsRoute
   AdminMatchOfficialsRoute: typeof AdminMatchOfficialsRoute
@@ -697,6 +717,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminCompetitionsRoute: AdminCompetitionsRoute,
   AdminContingentsRoute: AdminContingentsRoute,
   AdminGroupsRoute: AdminGroupsRoute,
   AdminMatchOfficialsRoute: AdminMatchOfficialsRoute,
