@@ -31,6 +31,7 @@ import { Route as AdminOfficialsRouteImport } from './routes/admin.officials'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminScheduleRouteImport } from './routes/admin.schedule'
+import { Route as AdminStatisticsRouteImport } from './routes/admin.statistics'
 import { Route as AdminTeamsRouteImport } from './routes/admin.teams'
 import { Route as AdminVenuesRouteImport } from './routes/admin.venues'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
@@ -147,6 +148,11 @@ const AdminScheduleRoute = AdminScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminStatisticsRoute = AdminStatisticsRouteImport.update({
+  id: '/statistics',
+  path: '/statistics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTeamsRoute = AdminTeamsRouteImport.update({
   id: '/teams',
   path: '/teams',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
   '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
   '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/statistics': typeof AdminStatisticsRoute
   '/admin/teams': typeof AdminTeamsRoute
   '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/reports'
     | '/admin/schedule'
+    | '/admin/statistics'
     | '/admin/teams'
     | '/admin/venues'
     | '/pertandingan/$matchId'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/reports'
     | '/admin/schedule'
+    | '/admin/statistics'
     | '/admin/teams'
     | '/admin/venues'
     | '/pertandingan/$matchId'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/reports'
     | '/admin/schedule'
+    | '/admin/statistics'
     | '/admin/teams'
     | '/admin/venues'
     | '/pertandingan/$matchId'
@@ -523,6 +535,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminScheduleRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/statistics': {
+      id: '/admin/statistics'
+      path: '/statistics'
+      fullPath: '/admin/statistics'
+      preLoaderRoute: typeof AdminStatisticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/teams': {
       id: '/admin/teams'
       path: '/teams'
@@ -570,6 +589,7 @@ interface AdminRouteChildren {
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
+  AdminStatisticsRoute: typeof AdminStatisticsRoute
   AdminTeamsRoute: typeof AdminTeamsRoute
   AdminVenuesRoute: typeof AdminVenuesRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -584,6 +604,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlayersRoute: AdminPlayersRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminScheduleRoute: AdminScheduleRoute,
+  AdminStatisticsRoute: AdminStatisticsRoute,
   AdminTeamsRoute: AdminTeamsRoute,
   AdminVenuesRoute: AdminVenuesRoute,
   AdminIndexRoute: AdminIndexRoute,
