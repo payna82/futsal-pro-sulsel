@@ -28,6 +28,7 @@ import { Route as AdminGroupsRouteImport } from './routes/admin.groups'
 import { Route as AdminMatchOfficialsRouteImport } from './routes/admin.match-officials'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminOfficialsRouteImport } from './routes/admin.officials'
+import { Route as AdminPermissionsRouteImport } from './routes/admin.permissions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
@@ -135,6 +136,11 @@ const AdminOfficialsRoute = AdminOfficialsRouteImport.update({
   path: '/officials',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPermissionsRoute = AdminPermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPlayersRoute = AdminPlayersRouteImport.update({
   id: '/players',
   path: '/players',
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
+  '/admin/permissions': typeof AdminPermissionsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
+  '/admin/permissions': typeof AdminPermissionsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
+  '/admin/permissions': typeof AdminPermissionsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/admin/match-officials'
     | '/admin/matches'
     | '/admin/officials'
+    | '/admin/permissions'
     | '/admin/players'
     | '/admin/reports'
     | '/admin/roles'
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/admin/match-officials'
     | '/admin/matches'
     | '/admin/officials'
+    | '/admin/permissions'
     | '/admin/players'
     | '/admin/reports'
     | '/admin/roles'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/admin/match-officials'
     | '/admin/matches'
     | '/admin/officials'
+    | '/admin/permissions'
     | '/admin/players'
     | '/admin/reports'
     | '/admin/roles'
@@ -538,6 +550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOfficialsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/permissions': {
+      id: '/admin/permissions'
+      path: '/permissions'
+      fullPath: '/admin/permissions'
+      preLoaderRoute: typeof AdminPermissionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/players': {
       id: '/admin/players'
       path: '/players'
@@ -624,6 +643,7 @@ interface AdminRouteChildren {
   AdminMatchOfficialsRoute: typeof AdminMatchOfficialsRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
   AdminOfficialsRoute: typeof AdminOfficialsRoute
+  AdminPermissionsRoute: typeof AdminPermissionsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminRolesRoute: typeof AdminRolesRoute
@@ -641,6 +661,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMatchOfficialsRoute: AdminMatchOfficialsRoute,
   AdminMatchesRoute: AdminMatchesRoute,
   AdminOfficialsRoute: AdminOfficialsRoute,
+  AdminPermissionsRoute: AdminPermissionsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminRolesRoute: AdminRolesRoute,
