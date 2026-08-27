@@ -1,9 +1,78 @@
+import { canTransition } from "@/domain/match-state";
+import {
+  deriveScore,
+  periodForStatus,
+  statusTransitionEvent,
+  type NewMatchEventInput,
+} from "@/domain/match-operations";
 import { computeStandings } from "@/domain/standings";
-import type { StandingRow, TopScorerRow, UUID } from "@/domain/types";
+import type {
+  AuditLog,
+  Match,
+  MatchEvent,
+  MatchOfficial,
+  MatchOfficialRole,
+  MatchStatus,
+  StandingRow,
+  TopScorerRow,
+  UUID,
+} from "@/domain/types";
 import * as fx from "./fixtures";
 import type { CompetitionRepository } from "./repository";
 
+let sequence = 0;
+const nextId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${sequence++}`;
+
+function requireMatch(id: UUID): Match {
+  const match = fx.matches.find((m) => m.id === id);
+  if (!match) throw new Error("Pertandingan tidak ditemukan.");
+  return match;
+}
+
+function actorName(userId: UUID): string {
+  return fx.users.find((u) => u.id === userId)?.full_name ?? "Sistem";
+}
+
+function audit(actorId: UUID, action: string, entity: string, entityId: UUID, summary: string) {
+  const log: AuditLog = {
+    id: nextId("au"),
+    actor_id: actorId,
+    actor_name: actorName(actorId),
+    action,
+    entity,
+    entity_id: entityId,
+    summary,
+    created_at: new Date().toISOString(),
+  };
+  fx.auditLogs.unshift(log);
+}
+
+function appendEvent(input: NewMatchEventInput): MatchEvent {
+  const event: MatchEvent = {
+    id: nextId("ev"),
+    match_id: input.match_id,
+    timestamp: Math.max(0, Math.round(input.timestamp)),
+    period: input.period,
+    type: input.type,
+    operator_id: input.operator_id,
+    metadata: input.metadata ?? {},
+    created_at: new Date().toISOString(),
+    ...(input.team_id ? { team_id: input.team_id } : {}),
+    ...(input.player_id ? { player_id: input.player_id } : {}),
+  };
+  fx.matchEvents.push(event);
+  return event;
+}
+
+function resyncScore(match: Match) {
+  const events = fx.matchEvents.filter((e) => e.match_id === match.id);
+  const score = deriveScore(events, match.home_team_id, match.away_team_id);
+  match.home_score = score.home;
+  match.away_score = score.away;
+}
+
 /** Adapter sementara. Ditukar dengan adapter Supabase tanpa mengubah komponen. */
+
 export const inMemoryRepository: CompetitionRepository = {
   async getTournament() {
     return fx.tournament;
