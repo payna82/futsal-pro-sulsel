@@ -1,4 +1,18 @@
 import type { OfficialRole, Player, Team, TeamOfficial, UUID } from "./types";
+import type { PermissionKey } from "./permissions";
+
+export interface ActorContext {
+  userId: UUID;
+  role: string;
+  teamId?: UUID;
+  permissions: PermissionKey[];
+}
+
+export const DEMO_READ_ACTOR: ActorContext = {
+  userId: "demo-read",
+  role: "PUBLIC",
+  permissions: ["team.read", "team.view_own", "player.read", "official.read", "document.upload"],
+};
 
 export type RegistrationStatus =
   | "DRAFT"
@@ -7,6 +21,7 @@ export type RegistrationStatus =
   | "UNDER_REVIEW"
   | "REVISION_REQUIRED"
   | "APPROVED"
+  | "REJECTED"
   | "LOCKED";
 
 export type AccountStatus = "INVITED" | "ACTIVE" | "SUSPENDED" | "DISABLED";
@@ -22,6 +37,7 @@ export const REGISTRATION_STATUS_LABEL: Record<RegistrationStatus, string> = {
   UNDER_REVIEW: "Dalam Pemeriksaan",
   REVISION_REQUIRED: "Perlu Revisi",
   APPROVED: "Disetujui",
+  REJECTED: "Ditolak",
   LOCKED: "Terkunci",
 };
 
@@ -104,14 +120,31 @@ export const REGISTRATION_TRANSITIONS: Record<RegistrationStatus, RegistrationSt
   DRAFT: ["READY_FOR_SUBMISSION"],
   READY_FOR_SUBMISSION: ["SUBMITTED", "DRAFT"],
   SUBMITTED: ["UNDER_REVIEW"],
-  UNDER_REVIEW: ["REVISION_REQUIRED", "APPROVED"],
+  UNDER_REVIEW: ["REVISION_REQUIRED", "APPROVED", "REJECTED"],
   REVISION_REQUIRED: ["SUBMITTED", "DRAFT"],
+  REJECTED: ["SUBMITTED"],
   APPROVED: ["LOCKED"],
   LOCKED: [],
 };
 
 export function canTransitionRegistration(from: RegistrationStatus, to: RegistrationStatus) {
   return REGISTRATION_TRANSITIONS[from].includes(to);
+}
+
+export const PARTICIPANT_REGISTRATION_TRANSITIONS: Record<
+  RegistrationStatus,
+  RegistrationStatus[]
+> = {
+  ...REGISTRATION_TRANSITIONS,
+  DRAFT: ["SUBMITTED"],
+  READY_FOR_SUBMISSION: ["SUBMITTED"],
+};
+
+export function canTransitionParticipantRegistration(
+  from: RegistrationStatus,
+  to: RegistrationStatus,
+) {
+  return PARTICIPANT_REGISTRATION_TRANSITIONS[from].includes(to);
 }
 
 export function isRegistrationLocked(status: RegistrationStatus) {
@@ -148,8 +181,15 @@ export function registrationSummary(
   const approved_player_count = players.filter(
     (player) => player.status === "ELIGIBLE" && isDocumentApproved(documents, player.id),
   ).length;
+  const profileComplete = [
+    profile.contact_person,
+    profile.contact_phone,
+    profile.contact_email,
+    profile.address,
+  ].every((value) => value.trim().length > 0);
   const is_ready =
     profile.registration_status !== "LOCKED" &&
+    profileComplete &&
     players.length > 0 &&
     officials.length > 0 &&
     players.every((player) => isDocumentApproved(documents, player.id)) &&

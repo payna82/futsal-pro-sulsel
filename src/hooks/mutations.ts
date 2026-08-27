@@ -3,12 +3,29 @@ import { repository } from "@/data";
 import type { NewMatchEventInput } from "@/domain/match-operations";
 import type { MatchOfficialRole, MatchStatus, UUID } from "@/domain/types";
 import { useSession } from "@/hooks/use-session";
-import type { DocumentType, RegistrationEntityType } from "@/domain/registration";
+import type { ActorContext, DocumentType, RegistrationEntityType } from "@/domain/registration";
+import { PERMISSIONS } from "@/domain/permissions";
 
 type MatchEventCommandInput = Omit<NewMatchEventInput, "command_id"> & { command_id?: UUID };
 
 function newCommandId(prefix: string): UUID {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function useActorContext(): ActorContext | undefined {
+  const { user, can } = useSession();
+  if (!user) return undefined;
+  return {
+    userId: user.id,
+    role: user.role,
+    ...(user.team_id ? { teamId: user.team_id } : {}),
+    permissions: PERMISSIONS.filter(can),
+  };
+}
+
+function requireActor(actor: ActorContext | undefined): ActorContext {
+  if (!actor) throw new Error("Sesi aktor diperlukan.");
+  return actor;
 }
 
 /** Semua mutasi melewati repository agar adapter backend dapat menggantikannya. */
@@ -117,89 +134,99 @@ function useRegistrationInvalidation(teamId?: UUID) {
 
 export function useCreateTeamAccount() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: { team_id: UUID; username: string; password: string }) =>
-      repository.createTeamAccount(input),
+      repository.createTeamAccount({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useCreateTeam() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
-    mutationFn: (input: Parameters<typeof repository.createTeam>[0]) =>
-      repository.createTeam(input),
+    mutationFn: (input: Omit<Parameters<typeof repository.createTeam>[0], "actor">) =>
+      repository.createTeam({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useUpdateTeamProfile(teamId: UUID) {
   const invalidate = useRegistrationInvalidation(teamId);
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (profile: Parameters<typeof repository.updateTeamProfile>[0]["profile"]) =>
-      repository.updateTeamProfile({ team_id: teamId, profile }),
+      repository.updateTeamProfile({ team_id: teamId, profile, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useCreatePlayer() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
-    mutationFn: (input: Parameters<typeof repository.createPlayer>[0]) =>
-      repository.createPlayer(input),
+    mutationFn: (input: Omit<Parameters<typeof repository.createPlayer>[0], "actor">) =>
+      repository.createPlayer({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useUpdatePlayer() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: Parameters<typeof repository.updatePlayer>[0]) =>
-      repository.updatePlayer(input),
+      repository.updatePlayer({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useCreateTeamOfficial() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
-    mutationFn: (input: Parameters<typeof repository.createTeamOfficial>[0]) =>
-      repository.createTeamOfficial(input),
+    mutationFn: (input: Omit<Parameters<typeof repository.createTeamOfficial>[0], "actor">) =>
+      repository.createTeamOfficial({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useUpdateTeamOfficial() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: Parameters<typeof repository.updateTeamOfficial>[0]) =>
-      repository.updateTeamOfficial(input),
+      repository.updateTeamOfficial({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useUploadDocument() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: {
       entityType: RegistrationEntityType;
       entityId: UUID;
       type: DocumentType;
       file_name: string;
-    }) => repository.uploadRegistrationDocument(input),
+    }) => repository.uploadRegistrationDocument({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useSubmitRegistration() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: { entityType: RegistrationEntityType; entityId: UUID }) =>
-      repository.submitRegistration(input),
+      repository.submitRegistration({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
 export function useReviewRegistration() {
   const invalidate = useRegistrationInvalidation();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: {
       entityType: RegistrationEntityType;
       entityId: UUID;
       action: "APPROVED" | "REVISION_REQUESTED" | "REJECTED";
       reason?: string;
-    }) => repository.reviewRegistration(input),
+    }) => repository.reviewRegistration({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }

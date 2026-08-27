@@ -10,6 +10,7 @@ import type {
   TeamRegistrationSummary,
   VerificationAction,
   VerificationHistory,
+  ActorContext,
 } from "@/domain/registration";
 import type { MatchOfficialRole, MatchStatus } from "@/domain/types";
 import type {
@@ -42,8 +43,10 @@ export interface CompetitionRepository {
   listContingents(): Promise<Contingent[]>;
   listGroups(): Promise<Group[]>;
   listTeams(): Promise<Team[]>;
-  listPlayers(): Promise<Player[]>;
-  listTeamOfficials(): Promise<TeamOfficial[]>;
+  listPlayers(actor: ActorContext): Promise<Player[]>;
+  getPlayer(id: UUID, actor: ActorContext): Promise<Player>;
+  listTeamOfficials(actor: ActorContext): Promise<TeamOfficial[]>;
+  getTeamOfficial(id: UUID, actor: ActorContext): Promise<TeamOfficial>;
   listVenues(): Promise<Venue[]>;
   listMatches(): Promise<Match[]>;
   getMatch(id: UUID): Promise<Match | null>;
@@ -57,18 +60,22 @@ export interface CompetitionRepository {
   listTopScorers(categoryId: UUID): Promise<TopScorerRow[]>;
   listUsers(): Promise<User[]>;
   listAuditLogs(): Promise<AuditLog[]>;
-  listTeamAccounts(): Promise<TeamAccount[]>;
+  listTeamAccounts(actor: ActorContext): Promise<TeamAccount[]>;
+  getTeamAccount(teamId: UUID, actor: ActorContext): Promise<TeamAccount>;
   getTeamAccountByUsername(username: string): Promise<TeamAccount | null>;
   authenticateTeam(username: string, password: string): Promise<TeamAccount | null>;
-  getTeamProfile(teamId: UUID): Promise<TeamProfile>;
-  getTeamRegistration(teamId: UUID): Promise<TeamRegistrationSummary>;
+  getTeamProfile(teamId: UUID, actor: ActorContext): Promise<TeamProfile>;
+  getTeamRegistration(teamId: UUID, actor: ActorContext): Promise<TeamRegistrationSummary>;
   listRegistrationDocuments(
+    actor: ActorContext,
     entityType?: RegistrationEntityType,
     entityId?: UUID,
   ): Promise<RegistrationDocument[]>;
+  getRegistrationDocument(id: UUID, actor: ActorContext): Promise<RegistrationDocument>;
   listVerificationHistory(
     entityType: RegistrationEntityType,
     entityId: UUID,
+    actor: ActorContext,
   ): Promise<VerificationHistory[]>;
 
   /* ------------------------------- Mutations ------------------------------ */
@@ -79,6 +86,7 @@ export interface CompetitionRepository {
     match_id: UUID;
     to: MatchStatus;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }): Promise<Match>;
@@ -86,12 +94,14 @@ export interface CompetitionRepository {
     match_id: UUID;
     clock_seconds: number;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }): Promise<Match>;
   updateMatchSchedule(input: {
     match_id: UUID;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
     kickoff_at?: string;
@@ -103,6 +113,7 @@ export interface CompetitionRepository {
     role: MatchOfficialRole;
     user_id: UUID;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }): Promise<MatchOfficial[]>;
@@ -111,25 +122,34 @@ export interface CompetitionRepository {
     username: string;
     password: string;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<TeamAccount>;
-  createTeam(input: Omit<Team, "id" | "status"> & { operator_id?: UUID }): Promise<Team>;
+  createTeam(
+    input: Omit<Team, "id" | "status"> & { operator_id?: UUID; actor: ActorContext },
+  ): Promise<Team>;
   updateTeamAccountStatus(input: {
     team_id: UUID;
     status: AccountStatus;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<TeamAccount>;
   resetTeamCredential(input: {
     team_id: UUID;
     password: string;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<TeamAccount>;
   updateTeamProfile(input: {
     team_id: UUID;
     profile: Omit<TeamProfile, "team_id" | "updated_at">;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<TeamProfile>;
   createPlayer(
-    input: Omit<Player, "id" | "status" | "nik_verified"> & { operator_id?: UUID },
+    input: Omit<Player, "id" | "status" | "nik_verified"> & {
+      operator_id?: UUID;
+      actor: ActorContext;
+    },
   ): Promise<Player>;
   updatePlayer(input: {
     id: UUID;
@@ -137,19 +157,22 @@ export interface CompetitionRepository {
       Pick<Player, "full_name" | "jersey_number" | "position" | "birth_date" | "is_captain">
     >;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<Player>;
   createTeamOfficial(
-    input: Omit<TeamOfficial, "id"> & { operator_id?: UUID },
+    input: Omit<TeamOfficial, "id"> & { operator_id?: UUID; actor: ActorContext },
   ): Promise<TeamOfficial>;
   updateTeamOfficial(input: {
     id: UUID;
     changes: Partial<Pick<TeamOfficial, "full_name" | "role" | "license_number">>;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<TeamOfficial>;
   submitRegistration(input: {
     entityType: RegistrationEntityType;
     entityId: UUID;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<void>;
   uploadRegistrationDocument(input: {
     entityType: RegistrationEntityType;
@@ -157,6 +180,7 @@ export interface CompetitionRepository {
     type: DocumentType;
     file_name: string;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<RegistrationDocument>;
   reviewRegistration(input: {
     entityType: RegistrationEntityType;
@@ -164,5 +188,6 @@ export interface CompetitionRepository {
     action: VerificationAction;
     reason?: string;
     operator_id?: UUID;
+    actor: ActorContext;
   }): Promise<void>;
 }

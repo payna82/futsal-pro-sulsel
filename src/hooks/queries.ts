@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { repository } from "@/data";
 import type { UUID } from "@/domain/types";
+import { DEMO_READ_ACTOR } from "@/domain/registration";
 
 export const tournamentQuery = () =>
   queryOptions({ queryKey: ["tournament"], queryFn: () => repository.getTournament() });
@@ -18,10 +19,13 @@ export const teamsQuery = () =>
   queryOptions({ queryKey: ["teams"], queryFn: () => repository.listTeams() });
 
 export const playersQuery = () =>
-  queryOptions({ queryKey: ["players"], queryFn: () => repository.listPlayers() });
+  queryOptions({ queryKey: ["players"], queryFn: () => repository.listPlayers(DEMO_READ_ACTOR) });
 
 export const teamOfficialsQuery = () =>
-  queryOptions({ queryKey: ["team-officials"], queryFn: () => repository.listTeamOfficials() });
+  queryOptions({
+    queryKey: ["team-officials"],
+    queryFn: () => repository.listTeamOfficials(DEMO_READ_ACTOR),
+  });
 
 export const venuesQuery = () =>
   queryOptions({ queryKey: ["venues"], queryFn: () => repository.listVenues() });
@@ -63,16 +67,19 @@ export const auditLogsQuery = () =>
   queryOptions({ queryKey: ["audit-logs"], queryFn: () => repository.listAuditLogs() });
 
 export const teamAccountsQuery = () =>
-  queryOptions({ queryKey: ["team-accounts"], queryFn: () => repository.listTeamAccounts() });
+  queryOptions({
+    queryKey: ["team-accounts"],
+    queryFn: () => repository.listTeamAccounts(DEMO_READ_ACTOR),
+  });
 export const teamRegistrationQuery = (teamId: UUID) =>
   queryOptions({
     queryKey: ["team-registration", teamId],
-    queryFn: () => repository.getTeamRegistration(teamId),
+    queryFn: () => repository.getTeamRegistration(teamId, DEMO_READ_ACTOR),
   });
 export const teamProfileQuery = (teamId: UUID) =>
   queryOptions({
     queryKey: ["team-profile", teamId],
-    queryFn: () => repository.getTeamProfile(teamId),
+    queryFn: () => repository.getTeamProfile(teamId, DEMO_READ_ACTOR),
   });
 export const registrationDocumentsQuery = (
   entityType?: "PLAYER" | "OFFICIAL" | "TEAM",
@@ -80,7 +87,7 @@ export const registrationDocumentsQuery = (
 ) =>
   queryOptions({
     queryKey: ["registration-documents", entityType, entityId],
-    queryFn: () => repository.listRegistrationDocuments(entityType, entityId),
+    queryFn: () => repository.listRegistrationDocuments(DEMO_READ_ACTOR, entityType, entityId),
   });
 export const verificationHistoryQuery = (
   entityType: "PLAYER" | "OFFICIAL" | "TEAM",
@@ -88,5 +95,5 @@ export const verificationHistoryQuery = (
 ) =>
   queryOptions({
     queryKey: ["verification-history", entityType, entityId],
-    queryFn: () => repository.listVerificationHistory(entityType, entityId),
+    queryFn: () => repository.listVerificationHistory(entityType, entityId, DEMO_READ_ACTOR),
   });

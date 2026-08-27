@@ -8,8 +8,12 @@ import {
   type NewMatchEventInput,
 } from "@/domain/match-operations";
 import { computeStandings } from "@/domain/standings";
+import { can } from "@/domain/permissions";
 import {
   canTransitionRegistration,
+  canTransitionParticipantRegistration,
+  DOCUMENT_TYPES,
+  isDocumentApproved,
   isRegistrationLocked,
   registrationSummary,
 } from "@/domain/registration";
@@ -18,6 +22,7 @@ import type {
   RegistrationEntityType,
   TeamProfile,
   VerificationAction,
+  ActorContext,
 } from "@/domain/registration";
 import type {
   AuditLog,
@@ -122,6 +127,51 @@ function touch(match: Match) {
   match.version = (match.version ?? 0) + 1;
 }
 
+function assertTeamAccess(
+  actor: ActorContext | undefined,
+  teamId: UUID,
+  permission: Parameters<typeof can>[1],
+) {
+  assertActor(actor);
+  if (
+    !actor.permissions.includes(permission) ||
+    (actor.teamId !== undefined && actor.teamId !== teamId)
+  ) {
+    throw new Error("Akses tim ditolak.");
+  }
+}
+
+function assertActor(actor: ActorContext | undefined): asserts actor is ActorContext {
+  if (!actor) throw new Error("ActorContext diperlukan.");
+}
+
+function assertRead(actor: ActorContext, permission: Parameters<typeof can>[1]) {
+  assertActor(actor);
+  if (!actor.permissions.includes(permission)) throw new Error("Akses data ditolak.");
+}
+
+function assertAdmin(actor: ActorContext, permission: Parameters<typeof can>[1]) {
+  assertActor(actor);
+  if (actor.teamId !== undefined) throw new Error("Akses verifikasi ditolak.");
+  if (!actor.permissions.includes(permission)) throw new Error("Akses admin ditolak.");
+}
+
+function scopeTeam<T extends { team_id: UUID }>(
+  rows: T[],
+  actor: ActorContext,
+  permission: Parameters<typeof can>[1],
+) {
+  assertRead(actor, permission);
+  return actor.teamId ? rows.filter((row) => row.team_id === actor.teamId) : rows;
+}
+
+function teamIdForEntity(entityType: RegistrationEntityType, entityId: UUID): UUID {
+  if (entityType === "TEAM") return entityId;
+  if (entityType === "PLAYER")
+    return fx.players.find((item) => item.id === entityId)?.team_id ?? "";
+  return fx.teamOfficials.find((item) => item.id === entityId)?.team_id ?? "";
+}
+
 /** Adapter sementara. Ditukar dengan adapter Supabase tanpa mengubah komponen. */
 
 export const inMemoryRepository: CompetitionRepository = {
@@ -140,11 +190,23 @@ export const inMemoryRepository: CompetitionRepository = {
   async listTeams() {
     return fx.teams;
   },
-  async listPlayers() {
-    return fx.players;
+  async listPlayers(actor) {
+    return clone(scopeTeam(fx.players, actor, "player.read"));
   },
-  async listTeamOfficials() {
-    return fx.teamOfficials;
+  async getPlayer(id, actor) {
+    const player = fx.players.find((item) => item.id === id);
+    if (!player) throw new Error("Pemain tidak ditemukan.");
+    assertTeamAccess(actor, player.team_id, "player.read");
+    return clone(player);
+  },
+  async listTeamOfficials(actor) {
+    return clone(scopeTeam(fx.teamOfficials, actor, "official.read"));
+  },
+  async getTeamOfficial(id, actor) {
+    const official = fx.teamOfficials.find((item) => item.id === id);
+    if (!official) throw new Error("Ofisial tidak ditemukan.");
+    assertTeamAccess(actor, official.team_id, "official.read");
+    return clone(official);
   },
   async listVenues() {
     return fx.venues;
@@ -210,8 +272,19 @@ export const inMemoryRepository: CompetitionRepository = {
   async listAuditLogs() {
     return clone(fx.auditLogs);
   },
-  async listTeamAccounts() {
-    return clone(fx.teamAccounts.map(({ credential_digest: _credential, ...account }) => account));
+  async listTeamAccounts(actor) {
+    assertRead(actor, "team.read");
+    const accounts = actor.teamId
+      ? fx.teamAccounts.filter((account) => account.team_id === actor.teamId)
+      : fx.teamAccounts;
+    return clone(accounts.map(({ credential_digest: _credential, ...account }) => account));
+  },
+  async getTeamAccount(teamId, actor) {
+    assertTeamAccess(actor, teamId, "team.read");
+    const account = fx.teamAccounts.find((item) => item.team_id === teamId);
+    if (!account) throw new Error("Akun tim tidak ditemukan.");
+    const { credential_digest: _credential, ...safe } = account;
+    return clone(safe);
   },
   async getTeamAccountByUsername(username) {
     const account = fx.teamAccounts.find(
@@ -246,12 +319,14 @@ export const inMemoryRepository: CompetitionRepository = {
       last_login_at: account.last_login_at,
     });
   },
-  async getTeamProfile(teamId) {
+  async getTeamProfile(teamId, actor) {
+    assertTeamAccess(actor, teamId, "team.profile.read");
     const profile = fx.teamProfiles.find((item) => item.team_id === teamId);
     if (!profile) throw new Error("Profil tim tidak ditemukan.");
     return clone(profile);
   },
-  async getTeamRegistration(teamId) {
+  async getTeamRegistration(teamId, actor) {
+    assertTeamAccess(actor, teamId, "team.view_own");
     const team = fx.teams.find((item) => item.id === teamId);
     const profile = fx.teamProfiles.find((item) => item.team_id === teamId);
     if (!team || !profile) throw new Error("Tim tidak ditemukan.");
@@ -263,16 +338,32 @@ export const inMemoryRepository: CompetitionRepository = {
       fx.registrationDocuments,
     );
   },
-  async listRegistrationDocuments(entityType, entityId) {
-    return clone(
-      fx.registrationDocuments.filter(
-        (item) =>
-          (!entityType || item.entity_type === entityType) &&
-          (!entityId || item.entity_id === entityId),
-      ),
+  async listRegistrationDocuments(actor, entityType, entityId) {
+    assertRead(actor, "player.read");
+    const documents = fx.registrationDocuments.filter(
+      (item) =>
+        (!entityType || item.entity_type === entityType) &&
+        (!entityId || item.entity_id === entityId),
     );
+    const scoped = actor.teamId
+      ? documents.filter(
+          (document) => teamIdForEntity(document.entity_type, document.entity_id) === actor.teamId,
+        )
+      : documents;
+    return clone(scoped);
   },
-  async listVerificationHistory(entityType, entityId) {
+  async getRegistrationDocument(id, actor) {
+    const document = fx.registrationDocuments.find((item) => item.id === id);
+    if (!document) throw new Error("Dokumen tidak ditemukan.");
+    assertTeamAccess(
+      actor,
+      teamIdForEntity(document.entity_type, document.entity_id),
+      "team.view_own",
+    );
+    return clone(document);
+  },
+  async listVerificationHistory(entityType, entityId, actor) {
+    assertTeamAccess(actor, teamIdForEntity(entityType, entityId), "team.view_own");
     return clone(
       fx.verificationHistory.filter(
         (item) => item.entity_type === entityType && item.entity_id === entityId,
@@ -579,13 +670,14 @@ export const inMemoryRepository: CompetitionRepository = {
     return result;
   },
 
-  async createTeamAccount({ team_id, username, password, operator_id }) {
+  async createTeamAccount({ team_id, username, password, operator_id, actor }) {
+    assertAdmin(actor, "team.account.create");
     if (!fx.teams.some((team) => team.id === team_id)) throw new Error("Tim tidak ditemukan.");
     if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) throw new Error("Username tidak valid.");
-    if (fx.teamAccounts.some((account) => account.username === username))
-      throw new Error("Username sudah digunakan.");
     if (fx.teamAccounts.some((account) => account.team_id === team_id))
       throw new Error("Tim sudah memiliki akun.");
+    if (fx.teamAccounts.some((account) => account.username === username))
+      throw new Error("Username sudah digunakan.");
     const now = new Date().toISOString();
     const account = {
       id: nextId("ta"),
@@ -608,7 +700,8 @@ export const inMemoryRepository: CompetitionRepository = {
     const { credential_digest: _credential, ...safe } = account;
     return clone(safe);
   },
-  async createTeam({ operator_id: _operatorId, ...input }) {
+  async createTeam({ operator_id: _operatorId, actor, ...input }) {
+    assertAdmin(actor, "team.create");
     if (
       fx.teams.some(
         (team) =>
@@ -631,7 +724,8 @@ export const inMemoryRepository: CompetitionRepository = {
     audit(_operatorId ?? "system", "TEAM_CREATED", "teams", team.id, `Membuat tim ${team.name}`);
     return clone(team);
   },
-  async updateTeamAccountStatus({ team_id, status, operator_id }) {
+  async updateTeamAccountStatus({ team_id, status, operator_id, actor }) {
+    assertAdmin(actor, "team.account.manage");
     const account = fx.teamAccounts.find((item) => item.team_id === team_id);
     if (!account) throw new Error("Akun tim tidak ditemukan.");
     account.account_status = status;
@@ -646,7 +740,8 @@ export const inMemoryRepository: CompetitionRepository = {
     const { credential_digest: _credential, ...safe } = account;
     return clone(safe);
   },
-  async resetTeamCredential({ team_id, password, operator_id }) {
+  async resetTeamCredential({ team_id, password, operator_id, actor }) {
+    assertAdmin(actor, "team.account.manage");
     const account = fx.teamAccounts.find((item) => item.team_id === team_id);
     if (!account || password.length < 8) throw new Error("Kredensial tidak valid.");
     account.credential_digest = `demo:${password}`;
@@ -661,13 +756,24 @@ export const inMemoryRepository: CompetitionRepository = {
     const { credential_digest: _credential, ...safe } = account;
     return clone(safe);
   },
-  async updateTeamProfile({ team_id, profile, operator_id }) {
+  async updateTeamProfile({ team_id, profile, operator_id, actor }) {
+    assertTeamAccess(actor, team_id, "team.profile.update");
     const current = fx.teamProfiles.find((item) => item.team_id === team_id);
     if (!current) throw new Error("Profil tim tidak ditemukan.");
     if (isRegistrationLocked(current.registration_status))
       throw new Error("Profil yang disetujui tidak dapat diubah langsung.");
     const { registration_status: _status, ...editableProfile } = profile;
     Object.assign(current, editableProfile, { updated_at: new Date().toISOString() });
+    // Auto-transition to READY_FOR_SUBMISSION if all contact fields are present
+    if (
+      current.registration_status === "DRAFT" &&
+      current.contact_person &&
+      current.contact_phone &&
+      current.contact_email &&
+      current.address
+    ) {
+      current.registration_status = "READY_FOR_SUBMISSION";
+    }
     audit(
       operator_id ?? "system",
       "TEAM_UPDATED",
@@ -677,7 +783,8 @@ export const inMemoryRepository: CompetitionRepository = {
     );
     return clone(current);
   },
-  async createPlayer({ operator_id: _operatorId, ...input }) {
+  async createPlayer({ operator_id: _operatorId, actor, ...input }) {
+    assertTeamAccess(actor, input.team_id, "player.create");
     const team = fx.teams.find((item) => item.id === input.team_id);
     if (!team) throw new Error("Tim tidak ditemukan.");
     const profile = fx.teamProfiles.find((item) => item.team_id === input.team_id);
@@ -690,7 +797,13 @@ export const inMemoryRepository: CompetitionRepository = {
       )
     )
       throw new Error("Nomor punggung sudah digunakan.");
-    const player: Player = { ...input, id: nextId("pl"), status: "PENDING", nik_verified: false };
+    const player: Player = {
+      ...input,
+      id: nextId("pl"),
+      status: "PENDING",
+      registration_status: "DRAFT",
+      nik_verified: false,
+    };
     fx.players.push(player);
     audit(
       _operatorId ?? "system",
@@ -701,9 +814,12 @@ export const inMemoryRepository: CompetitionRepository = {
     );
     return clone(player);
   },
-  async updatePlayer({ id, changes, operator_id }) {
+  async updatePlayer({ id, changes, operator_id, actor }) {
     const player = fx.players.find((item) => item.id === id);
     if (!player) throw new Error("Pemain tidak ditemukan.");
+    assertTeamAccess(actor, player.team_id, "player.update");
+    if (player.status === "ELIGIBLE")
+      throw new Error("Pemain yang disetujui tidak dapat diubah langsung.");
     const profile = fx.teamProfiles.find((item) => item.team_id === player.team_id);
     if (profile && isRegistrationLocked(profile.registration_status))
       throw new Error("Pemain yang disetujui tidak dapat diubah langsung.");
@@ -717,10 +833,11 @@ export const inMemoryRepository: CompetitionRepository = {
     );
     return clone(player);
   },
-  async createTeamOfficial({ operator_id: _operatorId, ...input }) {
+  async createTeamOfficial({ operator_id: _operatorId, actor, ...input }) {
+    assertTeamAccess(actor, input.team_id, "official.create");
     if (!fx.teams.some((team) => team.id === input.team_id))
       throw new Error("Tim tidak ditemukan.");
-    const official: TeamOfficial = { ...input, id: nextId("of") };
+    const official: TeamOfficial = { ...input, id: nextId("of"), registration_status: "DRAFT" };
     fx.teamOfficials.push(official);
     audit(
       _operatorId ?? "system",
@@ -731,9 +848,12 @@ export const inMemoryRepository: CompetitionRepository = {
     );
     return clone(official);
   },
-  async updateTeamOfficial({ id, changes, operator_id }) {
+  async updateTeamOfficial({ id, changes, operator_id, actor }) {
     const official = fx.teamOfficials.find((item) => item.id === id);
     if (!official) throw new Error("Ofisial tidak ditemukan.");
+    assertTeamAccess(actor, official.team_id, "official.update");
+    if (official.registration_status === "APPROVED")
+      throw new Error("Ofisial yang disetujui tidak dapat diubah langsung.");
     const profile = fx.teamProfiles.find((item) => item.team_id === official.team_id);
     if (profile && isRegistrationLocked(profile.registration_status))
       throw new Error("Ofisial yang disetujui tidak dapat diubah langsung.");
@@ -747,11 +867,31 @@ export const inMemoryRepository: CompetitionRepository = {
     );
     return clone(official);
   },
-  async submitRegistration({ entityType, entityId, operator_id }) {
+  async submitRegistration({ entityType, entityId, operator_id, actor }) {
+    assertTeamAccess(actor, teamIdForEntity(entityType, entityId), "submission.submit");
+    if (entityType !== "TEAM") {
+      const participant =
+        entityType === "PLAYER"
+          ? fx.players.find((item) => item.id === entityId)
+          : fx.teamOfficials.find((item) => item.id === entityId);
+      if (!participant) throw new Error("Data registrasi tidak ditemukan.");
+      const current = participant.registration_status ?? "DRAFT";
+      if (!canTransitionParticipantRegistration(current, "SUBMITTED"))
+        throw new Error("Transisi registrasi tidak diizinkan.");
+      participant.registration_status = "SUBMITTED";
+      audit(
+        operator_id ?? "system",
+        entityType === "PLAYER" ? "PLAYER_SUBMITTED" : "OFFICIAL_SUBMITTED",
+        entityType.toLowerCase(),
+        entityId,
+        `Mengirim registrasi ${entityType.toLowerCase()}`,
+      );
+      return;
+    }
     const profile =
       entityType === "TEAM" ? fx.teamProfiles.find((item) => item.team_id === entityId) : undefined;
     if (!profile) throw new Error("Registrasi tidak ditemukan.");
-    const summary = await this.getTeamRegistration(entityId);
+    const summary = await this.getTeamRegistration(entityId, actor);
     if (!summary.is_ready) throw new Error("Registrasi belum memenuhi persyaratan.");
     if (!canTransitionRegistration(profile.registration_status, "SUBMITTED"))
       throw new Error("Transisi registrasi tidak diizinkan.");
@@ -766,7 +906,8 @@ export const inMemoryRepository: CompetitionRepository = {
       `Mengirim registrasi dari ${previous}`,
     );
   },
-  async uploadRegistrationDocument({ entityType, entityId, type, file_name, operator_id }) {
+  async uploadRegistrationDocument({ entityType, entityId, type, file_name, operator_id, actor }) {
+    assertTeamAccess(actor, teamIdForEntity(entityType, entityId), "document.upload");
     const existing = fx.registrationDocuments.find(
       (item) =>
         item.entity_type === entityType && item.entity_id === entityId && item.type === type,
@@ -799,14 +940,43 @@ export const inMemoryRepository: CompetitionRepository = {
     );
     return clone(document);
   },
-  async reviewRegistration({ entityType, entityId, action, reason, operator_id }) {
+  async reviewRegistration({ entityType, entityId, action, reason, operator_id, actor }) {
+    assertAdmin(actor, "document.review");
     const documents = fx.registrationDocuments.filter(
       (item) => item.entity_type === entityType && item.entity_id === entityId,
     );
     if (action !== "APPROVED" && (!reason || reason.trim().length < 3))
       throw new Error("Alasan wajib diisi.");
-    if (action === "APPROVED" && !documents.length)
-      throw new Error("Dokumen wajib tersedia sebelum persetujuan.");
+    const requiredDocumentsComplete = DOCUMENT_TYPES.every((required) =>
+      documents.some(
+        (document) =>
+          document.type === required.key &&
+          document.status !== "MISSING" &&
+          document.status !== "REJECTED",
+      ),
+    );
+    if (action === "APPROVED" && !requiredDocumentsComplete)
+      throw new Error("Semua dokumen wajib harus disetujui sebelum persetujuan.");
+    const player =
+      entityType === "PLAYER" ? fx.players.find((item) => item.id === entityId) : undefined;
+    const previous = player?.status ?? documents[0]?.status ?? "MISSING";
+    const participant =
+      entityType === "OFFICIAL" ? fx.teamOfficials.find((item) => item.id === entityId) : player;
+    if (
+      participant &&
+      !["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUIRED"].includes(
+        participant.registration_status ?? "DRAFT",
+      )
+    )
+      throw new Error("Data belum berada pada status pemeriksaan.");
+    if (participant && action === "APPROVED") participant.registration_status = "APPROVED";
+    if (participant && action === "REVISION_REQUESTED")
+      participant.registration_status = "REVISION_REQUIRED";
+    if (participant && action === "REJECTED") participant.registration_status = "REJECTED";
+    for (const document of documents) {
+      document.reviewer_id = actor.userId;
+      document.reviewed_at = new Date().toISOString();
+    }
     for (const document of documents)
       document.status =
         action === "APPROVED"
@@ -814,13 +984,10 @@ export const inMemoryRepository: CompetitionRepository = {
           : action === "REVISION_REQUESTED"
             ? "REVISION_REQUIRED"
             : "REJECTED";
-    const player =
-      entityType === "PLAYER" ? fx.players.find((item) => item.id === entityId) : undefined;
     if (player && action === "APPROVED") {
       player.status = "ELIGIBLE";
       player.nik_verified = true;
     }
-    const current = player?.status ?? "PENDING";
     const next =
       action === "APPROVED"
         ? "APPROVED"
@@ -833,7 +1000,7 @@ export const inMemoryRepository: CompetitionRepository = {
       entity_id: entityId,
       actor_id: operator_id ?? "system",
       action,
-      previous_status: current,
+      previous_status: previous,
       new_status: next,
       ...(reason ? { reason } : {}),
       created_at: new Date().toISOString(),

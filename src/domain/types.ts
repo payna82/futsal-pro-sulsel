@@ -1,3 +1,5 @@
+import type { RegistrationStatus } from "./registration";
+
 /**
  * Domain model for the PORPROV Sulsel 2026 futsal competition system.
  * These interfaces mirror the future PostgreSQL/Supabase schema 1:1.
@@ -107,6 +109,7 @@ export interface Player {
   nik_verified: boolean;
   is_captain: boolean;
   status: "ELIGIBLE" | "PENDING" | "SUSPENDED";
+  registration_status?: RegistrationStatus;
 }
 
 export type OfficialRole = "HEAD_COACH" | "ASSISTANT_COACH" | "MANAGER" | "PHYSIO" | "DOCTOR";
@@ -117,6 +120,7 @@ export interface TeamOfficial {
   full_name: string;
   role: OfficialRole;
   license_number?: string;
+  registration_status?: RegistrationStatus;
 }
 
 export interface Venue {
