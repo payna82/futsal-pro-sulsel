@@ -22,6 +22,24 @@ import { Route as PutriRouteImport } from './routes/putri'
 import { Route as TimRouteImport } from './routes/tim'
 import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
+import { Route as AdminContingentsRouteImport } from './routes/admin.contingents'
+import { Route as AdminGroupsRouteImport } from './routes/admin.groups'
+import { Route as AdminMatchOfficialsRouteImport } from './routes/admin.match-officials'
+import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
+import { Route as AdminOfficialsRouteImport } from './routes/admin.officials'
+import { Route as AdminPermissionsRouteImport } from './routes/admin.permissions'
+import { Route as AdminPlayersRouteImport } from './routes/admin.players'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminScheduleRouteImport } from './routes/admin.schedule'
+import { Route as AdminStatisticsRouteImport } from './routes/admin.statistics'
+import { Route as AdminTeamsRouteImport } from './routes/admin.teams'
+import { Route as AdminTournamentsRouteImport } from './routes/admin.tournaments'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminVenuesRouteImport } from './routes/admin.venues'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
 import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
 import { Route as MatchMatchIdControlRouteImport } from './routes/match.$matchId.control'
@@ -91,6 +109,96 @@ const VenueRoute = VenueRouteImport.update({
   path: '/venue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCompetitionsRoute = AdminCompetitionsRouteImport.update({
+  id: '/competitions',
+  path: '/competitions',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminContingentsRoute = AdminContingentsRouteImport.update({
+  id: '/contingents',
+  path: '/contingents',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminGroupsRoute = AdminGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMatchOfficialsRoute = AdminMatchOfficialsRouteImport.update({
+  id: '/match-officials',
+  path: '/match-officials',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMatchesRoute = AdminMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOfficialsRoute = AdminOfficialsRouteImport.update({
+  id: '/officials',
+  path: '/officials',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPermissionsRoute = AdminPermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPlayersRoute = AdminPlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminScheduleRoute = AdminScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStatisticsRoute = AdminStatisticsRouteImport.update({
+  id: '/statistics',
+  path: '/statistics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTeamsRoute = AdminTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTournamentsRoute = AdminTournamentsRouteImport.update({
+  id: '/tournaments',
+  path: '/tournaments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVenuesRoute = AdminVenuesRouteImport.update({
+  id: '/venues',
+  path: '/venues',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PertandinganMatchIdRoute = PertandinganMatchIdRouteImport.update({
   id: '/pertandingan/$matchId',
   path: '/pertandingan/$matchId',
@@ -109,7 +217,7 @@ const MatchMatchIdControlRoute = MatchMatchIdControlRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -121,13 +229,30 @@ export interface FileRoutesByFullPath {
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
+  '/admin/contingents': typeof AdminContingentsRoute
+  '/admin/groups': typeof AdminGroupsRoute
+  '/admin/match-officials': typeof AdminMatchOfficialsRoute
+  '/admin/matches': typeof AdminMatchesRoute
+  '/admin/officials': typeof AdminOfficialsRoute
+  '/admin/permissions': typeof AdminPermissionsRoute
+  '/admin/players': typeof AdminPlayersRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/statistics': typeof AdminStatisticsRoute
+  '/admin/teams': typeof AdminTeamsRoute
+  '/admin/tournaments': typeof AdminTournamentsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -139,14 +264,32 @@ export interface FileRoutesByTo {
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
+  '/admin/contingents': typeof AdminContingentsRoute
+  '/admin/groups': typeof AdminGroupsRoute
+  '/admin/match-officials': typeof AdminMatchOfficialsRoute
+  '/admin/matches': typeof AdminMatchesRoute
+  '/admin/officials': typeof AdminOfficialsRoute
+  '/admin/permissions': typeof AdminPermissionsRoute
+  '/admin/players': typeof AdminPlayersRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/statistics': typeof AdminStatisticsRoute
+  '/admin/teams': typeof AdminTeamsRoute
+  '/admin/tournaments': typeof AdminTournamentsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/admin': typeof AdminIndexRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/hasil': typeof HasilRoute
   '/jadwal': typeof JadwalRoute
   '/klasemen': typeof KlasemenRoute
@@ -158,8 +301,26 @@ export interface FileRoutesById {
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
+  '/admin/contingents': typeof AdminContingentsRoute
+  '/admin/groups': typeof AdminGroupsRoute
+  '/admin/match-officials': typeof AdminMatchOfficialsRoute
+  '/admin/matches': typeof AdminMatchesRoute
+  '/admin/officials': typeof AdminOfficialsRoute
+  '/admin/permissions': typeof AdminPermissionsRoute
+  '/admin/players': typeof AdminPlayersRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/statistics': typeof AdminStatisticsRoute
+  '/admin/teams': typeof AdminTeamsRoute
+  '/admin/tournaments': typeof AdminTournamentsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/venues': typeof AdminVenuesRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRouteTypes {
@@ -178,13 +339,30 @@ export interface FileRouteTypes {
     | '/tim'
     | '/top-skor'
     | '/venue'
+    | '/admin/audit-logs'
+    | '/admin/competitions'
+    | '/admin/contingents'
+    | '/admin/groups'
+    | '/admin/match-officials'
+    | '/admin/matches'
+    | '/admin/officials'
+    | '/admin/permissions'
+    | '/admin/players'
+    | '/admin/reports'
+    | '/admin/roles'
+    | '/admin/schedule'
+    | '/admin/statistics'
+    | '/admin/teams'
+    | '/admin/tournaments'
+    | '/admin/users'
+    | '/admin/venues'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/admin/'
     | '/match/$matchId/control'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/hasil'
     | '/jadwal'
     | '/klasemen'
@@ -196,8 +374,26 @@ export interface FileRouteTypes {
     | '/tim'
     | '/top-skor'
     | '/venue'
+    | '/admin/audit-logs'
+    | '/admin/competitions'
+    | '/admin/contingents'
+    | '/admin/groups'
+    | '/admin/match-officials'
+    | '/admin/matches'
+    | '/admin/officials'
+    | '/admin/permissions'
+    | '/admin/players'
+    | '/admin/reports'
+    | '/admin/roles'
+    | '/admin/schedule'
+    | '/admin/statistics'
+    | '/admin/teams'
+    | '/admin/tournaments'
+    | '/admin/users'
+    | '/admin/venues'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/admin'
     | '/match/$matchId/control'
   id:
     | '__root__'
@@ -214,14 +410,32 @@ export interface FileRouteTypes {
     | '/tim'
     | '/top-skor'
     | '/venue'
+    | '/admin/audit-logs'
+    | '/admin/competitions'
+    | '/admin/contingents'
+    | '/admin/groups'
+    | '/admin/match-officials'
+    | '/admin/matches'
+    | '/admin/officials'
+    | '/admin/permissions'
+    | '/admin/players'
+    | '/admin/reports'
+    | '/admin/roles'
+    | '/admin/schedule'
+    | '/admin/statistics'
+    | '/admin/teams'
+    | '/admin/tournaments'
+    | '/admin/users'
+    | '/admin/venues'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/admin/'
     | '/match/$matchId/control'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   HasilRoute: typeof HasilRoute
   JadwalRoute: typeof JadwalRoute
   KlasemenRoute: typeof KlasemenRoute
@@ -330,6 +544,132 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit-logs': {
+      id: '/admin/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/admin/audit-logs'
+      preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/competitions': {
+      id: '/admin/competitions'
+      path: '/competitions'
+      fullPath: '/admin/competitions'
+      preLoaderRoute: typeof AdminCompetitionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/contingents': {
+      id: '/admin/contingents'
+      path: '/contingents'
+      fullPath: '/admin/contingents'
+      preLoaderRoute: typeof AdminContingentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/groups': {
+      id: '/admin/groups'
+      path: '/groups'
+      fullPath: '/admin/groups'
+      preLoaderRoute: typeof AdminGroupsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/match-officials': {
+      id: '/admin/match-officials'
+      path: '/match-officials'
+      fullPath: '/admin/match-officials'
+      preLoaderRoute: typeof AdminMatchOfficialsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/matches': {
+      id: '/admin/matches'
+      path: '/matches'
+      fullPath: '/admin/matches'
+      preLoaderRoute: typeof AdminMatchesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/officials': {
+      id: '/admin/officials'
+      path: '/officials'
+      fullPath: '/admin/officials'
+      preLoaderRoute: typeof AdminOfficialsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/permissions': {
+      id: '/admin/permissions'
+      path: '/permissions'
+      fullPath: '/admin/permissions'
+      preLoaderRoute: typeof AdminPermissionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/players': {
+      id: '/admin/players'
+      path: '/players'
+      fullPath: '/admin/players'
+      preLoaderRoute: typeof AdminPlayersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/schedule': {
+      id: '/admin/schedule'
+      path: '/schedule'
+      fullPath: '/admin/schedule'
+      preLoaderRoute: typeof AdminScheduleRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/statistics': {
+      id: '/admin/statistics'
+      path: '/statistics'
+      fullPath: '/admin/statistics'
+      preLoaderRoute: typeof AdminStatisticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/teams': {
+      id: '/admin/teams'
+      path: '/teams'
+      fullPath: '/admin/teams'
+      preLoaderRoute: typeof AdminTeamsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tournaments': {
+      id: '/admin/tournaments'
+      path: '/tournaments'
+      fullPath: '/admin/tournaments'
+      preLoaderRoute: typeof AdminTournamentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/venues': {
+      id: '/admin/venues'
+      path: '/venues'
+      fullPath: '/admin/venues'
+      preLoaderRoute: typeof AdminVenuesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/pertandingan/$matchId': {
       id: '/pertandingan/$matchId'
       path: '/pertandingan/$matchId'
@@ -354,6 +694,50 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminCompetitionsRoute: typeof AdminCompetitionsRoute
+  AdminContingentsRoute: typeof AdminContingentsRoute
+  AdminGroupsRoute: typeof AdminGroupsRoute
+  AdminMatchOfficialsRoute: typeof AdminMatchOfficialsRoute
+  AdminMatchesRoute: typeof AdminMatchesRoute
+  AdminOfficialsRoute: typeof AdminOfficialsRoute
+  AdminPermissionsRoute: typeof AdminPermissionsRoute
+  AdminPlayersRoute: typeof AdminPlayersRoute
+  AdminReportsRoute: typeof AdminReportsRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminScheduleRoute: typeof AdminScheduleRoute
+  AdminStatisticsRoute: typeof AdminStatisticsRoute
+  AdminTeamsRoute: typeof AdminTeamsRoute
+  AdminTournamentsRoute: typeof AdminTournamentsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminVenuesRoute: typeof AdminVenuesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminCompetitionsRoute: AdminCompetitionsRoute,
+  AdminContingentsRoute: AdminContingentsRoute,
+  AdminGroupsRoute: AdminGroupsRoute,
+  AdminMatchOfficialsRoute: AdminMatchOfficialsRoute,
+  AdminMatchesRoute: AdminMatchesRoute,
+  AdminOfficialsRoute: AdminOfficialsRoute,
+  AdminPermissionsRoute: AdminPermissionsRoute,
+  AdminPlayersRoute: AdminPlayersRoute,
+  AdminReportsRoute: AdminReportsRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminScheduleRoute: AdminScheduleRoute,
+  AdminStatisticsRoute: AdminStatisticsRoute,
+  AdminTeamsRoute: AdminTeamsRoute,
+  AdminTournamentsRoute: AdminTournamentsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminVenuesRoute: AdminVenuesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface TimRouteChildren {
   TimTeamIdRoute: typeof TimTeamIdRoute
 }
@@ -366,7 +750,7 @@ const TimRouteWithChildren = TimRoute._addFileChildren(TimRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   HasilRoute: HasilRoute,
   JadwalRoute: JadwalRoute,
   KlasemenRoute: KlasemenRoute,

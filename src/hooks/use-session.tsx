@@ -25,8 +25,16 @@ const SessionContext = createContext<SessionContextValue | null>(null);
  * Sesi demo sisi klien. Hanya untuk mengatur tampilan navigasi/aksi.
  * Otentikasi dan otorisasi sesungguhnya akan ditangani backend.
  */
+/** Sesi demo bawaan sebelum autentikasi backend tersedia. */
+const DEMO_USER: SessionUser = {
+  id: "usr-1",
+  full_name: "Andi Baso Mappasessu",
+  email: "superadmin@porprovsulsel.id",
+  role: "SUPER_ADMIN",
+};
+
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(DEMO_USER);
 
   const signIn = useCallback((next: SessionUser) => setUser(next), []);
   const signOut = useCallback(() => setUser(null), []);
