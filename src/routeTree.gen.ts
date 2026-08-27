@@ -24,6 +24,7 @@ import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
 import { Route as PertandinganMatchIdRouteImport } from './routes/pertandingan.$matchId'
 import { Route as TimTeamIdRouteImport } from './routes/tim.$teamId'
+import { Route as MatchMatchIdControlRouteImport } from './routes/match.$matchId.control'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const TimTeamIdRoute = TimTeamIdRouteImport.update({
   path: '/$teamId',
   getParentRoute: () => TimRoute,
 } as any)
+const MatchMatchIdControlRoute = MatchMatchIdControlRouteImport.update({
+  id: '/match/$matchId/control',
+  path: '/match/$matchId/control',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/venue': typeof VenueRoute
   '/pertandingan/$matchId': typeof PertandinganMatchIdRoute
   '/tim/$teamId': typeof TimTeamIdRoute
+  '/match/$matchId/control': typeof MatchMatchIdControlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/match/$matchId/control'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/match/$matchId/control'
   id:
     | '__root__'
     | '/'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/pertandingan/$matchId'
     | '/tim/$teamId'
+    | '/match/$matchId/control'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   TopSkorRoute: typeof TopSkorRoute
   VenueRoute: typeof VenueRoute
   PertandinganMatchIdRoute: typeof PertandinganMatchIdRoute
+  MatchMatchIdControlRoute: typeof MatchMatchIdControlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -331,6 +344,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimTeamIdRouteImport
       parentRoute: typeof TimRoute
     }
+    '/match/$matchId/control': {
+      id: '/match/$matchId/control'
+      path: '/match/$matchId/control'
+      fullPath: '/match/$matchId/control'
+      preLoaderRoute: typeof MatchMatchIdControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -359,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   TopSkorRoute: TopSkorRoute,
   VenueRoute: VenueRoute,
   PertandinganMatchIdRoute: PertandinganMatchIdRoute,
+  MatchMatchIdControlRoute: MatchMatchIdControlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
