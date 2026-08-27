@@ -25,6 +25,7 @@ import { Route as VenueRouteImport } from './routes/venue'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminContingentsRouteImport } from './routes/admin.contingents'
 import { Route as AdminGroupsRouteImport } from './routes/admin.groups'
+import { Route as AdminMatchOfficialsRouteImport } from './routes/admin.match-officials'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminOfficialsRouteImport } from './routes/admin.officials'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
@@ -115,6 +116,11 @@ const AdminGroupsRoute = AdminGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMatchOfficialsRoute = AdminMatchOfficialsRouteImport.update({
+  id: '/match-officials',
+  path: '/match-officials',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMatchesRoute = AdminMatchesRouteImport.update({
   id: '/matches',
   path: '/matches',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/venue': typeof VenueRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
+  '/admin/match-officials': typeof AdminMatchOfficialsRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/venue': typeof VenueRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
+  '/admin/match-officials': typeof AdminMatchOfficialsRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/venue': typeof VenueRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
+  '/admin/match-officials': typeof AdminMatchOfficialsRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/admin/contingents'
     | '/admin/groups'
+    | '/admin/match-officials'
     | '/admin/matches'
     | '/admin/officials'
     | '/admin/players'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/admin/contingents'
     | '/admin/groups'
+    | '/admin/match-officials'
     | '/admin/matches'
     | '/admin/officials'
     | '/admin/players'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/venue'
     | '/admin/contingents'
     | '/admin/groups'
+    | '/admin/match-officials'
     | '/admin/matches'
     | '/admin/officials'
     | '/admin/players'
@@ -457,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminGroupsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/match-officials': {
+      id: '/admin/match-officials'
+      path: '/match-officials'
+      fullPath: '/admin/match-officials'
+      preLoaderRoute: typeof AdminMatchOfficialsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/matches': {
       id: '/admin/matches'
       path: '/matches'
@@ -526,6 +545,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminContingentsRoute: typeof AdminContingentsRoute
   AdminGroupsRoute: typeof AdminGroupsRoute
+  AdminMatchOfficialsRoute: typeof AdminMatchOfficialsRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
   AdminOfficialsRoute: typeof AdminOfficialsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
@@ -538,6 +558,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminContingentsRoute: AdminContingentsRoute,
   AdminGroupsRoute: AdminGroupsRoute,
+  AdminMatchOfficialsRoute: AdminMatchOfficialsRoute,
   AdminMatchesRoute: AdminMatchesRoute,
   AdminOfficialsRoute: AdminOfficialsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
