@@ -22,8 +22,17 @@ function AdminRolesRoute() {
   const rows: RoleKey[] = [...ROLES];
 
   const columns: Column<RoleKey>[] = [
-    { key: "role", header: "Peran", cell: (r) => <span className="font-semibold">{ROLE_LABEL[r]}</span> },
-    { key: "key", header: "Kunci", hideOnMobile: true, cell: (r) => <code className="font-mono text-xs">{r}</code> },
+    {
+      key: "role",
+      header: "Peran",
+      cell: (r) => <span className="font-semibold">{ROLE_LABEL[r]}</span>,
+    },
+    {
+      key: "key",
+      header: "Kunci",
+      hideOnMobile: true,
+      cell: (r) => <code className="font-mono text-xs">{r}</code>,
+    },
     { key: "count", header: "Jumlah Izin", cell: (r) => ROLE_PERMISSIONS[r].length },
     {
       key: "users",
@@ -51,7 +60,12 @@ function AdminRolesRoute() {
       isLoading={users.isLoading}
     >
       <div className="mt-6">
-        <DataTable rows={rows} columns={columns} getRowId={(r) => r} emptyMessage="Tidak ada peran." />
+        <DataTable
+          rows={rows}
+          columns={columns}
+          getRowId={(r) => r}
+          emptyMessage="Tidak ada peran."
+        />
       </div>
     </AdminPage>
   );

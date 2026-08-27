@@ -29,8 +29,7 @@ function AdminTeamsRoute() {
   const players = useQuery(playersQuery());
   const officials = useQuery(teamOfficialsQuery());
 
-  const contingentName = (id: string) =>
-    contingents.data?.find((c) => c.id === id)?.name ?? "—";
+  const contingentName = (id: string) => contingents.data?.find((c) => c.id === id)?.name ?? "—";
 
   const columns: Column<Team>[] = [
     {
@@ -43,7 +42,12 @@ function AdminTeamsRoute() {
         </div>
       ),
     },
-    { key: "contingent", header: "Kontingen", hideOnMobile: true, cell: (t) => contingentName(t.contingent_id) },
+    {
+      key: "contingent",
+      header: "Kontingen",
+      hideOnMobile: true,
+      cell: (t) => contingentName(t.contingent_id),
+    },
     {
       key: "category",
       header: "Nomor",
@@ -61,7 +65,11 @@ function AdminTeamsRoute() {
       hideOnMobile: true,
       cell: (t) => (officials.data ?? []).filter((o) => o.team_id === t.id).length,
     },
-    { key: "status", header: "Status", cell: (t) => <span className="label-caps">{TEAM_STATUS_LABEL[t.status]}</span> },
+    {
+      key: "status",
+      header: "Status",
+      cell: (t) => <span className="label-caps">{TEAM_STATUS_LABEL[t.status]}</span>,
+    },
   ];
 
   return (

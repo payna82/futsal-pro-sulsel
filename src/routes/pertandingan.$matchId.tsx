@@ -7,7 +7,13 @@ import { Scoreboard } from "@/components/match/Scoreboard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MATCH_STATUS_LABEL } from "@/domain/match-state";
-import { lineupQuery, matchEventsQuery, matchOfficialsQuery, matchQuery, playersQuery } from "@/hooks/queries";
+import {
+  lineupQuery,
+  matchEventsQuery,
+  matchOfficialsQuery,
+  matchQuery,
+  playersQuery,
+} from "@/hooks/queries";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import { formatDateTime } from "@/lib/format";
 

@@ -47,7 +47,7 @@ export function EventTimeline({
         .map((event) => {
           const Icon = ICONS[event.type];
           const isGoal = event.type === "GOAL";
-          const card = event.metadata['card'];
+          const card = event.metadata["card"];
           return (
             <li
               key={event.id}
@@ -80,8 +80,12 @@ export function EventTimeline({
                 <p className="truncate text-xs text-muted-foreground">
                   {event.player_id ? `${playerName(event.player_id)} • ` : ""}
                   {MATCH_PERIOD_LABEL[event.period]}
-                  {typeof card === "string" ? ` • Kartu ${card === "RED" ? "Merah" : "Kuning"}` : ""}
-                  {typeof event.metadata['reason'] === "string" ? ` • ${event.metadata['reason']}` : ""}
+                  {typeof card === "string"
+                    ? ` • Kartu ${card === "RED" ? "Merah" : "Kuning"}`
+                    : ""}
+                  {typeof event.metadata["reason"] === "string"
+                    ? ` • ${event.metadata["reason"]}`
+                    : ""}
                 </p>
               </div>
             </li>

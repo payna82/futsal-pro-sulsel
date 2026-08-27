@@ -174,12 +174,7 @@ export interface Match {
 }
 
 export type MatchOfficialRole =
-  | "COMMISSIONER"
-  | "REFEREE_1"
-  | "REFEREE_2"
-  | "THIRD_REFEREE"
-  | "TIMEKEEPER"
-  | "SCOREKEEPER";
+  "COMMISSIONER" | "REFEREE_1" | "REFEREE_2" | "THIRD_REFEREE" | "TIMEKEEPER" | "SCOREKEEPER";
 
 export interface MatchOfficial {
   id: UUID;

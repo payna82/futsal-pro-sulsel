@@ -22,7 +22,12 @@ function AdminCompetitionsRoute() {
 
   const columns: Column<Category>[] = [
     { key: "name", header: "Nomor", cell: (c) => <span className="font-semibold">{c.name}</span> },
-    { key: "key", header: "Kunci", hideOnMobile: true, cell: (c) => <code className="font-mono text-xs">{c.key}</code> },
+    {
+      key: "key",
+      header: "Kunci",
+      hideOnMobile: true,
+      cell: (c) => <code className="font-mono text-xs">{c.key}</code>,
+    },
     { key: "format", header: "Format", cell: (c) => c.format },
     { key: "quota", header: "Kuota Tim", cell: (c) => c.team_count },
     {

@@ -116,9 +116,7 @@ export const inMemoryRepository: CompetitionRepository = {
   async listStandings(categoryId: UUID): Promise<StandingRow[]> {
     const teams = fx.teams.filter((t) => t.category_id === categoryId);
     const ids = new Set(teams.map((t) => t.id));
-    const matches = fx.matches.filter(
-      (m) => ids.has(m.home_team_id) && ids.has(m.away_team_id),
-    );
+    const matches = fx.matches.filter((m) => ids.has(m.home_team_id) && ids.has(m.away_team_id));
     return computeStandings(teams, matches);
   },
   async listTopScorers(categoryId: UUID): Promise<TopScorerRow[]> {
@@ -276,4 +274,3 @@ export const inMemoryRepository: CompetitionRepository = {
     return fx.matchOfficials.filter((o) => o.match_id === match_id);
   },
 };
-

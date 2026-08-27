@@ -1,11 +1,4 @@
-import type {
-  Match,
-  MatchEvent,
-  MatchEventType,
-  MatchPeriod,
-  MatchStatus,
-  UUID,
-} from "./types";
+import type { Match, MatchEvent, MatchEventType, MatchPeriod, MatchStatus, UUID } from "./types";
 import { allowedEvents, PERIOD_DURATION_SECONDS } from "./match-state";
 
 /** Masukan pembuatan event. Id dan created_at ditentukan lapisan data. */
@@ -53,7 +46,7 @@ export function validateMatchEvent(
   if (input.team_id && input.player_id) {
     const squad = ctx.playersOfTeam(input.team_id);
     if (!squad.includes(input.player_id)) return "Pemain bukan bagian dari tim yang dipilih.";
-    const playerIn = input.metadata?.['player_in'];
+    const playerIn = input.metadata?.["player_in"];
     if (input.type === "SUBSTITUTION") {
       if (typeof playerIn !== "string" || playerIn.length === 0) {
         return "Pemain masuk wajib dipilih.";
@@ -63,7 +56,7 @@ export function validateMatchEvent(
     }
   }
   if (input.type === "CARD") {
-    const card = input.metadata?.['card'];
+    const card = input.metadata?.["card"];
     if (card !== "YELLOW" && card !== "RED") return "Jenis kartu tidak valid.";
   }
   return null;
@@ -91,13 +84,9 @@ export function countFouls(events: MatchEvent[], teamId: UUID, period: MatchPeri
     .length;
 }
 
-export function countCards(
-  events: MatchEvent[],
-  teamId: UUID,
-  card: "YELLOW" | "RED",
-): number {
+export function countCards(events: MatchEvent[], teamId: UUID, card: "YELLOW" | "RED"): number {
   return events.filter(
-    (e) => e.type === "CARD" && e.team_id === teamId && e.metadata['card'] === card,
+    (e) => e.type === "CARD" && e.team_id === teamId && e.metadata["card"] === card,
   ).length;
 }
 

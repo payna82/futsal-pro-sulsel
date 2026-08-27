@@ -52,7 +52,11 @@ function PlayersPage() {
       cell: (p) => <span className="score-numeral text-lg">{p.jersey_number}</span>,
       className: "w-14",
     },
-    { key: "name", header: "Nama Pemain", cell: (p) => <span className="font-medium">{p.full_name}</span> },
+    {
+      key: "name",
+      header: "Nama Pemain",
+      cell: (p) => <span className="font-medium">{p.full_name}</span>,
+    },
     {
       key: "team",
       header: "Tim",

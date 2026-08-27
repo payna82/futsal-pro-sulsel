@@ -57,7 +57,9 @@ function AdminVenuesRoute() {
       key: "status",
       header: "Status",
       cell: (v) => (
-        <span className={v.is_active ? "label-caps text-success" : "label-caps text-muted-foreground"}>
+        <span
+          className={v.is_active ? "label-caps text-success" : "label-caps text-muted-foreground"}
+        >
           {v.is_active ? "Aktif" : "Non-aktif"}
         </span>
       ),

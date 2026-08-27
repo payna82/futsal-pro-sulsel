@@ -47,8 +47,8 @@ function AdminStatisticsRoute() {
   );
   const goals = events.filter((e) => e.type === "GOAL").length;
   const fouls = events.filter((e) => e.type === "FOUL").length;
-  const yellow = events.filter((e) => e.type === "CARD" && e.metadata['card'] === "YELLOW").length;
-  const red = events.filter((e) => e.type === "CARD" && e.metadata['card'] === "RED").length;
+  const yellow = events.filter((e) => e.type === "CARD" && e.metadata["card"] === "YELLOW").length;
+  const red = events.filter((e) => e.type === "CARD" && e.metadata["card"] === "RED").length;
 
   const playerName = (id: string) =>
     (players.data ?? []).find((p) => p.id === id)?.full_name ?? "—";

@@ -73,7 +73,8 @@ function AdminMatchOfficialsRoute() {
             <SelectContent>
               {sortedMatches.map((m) => (
                 <SelectItem key={m.id} value={m.id}>
-                  #{m.match_number} • {data.teamShort(m.home_team_id)} vs {data.teamShort(m.away_team_id)}
+                  #{m.match_number} • {data.teamShort(m.home_team_id)} vs{" "}
+                  {data.teamShort(m.away_team_id)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -89,7 +90,8 @@ function AdminMatchOfficialsRoute() {
               </span>
               <StatusBadge status={match.status} />
               <span className="text-sm text-muted-foreground">
-                {formatDateTime(match.kickoff_at)} • {data.venueName(match.venue_id)} • Lap. {match.court}
+                {formatDateTime(match.kickoff_at)} • {data.venueName(match.venue_id)} • Lap.{" "}
+                {match.court}
               </span>
             </div>
           </div>
@@ -105,10 +107,15 @@ function AdminMatchOfficialsRoute() {
                 (!usedUserIds.has(u.id) || current?.user_id === u.id),
             );
             return (
-              <div key={slot.role} className="space-y-2 rounded-lg border border-border bg-card p-4">
+              <div
+                key={slot.role}
+                className="space-y-2 rounded-lg border border-border bg-card p-4"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <p className="label-caps text-muted-foreground">{slot.label}</p>
-                  <p className="text-sm font-semibold">{current?.full_name ?? "Belum ditugaskan"}</p>
+                  <p className="text-sm font-semibold">
+                    {current?.full_name ?? "Belum ditugaskan"}
+                  </p>
                 </div>
                 <Select
                   value={current?.user_id ?? ""}
@@ -118,7 +125,12 @@ function AdminMatchOfficialsRoute() {
                       return;
                     }
                     assign.mutate(
-                      { match_id: activeId, role: slot.role, user_id: userId, operator_id: user.id },
+                      {
+                        match_id: activeId,
+                        role: slot.role,
+                        user_id: userId,
+                        operator_id: user.id,
+                      },
                       {
                         onSuccess: () => toast.success(`${slot.label} diperbarui.`),
                         onError: (err) =>
@@ -156,7 +168,11 @@ function AdminMatchOfficialsRoute() {
         </p>
 
         <div className="flex justify-end">
-          <Button variant="outline" onClick={() => assignments.refetch()} disabled={assignments.isFetching}>
+          <Button
+            variant="outline"
+            onClick={() => assignments.refetch()}
+            disabled={assignments.isFetching}
+          >
             Muat Ulang Penugasan
           </Button>
         </div>

@@ -219,7 +219,8 @@ function MatchControlRoute() {
         setDialogType(null);
         toast.success("Kejadian tercatat.");
       },
-      onError: (err) => toast.error(err instanceof Error ? err.message : "Gagal mencatat kejadian."),
+      onError: (err) =>
+        toast.error(err instanceof Error ? err.message : "Gagal mencatat kejadian."),
     });
   };
 

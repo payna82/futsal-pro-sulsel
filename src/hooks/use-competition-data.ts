@@ -17,7 +17,11 @@ export function useCompetitionData() {
 
   return {
     isLoading:
-      teams.isLoading || matches.isLoading || venues.isLoading || groups.isLoading || categories.isLoading,
+      teams.isLoading ||
+      matches.isLoading ||
+      venues.isLoading ||
+      groups.isLoading ||
+      categories.isLoading,
     teams: teams.data ?? [],
     matches: matches.data ?? [],
     venues: venues.data ?? [],

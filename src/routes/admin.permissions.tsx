@@ -54,7 +54,10 @@ function AdminPermissionsRoute() {
                     {can(role, permission) ? (
                       <Check className="mx-auto size-4 text-success" aria-label="Diizinkan" />
                     ) : (
-                      <Minus className="mx-auto size-4 text-muted-foreground/50" aria-label="Tidak diizinkan" />
+                      <Minus
+                        className="mx-auto size-4 text-muted-foreground/50"
+                        aria-label="Tidak diizinkan"
+                      />
                     )}
                   </TableCell>
                 ))}

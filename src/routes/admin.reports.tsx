@@ -35,7 +35,11 @@ function AdminReportsRoute() {
   const notReady = () => toast.info("Ekspor akan tersedia setelah layanan backend aktif.");
 
   const columns: Column<Match>[] = [
-    { key: "no", header: "No", cell: (m) => <span className="score-numeral">#{m.match_number}</span> },
+    {
+      key: "no",
+      header: "No",
+      cell: (m) => <span className="score-numeral">#{m.match_number}</span>,
+    },
     {
       key: "teams",
       header: "Pertandingan",
@@ -46,7 +50,11 @@ function AdminReportsRoute() {
     {
       key: "score",
       header: "Skor",
-      cell: (m) => <span className="score-numeral">{m.home_score} : {m.away_score}</span>,
+      cell: (m) => (
+        <span className="score-numeral">
+          {m.home_score} : {m.away_score}
+        </span>
+      ),
     },
     {
       key: "actions",
@@ -90,7 +98,9 @@ function AdminReportsRoute() {
             getRowId={(m) => m.id}
             searchable
             searchPlaceholder="Cari pertandingan…"
-            searchValue={(m) => `${m.match_number} ${data.teamName(m.home_team_id)} ${data.teamName(m.away_team_id)}`}
+            searchValue={(m) =>
+              `${m.match_number} ${data.teamName(m.home_team_id)} ${data.teamName(m.away_team_id)}`
+            }
             emptyMessage="Belum ada pertandingan."
           />
         </TabsContent>
