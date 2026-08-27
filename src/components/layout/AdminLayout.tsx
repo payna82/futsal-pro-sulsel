@@ -18,7 +18,7 @@ import {
   UserCog,
   Users,
   UsersRound,
-  Whistle,
+  Megaphone,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
       { to: "/admin", label: "Dasbor", icon: Gauge },
       { to: "/admin/schedule", label: "Jadwal", icon: CalendarDays },
       { to: "/admin/matches", label: "Pertandingan", icon: Activity },
-      { to: "/admin/match-officials", label: "Perangkat Pertandingan", icon: Whistle },
+      { to: "/admin/match-officials", label: "Perangkat Pertandingan", icon: Megaphone },
     ],
   },
   {
