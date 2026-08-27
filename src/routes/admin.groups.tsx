@@ -58,11 +58,7 @@ function AdminGroupsRoute() {
                 {standings.isLoading ? (
                   <p className="text-sm text-muted-foreground">Memuat klasemen…</p>
                 ) : (
-                  <StandingsTable
-                    rows={groupRows}
-                    teamName={data.teamName}
-                    teamShort={data.teamShort}
-                  />
+                  <StandingsTable rows={groupRows} teamById={data.teamById} />
                 )}
               </section>
             );
