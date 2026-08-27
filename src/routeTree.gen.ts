@@ -29,6 +29,7 @@ import { Route as AdminMatchOfficialsRouteImport } from './routes/admin.match-of
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminOfficialsRouteImport } from './routes/admin.officials'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminScheduleRouteImport } from './routes/admin.schedule'
 import { Route as AdminTeamsRouteImport } from './routes/admin.teams'
 import { Route as AdminVenuesRouteImport } from './routes/admin.venues'
@@ -136,6 +137,11 @@ const AdminPlayersRoute = AdminPlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminScheduleRoute = AdminScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/teams': typeof AdminTeamsRoute
   '/admin/venues': typeof AdminVenuesRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/teams': typeof AdminTeamsRoute
   '/admin/venues': typeof AdminVenuesRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/officials': typeof AdminOfficialsRoute
   '/admin/players': typeof AdminPlayersRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/teams': typeof AdminTeamsRoute
   '/admin/venues': typeof AdminVenuesRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/admin/matches'
     | '/admin/officials'
     | '/admin/players'
+    | '/admin/reports'
     | '/admin/schedule'
     | '/admin/teams'
     | '/admin/venues'
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/admin/matches'
     | '/admin/officials'
     | '/admin/players'
+    | '/admin/reports'
     | '/admin/schedule'
     | '/admin/teams'
     | '/admin/venues'
@@ -328,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin/matches'
     | '/admin/officials'
     | '/admin/players'
+    | '/admin/reports'
     | '/admin/schedule'
     | '/admin/teams'
     | '/admin/venues'
@@ -497,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlayersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/schedule': {
       id: '/admin/schedule'
       path: '/schedule'
@@ -549,6 +568,7 @@ interface AdminRouteChildren {
   AdminMatchesRoute: typeof AdminMatchesRoute
   AdminOfficialsRoute: typeof AdminOfficialsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
   AdminTeamsRoute: typeof AdminTeamsRoute
   AdminVenuesRoute: typeof AdminVenuesRoute
@@ -562,6 +582,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMatchesRoute: AdminMatchesRoute,
   AdminOfficialsRoute: AdminOfficialsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
+  AdminReportsRoute: AdminReportsRoute,
   AdminScheduleRoute: AdminScheduleRoute,
   AdminTeamsRoute: AdminTeamsRoute,
   AdminVenuesRoute: AdminVenuesRoute,
