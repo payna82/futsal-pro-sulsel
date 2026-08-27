@@ -23,6 +23,7 @@ import { Route as TimRouteImport } from './routes/tim'
 import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
 import { Route as AdminContingentsRouteImport } from './routes/admin.contingents'
 import { Route as AdminGroupsRouteImport } from './routes/admin.groups'
 import { Route as AdminMatchOfficialsRouteImport } from './routes/admin.match-officials'
@@ -109,6 +110,11 @@ const VenueRoute = VenueRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContingentsRoute = AdminContingentsRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/tim': typeof TimRouteWithChildren
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/contingents': typeof AdminContingentsRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/match-officials': typeof AdminMatchOfficialsRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/tim'
     | '/top-skor'
     | '/venue'
+    | '/admin/audit-logs'
     | '/admin/contingents'
     | '/admin/groups'
     | '/admin/match-officials'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/tim'
     | '/top-skor'
     | '/venue'
+    | '/admin/audit-logs'
     | '/admin/contingents'
     | '/admin/groups'
     | '/admin/match-officials'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/tim'
     | '/top-skor'
     | '/venue'
+    | '/admin/audit-logs'
     | '/admin/contingents'
     | '/admin/groups'
     | '/admin/match-officials'
@@ -515,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/audit-logs': {
+      id: '/admin/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/admin/audit-logs'
+      preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/contingents': {
       id: '/admin/contingents'
       path: '/contingents'
@@ -638,6 +657,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAuditLogsRoute: typeof AdminAuditLogsRoute
   AdminContingentsRoute: typeof AdminContingentsRoute
   AdminGroupsRoute: typeof AdminGroupsRoute
   AdminMatchOfficialsRoute: typeof AdminMatchOfficialsRoute
@@ -656,6 +676,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditLogsRoute: AdminAuditLogsRoute,
   AdminContingentsRoute: AdminContingentsRoute,
   AdminGroupsRoute: AdminGroupsRoute,
   AdminMatchOfficialsRoute: AdminMatchOfficialsRoute,
