@@ -41,22 +41,33 @@ function LoginPage() {
   const navigate = useNavigate();
   const [accountId, setAccountId] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const account = users.find((u) => u.id === accountId);
-    if (!account) {
-      toast.error("Pilih akun petugas terlebih dahulu.");
-      return;
+    setIsLoading(true);
+
+    try {
+      const account = users.find((u) => u.id === accountId);
+      if (!account) {
+        toast.error("Pilih akun petugas terlebih dahulu.");
+        return;
+      }
+
+      // Authenticate via email
+      await signIn({
+        email: account.email,
+        password,
+      });
+
+      toast.success(`Masuk sebagai ${ROLE_LABEL[account.role]}`);
+      navigate({ to: "/admin" });
+    } catch (error) {
+      toast.error("Email atau kata sandi tidak valid.");
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
     }
-    signIn({
-      id: account.id,
-      full_name: account.full_name,
-      email: account.email,
-      role: account.role,
-    });
-    toast.success(`Masuk sebagai ${ROLE_LABEL[account.role]}`);
-    navigate({ to: "/admin" });
   };
 
   return (
@@ -91,7 +102,7 @@ function LoginPage() {
 
           <div className="space-y-2">
             <Label htmlFor="account">Akun Petugas</Label>
-            <Select value={accountId} onValueChange={setAccountId}>
+            <Select value={accountId} onValueChange={setAccountId} disabled={isLoading}>
               <SelectTrigger id="account">
                 <SelectValue placeholder="Pilih akun petugas" />
               </SelectTrigger>
@@ -114,11 +125,12 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
+              disabled={isLoading}
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Masuk
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Memeriksa…" : "Masuk"}
           </Button>
 
           <p className="text-xs text-muted-foreground">

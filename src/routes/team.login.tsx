@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useTeamLogin } from "@/hooks/mutations";
 import { useSession } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/team/login")({ component: TeamLoginPage });
@@ -12,34 +11,26 @@ export const Route = createFileRoute("/team/login")({ component: TeamLoginPage }
 function TeamLoginPage() {
   const navigate = useNavigate();
   const { signIn } = useSession();
-  const login = useTeamLogin();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const submit = (event: FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    login.mutate(
-      { username, password },
-      {
-        onSuccess: (account) => {
-          if (!account) {
-            toast.error("Username atau kata sandi tidak valid.");
-            return;
-          }
-          signIn({
-            id: account.id,
-            full_name: account.username,
-            email: `${account.username}@team.demo`,
-            role: "TEAM_OFFICIAL",
-            team_id: account.team_id,
-            account_type: "TEAM",
-          });
-          toast.success("Berhasil masuk ke portal tim.");
-          navigate({ to: "/team" });
-        },
-        onError: () => toast.error("Login tim gagal."),
-      },
-    );
+    setIsLoading(true);
+
+    try {
+      await signIn({ username, password });
+      toast.success("Berhasil masuk ke portal tim.");
+      navigate({ to: "/team" });
+    } catch (error) {
+      toast.error("Username atau kata sandi tidak valid.");
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-pitch p-10 text-pitch-foreground lg:flex">
@@ -71,6 +62,7 @@ function TeamLoginPage() {
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               autoComplete="username"
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -81,10 +73,11 @@ function TeamLoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
+              disabled={isLoading}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={login.isPending}>
-            {login.isPending ? "Memeriksa…" : "Masuk"}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Memeriksa…" : "Masuk"}
           </Button>
           <p className="text-xs text-muted-foreground">Demo: `makassar.putra` / `makassar2026`</p>
         </form>
