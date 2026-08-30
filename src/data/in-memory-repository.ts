@@ -1036,7 +1036,9 @@ export const inMemoryRepository: CompetitionRepository = {
     actor,
   }) {
     assertActor(actor);
-    if (!SELF_REQUESTABLE_ROLES.includes(requested_role as (typeof SELF_REQUESTABLE_ROLES)[number])) {
+    if (
+      !SELF_REQUESTABLE_ROLES.includes(requested_role as (typeof SELF_REQUESTABLE_ROLES)[number])
+    ) {
       throw new Error("Peran ini tidak dapat diajukan secara mandiri.");
     }
     if (!request_reason.trim() || request_reason.trim().length < 10) {
@@ -1044,9 +1046,7 @@ export const inMemoryRepository: CompetitionRepository = {
     }
     const existingPending = fx.roleRequests.find(
       (r) =>
-        r.user_id === actor.userId &&
-        r.requested_role === requested_role &&
-        r.status === "PENDING",
+        r.user_id === actor.userId && r.requested_role === requested_role && r.status === "PENDING",
     );
     if (existingPending) throw new Error("Anda masih memiliki pengajuan menunggu untuk peran ini.");
     const now = new Date().toISOString();
@@ -1079,14 +1079,7 @@ export const inMemoryRepository: CompetitionRepository = {
     audit(actor.userId, "ROLE_CANCELLED", "role_requests", req.id, "Dibatalkan pemohon.");
     return clone(req);
   },
-  async approveRoleRequest({
-    id,
-    decision_note,
-    contingent_id,
-    venue_id,
-    team_id,
-    actor,
-  }) {
+  async approveRoleRequest({ id, decision_note, contingent_id, venue_id, team_id, actor }) {
     assertAdmin(actor, "role.manage");
     const req = fx.roleRequests.find((r) => r.id === id);
     if (!req) throw new Error("Permintaan peran tidak ditemukan.");

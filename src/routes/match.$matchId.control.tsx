@@ -60,7 +60,7 @@ import {
 } from "@/hooks/mutations";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import { useMatchClock } from "@/hooks/use-match-clock";
-import {useSession, useActor } from "@/hooks/use-session";
+import { useSession, useActor } from "@/hooks/use-session";
 import { formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/match/$matchId/control")({

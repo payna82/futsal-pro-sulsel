@@ -10,12 +10,7 @@ export interface ActorContext {
 
 /* ============================ Role Requests ============================ */
 
-export type RoleRequestStatus =
-  | "PENDING"
-  | "APPROVED"
-  | "REJECTED"
-  | "REVOKED"
-  | "CANCELLED";
+export type RoleRequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "REVOKED" | "CANCELLED";
 
 export const ROLE_REQUEST_STATUS_LABEL: Record<RoleRequestStatus, string> = {
   PENDING: "Menunggu Tinjauan",
@@ -36,15 +31,14 @@ export const SELF_REQUESTABLE_ROLES = [
   "TEAM_OFFICIAL",
 ] as const;
 
-export const SELF_REQUESTABLE_ROLE_LABELS: Record<
-  (typeof SELF_REQUESTABLE_ROLES)[number], string
-> = {
-  REFEREE: "Wasit Pertandingan",
-  TIMEKEEPER: "Pencatat Waktu",
-  SCOREKEEPER: "Pencatat Skor",
-  MEDIA: "Petugas Media & Publikasi",
-  TEAM_OFFICIAL: "Ofisial / Pengurus Tim",
-};
+export const SELF_REQUESTABLE_ROLE_LABELS: Record<(typeof SELF_REQUESTABLE_ROLES)[number], string> =
+  {
+    REFEREE: "Wasit Pertandingan",
+    TIMEKEEPER: "Pencatat Waktu",
+    SCOREKEEPER: "Pencatat Skor",
+    MEDIA: "Petugas Media & Publikasi",
+    TEAM_OFFICIAL: "Ofisial / Pengurus Tim",
+  };
 
 export interface SupportingDoc {
   name: string;
