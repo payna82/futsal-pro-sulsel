@@ -85,19 +85,17 @@ function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="account">Akun Petugas</Label>
-            <Select value={accountId} onValueChange={setAccountId} disabled={isLoading}>
-              <SelectTrigger id="account">
-                <SelectValue placeholder="Pilih akun petugas" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.full_name} — {ROLE_LABEL[user.role]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="email">Email Petugas</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nama@porprovsulsel.id"
+              autoComplete="email"
+              required
+              disabled={isLoading}
+            />
           </div>
 
           <div className="space-y-2">
@@ -109,6 +107,7 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
+              required
               disabled={isLoading}
             />
           </div>
@@ -118,9 +117,10 @@ function LoginPage() {
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            Otentikasi sementara berjalan di sisi klien untuk kebutuhan demo tampilan. Verifikasi
-            kredensial dan otorisasi peran akan ditegakkan backend.
+            Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh
+            perubahan status pertandingan dicatat atas nama akun yang sedang masuk.
           </p>
+
 
           <Link to="/" className="block text-center text-sm text-primary hover:underline">
             Kembali ke situs publik
