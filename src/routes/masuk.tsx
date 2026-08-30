@@ -36,39 +36,32 @@ export const Route = createFileRoute("/masuk")({
 });
 
 function LoginPage() {
-  const { data: users = [] } = useQuery(usersQuery());
-  const { signIn } = useSession();
+  const { signIn, isAuthenticated } = useSession();
   const navigate = useNavigate();
-  const [accountId, setAccountId] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) navigate({ to: "/admin", replace: true });
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const account = users.find((u) => u.id === accountId);
-      if (!account) {
-        toast.error("Pilih akun petugas terlebih dahulu.");
-        return;
-      }
-
-      // Authenticate via email
-      await signIn({
-        email: account.email,
-        password,
-      });
-
-      toast.success(`Masuk sebagai ${ROLE_LABEL[account.role]}`);
+      await signIn({ email, password });
+      toast.success("Berhasil masuk.");
       navigate({ to: "/admin" });
     } catch (error) {
-      toast.error("Email atau kata sandi tidak valid.");
-      console.error("Login failed:", error);
+      toast.error(error instanceof Error ? error.message : "Email atau kata sandi tidak valid.");
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
