@@ -1,4 +1,5 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Activity, CircleDot, PauseCircle, RectangleVertical } from "lucide-react";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/admin/statistics")({
 
 function AdminStatisticsRoute() {
   const data = useCompetitionData();
+  const actor = useActor();
   const players = useQuery(playersQuery(actor));
   const [category, setCategory] = useState<CategoryKey>("MEN");
   const categoryId = data.categoryId(category);

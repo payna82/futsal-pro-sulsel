@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { AdminPage } from "@/components/admin/AdminPage";
@@ -27,6 +28,7 @@ const TEAM_STATUS_LABEL: Record<Team["status"], string> = {
 function AdminTeamsRoute() {
   const data = useCompetitionData();
   const contingents = useQuery(contingentsQuery());
+  const actor = useActor();
   const players = useQuery(playersQuery(actor));
   const officials = useQuery(teamOfficialsQuery(actor));
 

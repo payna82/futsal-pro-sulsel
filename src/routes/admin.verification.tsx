@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/admin/verification")({
 
 function VerificationPage() {
   const data = useCompetitionData();
+  const actor = useActor();
   const players = useQuery(playersQuery(actor));
   const officials = useQuery(teamOfficialsQuery(actor));
   const documents = useQuery(registrationDocumentsQuery(actor));

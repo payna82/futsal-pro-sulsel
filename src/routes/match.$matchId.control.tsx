@@ -60,7 +60,7 @@ import {
 } from "@/hooks/mutations";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import { useMatchClock } from "@/hooks/use-match-clock";
-import { useSession } from "@/hooks/use-session";
+import {useSession, useActor } from "@/hooks/use-session";
 import { formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/match/$matchId/control")({
@@ -106,6 +106,7 @@ function MatchControlRoute() {
   const events = useQuery(matchEventsQuery(matchId));
   const lineup = useQuery(lineupQuery(matchId));
   const officials = useQuery(matchOfficialsQuery(matchId));
+  const actor = useActor();
   const players = useQuery(playersQuery(actor));
 
   const recordEvent = useRecordMatchEvent(matchId);

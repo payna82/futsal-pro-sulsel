@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/admin/")({
 function AdminDashboardRoute() {
   const data = useCompetitionData();
   const contingents = useQuery(contingentsQuery());
+  const actor = useActor();
   const players = useQuery(playersQuery(actor));
 
   const matches = data.matches;

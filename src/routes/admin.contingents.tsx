@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminPage } from "@/components/admin/AdminPage";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/admin/contingents")({
 
 function AdminContingentsRoute() {
   const contingents = useQuery(contingentsQuery());
+  const actor = useActor();
   const players = useQuery(playersQuery(actor));
   const officials = useQuery(teamOfficialsQuery(actor));
   const { teams, isLoading } = useCompetitionData();
