@@ -290,9 +290,142 @@ async function resyncAndBump(match: Match, patch: Partial<Match> = {}): Promise<
   return toMatch(updated as Row);
 }
 
+/* =============================== Registrasi =============================== */
+
+function assertActor(actor: ActorContext | undefined): asserts actor is ActorContext {
+  if (!actor) throw new Error("ActorContext diperlukan.");
+}
+
+function assertRead(actor: ActorContext, permission: PermissionKey) {
+  assertActor(actor);
+  if (!actor.permissions.includes(permission)) throw new Error("Akses data ditolak.");
+}
+
+function assertTeamAccess(
+  actor: ActorContext | undefined,
+  teamId: UUID,
+  permission: PermissionKey,
+) {
+  assertActor(actor);
+  if (
+    !actor.permissions.includes(permission) ||
+    (actor.teamId !== undefined && actor.teamId !== teamId)
+  ) {
+    throw new Error("Akses tim ditolak.");
+  }
+}
+
+function assertAdmin(actor: ActorContext, permission: PermissionKey) {
+  assertActor(actor);
+  if (actor.teamId !== undefined) throw new Error("Akses verifikasi ditolak.");
+  if (!actor.permissions.includes(permission)) throw new Error("Akses admin ditolak.");
+}
+
+function toTeamAccount(row: Row): TeamAccount {
+  return {
+    id: row["id"] as UUID,
+    team_id: row["team_id"] as UUID,
+    username: row["username"] as string,
+    account_status: row["account_status"] as AccountStatus,
+    created_at: row["created_at"] as string,
+    updated_at: row["updated_at"] as string,
+    ...optional("last_login_at", row["last_login_at"] as string | null),
+  };
+}
+
+function toTeamProfile(row: Row): TeamProfile {
+  const data = (row["data"] as Record<string, unknown>) ?? {};
+  const text = (key: string) => (data[key] as string | undefined) ?? "";
+  return {
+    team_id: row["team_id"] as UUID,
+    contact_person: text("contact_person"),
+    contact_phone: text("contact_phone"),
+    contact_email: text("contact_email"),
+    address: text("address"),
+    ...optional("training_venue", data["training_venue"] as string | undefined),
+    registration_status:
+      (data["registration_status"] as RegistrationStatus | undefined) ?? "DRAFT",
+    updated_at: row["updated_at"] as string,
+  };
+}
+
+function profileToJson(profile: TeamProfile): Record<string, unknown> {
+  return {
+    contact_person: profile.contact_person,
+    contact_phone: profile.contact_phone,
+    contact_email: profile.contact_email,
+    address: profile.address,
+    registration_status: profile.registration_status,
+    ...(profile.training_venue ? { training_venue: profile.training_venue } : {}),
+  };
+}
+
+function toDocument(row: Row): RegistrationDocument {
+  return {
+    id: row["id"] as UUID,
+    entity_type: row["entity_type"] as RegistrationEntityType,
+    entity_id: row["entity_id"] as UUID,
+    type: row["type"] as DocumentType,
+    file_name: row["file_name"] as string,
+    storage_ref: (row["storage_path"] as string | null) ?? "",
+    status: row["status"] as DocumentStatus,
+    uploaded_at: row["uploaded_at"] as string,
+    ...optional("reviewer_id", row["reviewed_by"] as UUID | null),
+    ...optional("reviewed_at", row["reviewed_at"] as string | null),
+    ...optional("revision_reason", row["reason"] as string | null),
+  };
+}
+
+function toVerification(row: Row): VerificationHistory {
+  return {
+    id: row["id"] as UUID,
+    entity_type: row["entity_type"] as RegistrationEntityType,
+    entity_id: row["entity_id"] as UUID,
+    actor_id: row["actor_id"] as UUID,
+    action: row["action"] as VerificationAction,
+    previous_status: (row["previous_status"] as VerificationHistory["previous_status"]) ?? "DRAFT",
+    new_status: (row["new_status"] as VerificationHistory["new_status"]) ?? "DRAFT",
+    ...optional("reason", row["reason"] as string | null),
+    created_at: row["created_at"] as string,
+  };
+}
+
+/** Menentukan tim pemilik entitas registrasi lewat database. */
+async function teamIdForEntity(
+  entityType: RegistrationEntityType,
+  entityId: UUID,
+): Promise<UUID> {
+  if (entityType === "TEAM") return entityId;
+  const table = entityType === "PLAYER" ? "players" : "team_officials";
+  const { data, error } = await db.from(table).select("team_id").eq("id", entityId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return ((data as Row | null)?.["team_id"] as UUID | undefined) ?? "";
+}
+
+async function fetchTeamProfileRow(teamId: UUID): Promise<TeamProfile> {
+  const { data, error } = await db
+    .from("team_profiles")
+    .select("*")
+    .eq("team_id", teamId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Profil tim tidak ditemukan.");
+  return toTeamProfile(data as Row);
+}
+
+async function saveTeamProfile(profile: TeamProfile): Promise<TeamProfile> {
+  const updated_at = new Date().toISOString();
+  const result = await db
+    .from("team_profiles")
+    .update({ data: profileToJson(profile), updated_at })
+    .eq("team_id", profile.team_id)
+    .select("*")
+    .single();
+  return toTeamProfile(unwrapRow(result));
+}
+
 export const supabaseRepository: CompetitionRepository = {
-  // Registrasi tim masih memakai adapter sementara sampai Fase F (storage dokumen).
-  ...inMemoryRepository,
+
 
   async getTournament(): Promise<Tournament> {
     const rows = await selectAll("tournaments");
@@ -905,6 +1038,669 @@ export const supabaseRepository: CompetitionRepository = {
     const { error: apvErr } = await callRpcApprove(req["id"] as UUID);
     if (apvErr) throw new Error(apvErr.message);
     return true;
+  },
+
+  /* ----------------------------- Akun & Profil ---------------------------- */
+
+  async listTeamAccounts(actor: ActorContext): Promise<TeamAccount[]> {
+    assertRead(actor, "team.read");
+    const rows = await selectAll("team_accounts");
+    const accounts = rows.map(toTeamAccount);
+    return actor.teamId ? accounts.filter((item) => item.team_id === actor.teamId) : accounts;
+  },
+
+  async getTeamAccount(teamId: UUID, actor: ActorContext): Promise<TeamAccount> {
+    assertTeamAccess(actor, teamId, "team.read");
+    const { data, error } = await db
+      .from("team_accounts")
+      .select("*")
+      .eq("team_id", teamId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Akun tim tidak ditemukan.");
+    return toTeamAccount(data as Row);
+  },
+
+  async getTeamAccountByUsername(username: string): Promise<TeamAccount | null> {
+    const { data, error } = await db
+      .from("team_accounts")
+      .select("*")
+      .eq("username", username.trim().toLowerCase())
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toTeamAccount(data as Row) : null;
+  },
+
+  async authenticateTeam(): Promise<TeamAccount | null> {
+    // Kredensial tim kini dikelola oleh layanan autentikasi (email + kata sandi),
+    // bukan oleh tabel akun tim. Login tim memakai supabase.auth.
+    throw new Error("Login tim memakai email dan kata sandi akun resmi.");
+  },
+
+  async getTeamProfile(teamId: UUID, actor: ActorContext): Promise<TeamProfile> {
+    assertTeamAccess(actor, teamId, "team.profile.read");
+    return fetchTeamProfileRow(teamId);
+  },
+
+  async getTeamRegistration(teamId: UUID, actor: ActorContext): Promise<TeamRegistrationSummary> {
+    assertTeamAccess(actor, teamId, "team.view_own");
+    const [teamRow, profile, playerRows, officialRows, documentRows] = await Promise.all([
+      db.from("teams").select("*").eq("id", teamId).maybeSingle(),
+      fetchTeamProfileRow(teamId),
+      db.from("players").select("*").eq("team_id", teamId),
+      db.from("team_officials").select("*").eq("team_id", teamId),
+      db.from("registration_documents").select("*").eq("team_id", teamId),
+    ]);
+    if (teamRow.error) throw new Error(teamRow.error.message);
+    if (!teamRow.data) throw new Error("Tim tidak ditemukan.");
+    return registrationSummary(
+      toTeam(teamRow.data as Row),
+      profile,
+      unwrapRows(playerRows).map(toPlayer),
+      unwrapRows(officialRows).map(toOfficial),
+      unwrapRows(documentRows).map(toDocument),
+    );
+  },
+
+  async listRegistrationDocuments(
+    actor: ActorContext,
+    entityType?: RegistrationEntityType,
+    entityId?: UUID,
+  ): Promise<RegistrationDocument[]> {
+    assertRead(actor, "player.read");
+    let query = db.from("registration_documents").select("*");
+    if (entityType) query = query.eq("entity_type", entityType);
+    if (entityId) query = query.eq("entity_id", entityId);
+    if (actor.teamId) query = query.eq("team_id", actor.teamId);
+    return unwrapRows(await query).map(toDocument);
+  },
+
+  async getRegistrationDocument(id: UUID, actor: ActorContext): Promise<RegistrationDocument> {
+    const { data, error } = await db
+      .from("registration_documents")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Dokumen tidak ditemukan.");
+    const document = toDocument(data as Row);
+    assertTeamAccess(
+      actor,
+      await teamIdForEntity(document.entity_type, document.entity_id),
+      "team.view_own",
+    );
+    return document;
+  },
+
+  async listVerificationHistory(
+    entityType: RegistrationEntityType,
+    entityId: UUID,
+    actor: ActorContext,
+  ): Promise<VerificationHistory[]> {
+    assertTeamAccess(actor, await teamIdForEntity(entityType, entityId), "team.view_own");
+    const rows = unwrapRows(
+      await db
+        .from("registration_documents")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId),
+    );
+    void rows;
+    const history = unwrapRows(
+      await db
+        .from("verification_history")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId)
+        .order("created_at", { ascending: true }),
+    );
+    return history.map(toVerification);
+  },
+
+  /* ------------------------- Mutasi registrasi tim ------------------------ */
+
+  async createTeamAccount({
+    team_id,
+    username,
+    operator_id,
+    actor,
+  }: {
+    team_id: UUID;
+    username: string;
+    password: string;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<TeamAccount> {
+    assertAdmin(actor, "team.account.create");
+    if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) throw new Error("Username tidak valid.");
+    const now = new Date().toISOString();
+    const inserted = unwrapRow(
+      await db
+        .from("team_accounts")
+        .insert({
+          id: nextId("ta"),
+          team_id,
+          username,
+          account_status: "ACTIVE",
+          created_at: now,
+          updated_at: now,
+        })
+        .select("*")
+        .single(),
+    );
+    const account = toTeamAccount(inserted);
+    await audit(
+      operator_id ?? actor.userId,
+      "TEAM_ACCOUNT_CREATED",
+      "team_accounts",
+      account.id,
+      `Membuat akun ${username} untuk tim`,
+    );
+    return account;
+  },
+
+  async createTeam({
+    operator_id,
+    actor,
+    ...input
+  }: Omit<Team, "id" | "status"> & { operator_id?: UUID; actor: ActorContext }): Promise<Team> {
+    assertAdmin(actor, "team.create");
+    const id = nextId("tm");
+    const inserted = unwrapRow(
+      await db
+        .from("teams")
+        .insert({
+          id,
+          contingent_id: input.contingent_id,
+          category_id: input.category_id,
+          name: input.name,
+          short_name: input.short_name,
+          primary_color: input.primary_color,
+          status: "REGISTERED",
+          ...(input.group_id ? { group_id: input.group_id } : {}),
+        })
+        .select("*")
+        .single(),
+    );
+    const team = toTeam(inserted);
+    await db.from("team_profiles").insert({
+      team_id: team.id,
+      data: {
+        contact_person: "",
+        contact_phone: "",
+        contact_email: "",
+        address: "",
+        registration_status: "DRAFT",
+      },
+      updated_at: new Date().toISOString(),
+    });
+    await audit(
+      operator_id ?? actor.userId,
+      "TEAM_CREATED",
+      "teams",
+      team.id,
+      `Membuat tim ${team.name}`,
+    );
+    return team;
+  },
+
+  async updateTeamAccountStatus({
+    team_id,
+    status,
+    operator_id,
+    actor,
+  }: {
+    team_id: UUID;
+    status: AccountStatus;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<TeamAccount> {
+    assertAdmin(actor, "team.account.manage");
+    const updated = unwrapRow(
+      await db
+        .from("team_accounts")
+        .update({ account_status: status, updated_at: new Date().toISOString() })
+        .eq("team_id", team_id)
+        .select("*")
+        .single(),
+    );
+    const account = toTeamAccount(updated);
+    await audit(
+      operator_id ?? actor.userId,
+      `TEAM_ACCOUNT_${status}`,
+      "team_accounts",
+      account.id,
+      `Mengubah status akun menjadi ${status}`,
+    );
+    return account;
+  },
+
+  async resetTeamCredential({ actor }: { actor: ActorContext }): Promise<TeamAccount> {
+    assertAdmin(actor, "team.account.manage");
+    throw new Error(
+      "Kata sandi tim direset lewat email pemulihan akun, bukan dari panel administrasi.",
+    );
+  },
+
+  async updateTeamProfile({
+    team_id,
+    profile,
+    operator_id,
+    actor,
+  }: {
+    team_id: UUID;
+    profile: Omit<TeamProfile, "team_id" | "updated_at">;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<TeamProfile> {
+    assertTeamAccess(actor, team_id, "team.profile.update");
+    const current = await fetchTeamProfileRow(team_id);
+    if (isRegistrationLocked(current.registration_status))
+      throw new Error("Profil yang disetujui tidak dapat diubah langsung.");
+    const { registration_status: _ignored, ...editable } = profile;
+    const next: TeamProfile = {
+      ...current,
+      ...editable,
+      updated_at: new Date().toISOString(),
+    };
+    if (
+      next.registration_status === "DRAFT" &&
+      next.contact_person &&
+      next.contact_phone &&
+      next.contact_email &&
+      next.address
+    ) {
+      next.registration_status = "READY_FOR_SUBMISSION";
+    }
+    const saved = await saveTeamProfile(next);
+    await audit(
+      operator_id ?? actor.userId,
+      "TEAM_UPDATED",
+      "team_profiles",
+      team_id,
+      "Memperbarui profil tim",
+    );
+    return saved;
+  },
+
+  async createPlayer({
+    operator_id,
+    actor,
+    ...input
+  }: Omit<Player, "id" | "status" | "nik_verified"> & {
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<Player> {
+    assertTeamAccess(actor, input.team_id, "player.create");
+    const profile = await fetchTeamProfileRow(input.team_id).catch(() => null);
+    if (profile && isRegistrationLocked(profile.registration_status))
+      throw new Error("Registrasi tim sudah terkunci.");
+    const existing = unwrapRows(
+      await db.from("players").select("id, jersey_number").eq("team_id", input.team_id),
+    );
+    if (existing.some((row) => row["jersey_number"] === input.jersey_number))
+      throw new Error("Nomor punggung sudah digunakan.");
+    const inserted = unwrapRow(
+      await db
+        .from("players")
+        .insert({
+          id: nextId("pl"),
+          team_id: input.team_id,
+          full_name: input.full_name,
+          jersey_number: input.jersey_number,
+          position: input.position,
+          birth_date: input.birth_date,
+          is_captain: input.is_captain,
+          nik_verified: false,
+          status: "PENDING",
+          registration_status: "DRAFT",
+        })
+        .select("*")
+        .single(),
+    );
+    const player = toPlayer(inserted);
+    await audit(
+      operator_id ?? actor.userId,
+      "PLAYER_CREATED",
+      "players",
+      player.id,
+      `Menambahkan pemain ${player.full_name}`,
+    );
+    return player;
+  },
+
+  async updatePlayer({
+    id,
+    changes,
+    operator_id,
+    actor,
+  }: {
+    id: UUID;
+    changes: Partial<
+      Pick<Player, "full_name" | "jersey_number" | "position" | "birth_date" | "is_captain">
+    >;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<Player> {
+    const current = unwrapRow(await db.from("players").select("*").eq("id", id).single());
+    const player = toPlayer(current);
+    assertTeamAccess(actor, player.team_id, "player.update");
+    if (player.status === "ELIGIBLE")
+      throw new Error("Pemain yang disetujui tidak dapat diubah langsung.");
+    const profile = await fetchTeamProfileRow(player.team_id).catch(() => null);
+    if (profile && isRegistrationLocked(profile.registration_status))
+      throw new Error("Pemain yang disetujui tidak dapat diubah langsung.");
+    const updated = toPlayer(
+      unwrapRow(await db.from("players").update(changes).eq("id", id).select("*").single()),
+    );
+    await audit(
+      operator_id ?? actor.userId,
+      "PLAYER_UPDATED",
+      "players",
+      id,
+      `Memperbarui pemain ${updated.full_name}`,
+    );
+    return updated;
+  },
+
+  async createTeamOfficial({
+    operator_id,
+    actor,
+    ...input
+  }: Omit<TeamOfficial, "id"> & { operator_id?: UUID; actor: ActorContext }): Promise<TeamOfficial> {
+    assertTeamAccess(actor, input.team_id, "official.create");
+    const inserted = unwrapRow(
+      await db
+        .from("team_officials")
+        .insert({
+          id: nextId("of"),
+          team_id: input.team_id,
+          full_name: input.full_name,
+          role: input.role,
+          registration_status: "DRAFT",
+          ...(input.license_number ? { license_number: input.license_number } : {}),
+        })
+        .select("*")
+        .single(),
+    );
+    const official = toOfficial(inserted);
+    await audit(
+      operator_id ?? actor.userId,
+      "OFFICIAL_CREATED",
+      "team_officials",
+      official.id,
+      `Menambahkan ofisial ${official.full_name}`,
+    );
+    return official;
+  },
+
+  async updateTeamOfficial({
+    id,
+    changes,
+    operator_id,
+    actor,
+  }: {
+    id: UUID;
+    changes: Partial<Pick<TeamOfficial, "full_name" | "role" | "license_number">>;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<TeamOfficial> {
+    const official = toOfficial(
+      unwrapRow(await db.from("team_officials").select("*").eq("id", id).single()),
+    );
+    assertTeamAccess(actor, official.team_id, "official.update");
+    if (official.registration_status === "APPROVED")
+      throw new Error("Ofisial yang disetujui tidak dapat diubah langsung.");
+    const updated = toOfficial(
+      unwrapRow(await db.from("team_officials").update(changes).eq("id", id).select("*").single()),
+    );
+    await audit(
+      operator_id ?? actor.userId,
+      "OFFICIAL_UPDATED",
+      "team_officials",
+      id,
+      `Memperbarui ofisial ${updated.full_name}`,
+    );
+    return updated;
+  },
+
+  async submitRegistration({
+    entityType,
+    entityId,
+    operator_id,
+    actor,
+  }: {
+    entityType: RegistrationEntityType;
+    entityId: UUID;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<void> {
+    const teamId = await teamIdForEntity(entityType, entityId);
+    assertTeamAccess(actor, teamId, "submission.submit");
+    if (entityType !== "TEAM") {
+      const table = entityType === "PLAYER" ? "players" : "team_officials";
+      const row = unwrapRow(await db.from(table).select("*").eq("id", entityId).single());
+      const current =
+        ((row["registration_status"] as RegistrationStatus | null) ?? "DRAFT") as RegistrationStatus;
+      if (!canTransitionParticipantRegistration(current, "SUBMITTED"))
+        throw new Error("Transisi registrasi tidak diizinkan.");
+      const result = await db
+        .from(table)
+        .update({ registration_status: "SUBMITTED" })
+        .eq("id", entityId)
+        .select("id")
+        .single();
+      unwrapRow(result);
+      await audit(
+        operator_id ?? actor.userId,
+        entityType === "PLAYER" ? "PLAYER_SUBMITTED" : "OFFICIAL_SUBMITTED",
+        entityType.toLowerCase(),
+        entityId,
+        `Mengirim registrasi ${entityType.toLowerCase()}`,
+      );
+      return;
+    }
+    const summary = await this.getTeamRegistration(entityId, actor);
+    if (!summary.is_ready) throw new Error("Registrasi belum memenuhi persyaratan.");
+    const previous = summary.profile.registration_status;
+    if (!canTransitionRegistration(previous, "SUBMITTED"))
+      throw new Error("Transisi registrasi tidak diizinkan.");
+    await saveTeamProfile({
+      ...summary.profile,
+      registration_status: "SUBMITTED",
+      updated_at: new Date().toISOString(),
+    });
+    await audit(
+      operator_id ?? actor.userId,
+      "TEAM_SUBMITTED",
+      "team_profiles",
+      entityId,
+      `Mengirim registrasi dari ${previous}`,
+    );
+  },
+
+  async uploadRegistrationDocument({
+    entityType,
+    entityId,
+    type,
+    file_name,
+    operator_id,
+    actor,
+  }: {
+    entityType: RegistrationEntityType;
+    entityId: UUID;
+    type: DocumentType;
+    file_name: string;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<RegistrationDocument> {
+    const teamId = await teamIdForEntity(entityType, entityId);
+    assertTeamAccess(actor, teamId, "document.upload");
+    const now = new Date().toISOString();
+    const existingRows = unwrapRows(
+      await db
+        .from("registration_documents")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId)
+        .eq("type", type),
+    );
+    const existing = existingRows[0];
+    const payload = {
+      file_name,
+      status: "UPLOADED",
+      uploaded_at: now,
+      reason: null,
+      storage_path: `registrations/${entityId}/${type.toLowerCase()}`,
+    };
+    const row = existing
+      ? unwrapRow(
+          await db
+            .from("registration_documents")
+            .update(payload)
+            .eq("id", existing["id"] as string)
+            .select("*")
+            .single(),
+        )
+      : unwrapRow(
+          await db
+            .from("registration_documents")
+            .insert({
+              id: nextId("doc"),
+              entity_type: entityType,
+              entity_id: entityId,
+              team_id: teamId,
+              type,
+              ...payload,
+            })
+            .select("*")
+            .single(),
+        );
+    const document = toDocument(row);
+    await audit(
+      operator_id ?? actor.userId,
+      existing ? "DOCUMENT_REPLACED" : "DOCUMENT_UPLOADED",
+      "registration_documents",
+      document.id,
+      `Mengunggah dokumen ${type}`,
+    );
+    return document;
+  },
+
+  async reviewRegistration({
+    entityType,
+    entityId,
+    action,
+    reason,
+    operator_id,
+    actor,
+  }: {
+    entityType: RegistrationEntityType;
+    entityId: UUID;
+    action: VerificationAction;
+    reason?: string;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<void> {
+    assertAdmin(actor, "document.review");
+    if (action !== "APPROVED" && (!reason || reason.trim().length < 3))
+      throw new Error("Alasan wajib diisi.");
+    const documents = unwrapRows(
+      await db
+        .from("registration_documents")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId),
+    ).map(toDocument);
+    const complete = DOCUMENT_TYPES.every((required) =>
+      documents.some(
+        (document) =>
+          document.type === required.key &&
+          document.status !== "MISSING" &&
+          document.status !== "REJECTED",
+      ),
+    );
+    if (action === "APPROVED" && !complete)
+      throw new Error("Semua dokumen wajib harus disetujui sebelum persetujuan.");
+
+    const nextStatus: DocumentStatus =
+      action === "APPROVED"
+        ? "APPROVED"
+        : action === "REVISION_REQUESTED"
+          ? "REVISION_REQUIRED"
+          : "REJECTED";
+    const nextRegistration: RegistrationStatus =
+      action === "APPROVED"
+        ? "APPROVED"
+        : action === "REVISION_REQUESTED"
+          ? "REVISION_REQUIRED"
+          : "REJECTED";
+
+    let previous: VerificationHistory["previous_status"] = documents[0]?.status ?? "MISSING";
+
+    if (entityType === "TEAM") {
+      const profile = await fetchTeamProfileRow(entityId);
+      previous = profile.registration_status;
+      await saveTeamProfile({
+        ...profile,
+        registration_status: nextRegistration,
+        updated_at: new Date().toISOString(),
+      });
+    } else {
+      const table = entityType === "PLAYER" ? "players" : "team_officials";
+      const row = unwrapRow(await db.from(table).select("*").eq("id", entityId).single());
+      const currentRegistration =
+        ((row["registration_status"] as RegistrationStatus | null) ?? "DRAFT") as RegistrationStatus;
+      if (!["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUIRED"].includes(currentRegistration))
+        throw new Error("Data belum berada pada status pemeriksaan.");
+      previous =
+        entityType === "PLAYER"
+          ? ((row["status"] as VerificationHistory["previous_status"]) ?? currentRegistration)
+          : currentRegistration;
+      const patch: Record<string, unknown> = { registration_status: nextRegistration };
+      if (entityType === "PLAYER" && action === "APPROVED") {
+        patch["status"] = "ELIGIBLE";
+        patch["nik_verified"] = true;
+      }
+      unwrapRow(await db.from(table).update(patch).eq("id", entityId).select("id").single());
+    }
+
+    for (const document of documents) {
+      unwrapRow(
+        await db
+          .from("registration_documents")
+          .update({
+            status: nextStatus,
+            reviewed_by: actor.userId,
+            reviewed_at: new Date().toISOString(),
+            ...(reason ? { reason } : {}),
+          })
+          .eq("id", document.id)
+          .select("id")
+          .single(),
+      );
+    }
+
+    const { error: historyError } = await db.from("verification_history").insert({
+      id: nextId("vh"),
+      entity_type: entityType,
+      entity_id: entityId,
+      team_id: await teamIdForEntity(entityType, entityId),
+      action,
+      actor_id: operator_id ?? actor.userId,
+      previous_status: previous,
+      new_status: nextRegistration,
+      ...(reason ? { reason } : {}),
+    });
+    if (historyError) throw new Error(historyError.message);
+
+    await audit(
+      operator_id ?? actor.userId,
+      `REGISTRATION_${action}`,
+      entityType.toLowerCase(),
+      entityId,
+      `Pemeriksaan registrasi: ${action}`,
+    );
   },
 };
 

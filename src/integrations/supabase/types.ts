@@ -786,6 +786,8 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
+          new_status: string
+          previous_status: string
           reason: string | null
           team_id: string | null
         }
@@ -796,6 +798,8 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
+          new_status?: string
+          previous_status?: string
           reason?: string | null
           team_id?: string | null
         }
@@ -806,6 +810,8 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
+          new_status?: string
+          previous_status?: string
           reason?: string | null
           team_id?: string | null
         }
