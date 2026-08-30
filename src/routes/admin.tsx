@@ -1,5 +1,9 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/hooks/use-session";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -23,9 +27,26 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminRouteLayout() {
+  const { isAuthenticated, isLoading } = useSession();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) navigate({ to: "/masuk", replace: true });
+  }, [isAuthenticated, isLoading, navigate]);
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="space-y-3 p-8">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
   return (
     <AdminLayout>
       <Outlet />
     </AdminLayout>
   );
+
 }

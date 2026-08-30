@@ -1,20 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ROLE_LABEL } from "@/domain/permissions";
-import { usersQuery } from "@/hooks/queries";
 import { useSession } from "@/hooks/use-session";
+
 
 export const Route = createFileRoute("/masuk")({
   head: () => ({
@@ -36,39 +27,42 @@ export const Route = createFileRoute("/masuk")({
 });
 
 function LoginPage() {
-  const { data: users = [] } = useQuery(usersQuery());
-  const { signIn } = useSession();
+  const { signIn, signUp, isAuthenticated } = useSession();
   const navigate = useNavigate();
-  const [accountId, setAccountId] = useState("");
+  const [mode, setMode] = useState<"SIGN_IN" | "SIGN_UP">("SIGN_IN");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) navigate({ to: "/admin", replace: true });
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const account = users.find((u) => u.id === accountId);
-      if (!account) {
-        toast.error("Pilih akun petugas terlebih dahulu.");
+      if (mode === "SIGN_UP") {
+        await signUp({ email, password, full_name: fullName });
+        toast.success("Akun dibuat. Periksa email untuk konfirmasi, lalu masuk.");
+        setMode("SIGN_IN");
         return;
       }
-
-      // Authenticate via email
-      await signIn({
-        email: account.email,
-        password,
-      });
-
-      toast.success(`Masuk sebagai ${ROLE_LABEL[account.role]}`);
+      await signIn({ email, password });
+      toast.success("Berhasil masuk.");
       navigate({ to: "/admin" });
     } catch (error) {
-      toast.error("Email atau kata sandi tidak valid.");
-      console.error("Login failed:", error);
+      toast.error(error instanceof Error ? error.message : "Email atau kata sandi tidak valid.");
     } finally {
       setIsLoading(false);
     }
   };
+
+
+
+
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -94,26 +88,40 @@ function LoginPage() {
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
           <div>
             <p className="label-caps text-primary">PORPROV Sulsel 2026</p>
-            <h2 className="mt-1 text-3xl font-bold">Masuk Panel Panitia</h2>
+            <h2 className="mt-1 text-3xl font-bold">
+              {mode === "SIGN_IN" ? "Masuk Panel Panitia" : "Daftar Akun Petugas"}
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Gunakan akun petugas yang diterbitkan panitia pelaksana.
             </p>
           </div>
 
+          {mode === "SIGN_UP" ? (
+            <div className="space-y-2">
+              <Label htmlFor="full-name">Nama Lengkap</Label>
+              <Input
+                id="full-name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+                required
+                disabled={isLoading}
+              />
+            </div>
+          ) : null}
+
           <div className="space-y-2">
-            <Label htmlFor="account">Akun Petugas</Label>
-            <Select value={accountId} onValueChange={setAccountId} disabled={isLoading}>
-              <SelectTrigger id="account">
-                <SelectValue placeholder="Pilih akun petugas" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.full_name} — {ROLE_LABEL[user.role]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="email">Email Petugas</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nama@porprovsulsel.id"
+              autoComplete="email"
+              required
+              disabled={isLoading}
+            />
           </div>
 
           <div className="space-y-2">
@@ -124,19 +132,31 @@ function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              autoComplete="current-password"
+              autoComplete={mode === "SIGN_IN" ? "current-password" : "new-password"}
+              required
               disabled={isLoading}
             />
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Memeriksa…" : "Masuk"}
+            {isLoading ? "Memproses…" : mode === "SIGN_IN" ? "Masuk" : "Daftar"}
           </Button>
 
+          <button
+            type="button"
+            onClick={() => setMode(mode === "SIGN_IN" ? "SIGN_UP" : "SIGN_IN")}
+            className="w-full text-sm text-primary hover:underline"
+          >
+            {mode === "SIGN_IN" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+          </button>
+
           <p className="text-xs text-muted-foreground">
-            Otentikasi sementara berjalan di sisi klien untuk kebutuhan demo tampilan. Verifikasi
-            kredensial dan otorisasi peran akan ditegakkan backend.
+            Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh perubahan
+            status pertandingan dicatat atas nama akun yang sedang masuk.
           </p>
+
+
+
 
           <Link to="/" className="block text-center text-sm text-primary hover:underline">
             Kembali ke situs publik

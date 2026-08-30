@@ -7,22 +7,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import type { PermissionKey } from "@/domain/permissions";
 import { can, canAny } from "@/domain/permissions";
 import type { RoleKey } from "@/domain/types";
-import type { UserIdentity, TeamMembership } from "@/domain/authentication";
-import { AuthenticationService } from "@/domain/authentication-service";
-import { DemoAuthenticationAdapter } from "@/domain/demo-authentication-adapter";
-import { setAuthenticationService } from "@/domain/authentication-service";
 
 /**
- * SessionUser: Derived representation for React components.
- * Maps from UserIdentity + TeamMembership for backward compatibility.
- *
- * IMPORTANT:
- * - No password or credentials
- * - No sensitive auth material
- * - Derived from authenticated session only
+ * SessionUser: representasi sesi terautentikasi untuk komponen React.
+ * Sumber kebenarannya adalah sesi Lovable Cloud (auth) + tabel profiles/user_roles.
+ * Tidak pernah menyimpan kredensial.
  */
 export interface SessionUser {
   id: string;
@@ -36,7 +30,9 @@ export interface SessionUser {
 interface SessionContextValue {
   user: SessionUser | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   signIn: (credentials: { username?: string; email?: string; password: string }) => Promise<void>;
+  signUp: (input: { email: string; password: string; full_name: string }) => Promise<void>;
   signOut: () => Promise<void>;
   can: (permission: PermissionKey) => boolean;
   canAny: (permissions: PermissionKey[]) => boolean;
@@ -44,142 +40,137 @@ interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-/**
- * Initialize authentication service with demo adapter.
- * Phase 3.2+: Will swap adapter to production authentication.
- */
-function initializeAuthenticationService(): AuthenticationService {
-  const adapter = new DemoAuthenticationAdapter();
-  const service = new AuthenticationService(adapter);
-  setAuthenticationService(service);
-  return service;
+/** Peran dan profil dibaca dari database; RLS tetap otoritas sebenarnya. */
+async function loadSessionUser(session: Session): Promise<SessionUser> {
+  const userId = session.user.id;
+  const email = session.user.email ?? "";
+
+  const [profileResult, roleResult] = await Promise.all([
+    supabase.from("profiles").select("full_name, team_id").eq("id", userId).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", userId).limit(1).maybeSingle(),
+  ]);
+
+  const fullName =
+    profileResult.data?.full_name ||
+    (session.user.user_metadata["full_name"] as string | undefined) ||
+    email;
+  const role = (roleResult.data?.role as RoleKey | undefined) ?? "PUBLIC";
+  const teamId = profileResult.data?.team_id ?? undefined;
+
+  return {
+    id: userId,
+    full_name: fullName,
+    email,
+    role,
+    ...(teamId ? { team_id: teamId } : {}),
+    account_type: role === "TEAM_OFFICIAL" ? "TEAM" : "ADMIN",
+  };
 }
 
-/**
- * SessionProvider: Manages authenticated session state.
- *
- * Derives from authentication boundary:
- * AuthenticatedSession → UserIdentity + TeamMembership → SessionUser (for React)
- *
- * SECURITY:
- * - Never stores credentials in state
- * - Never exposes credential material through context
- * - Invalidates protected data on logout
- * - Preserves ActorContext boundary from Phase 2.6
- */
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [userIdentity, setUserIdentity] = useState<UserIdentity | null>(null);
-  const [memberships, setMemberships] = useState<TeamMembership[]>([]);
-  const [authService] = useState(() => initializeAuthenticationService());
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize demo admin session on mount
   useEffect(() => {
-    const initializeDemoSession = async () => {
-      try {
-        // Auto-login demo admin for development
-        const result = await authService.authenticate({
-          email: "superadmin@porprovsulsel.id",
-          password: "demo", // demo password
-        });
+    let active = true;
 
-        if (result.success && result.session && result.user) {
-          setSessionId(result.session.session_id);
-          setUserIdentity(result.user);
-
-          // Derive session user for React
-          const derived: SessionUser = {
-            id: result.user.id,
-            full_name: result.user.display_name,
-            email: result.user.email,
-            role: "SUPER_ADMIN", // Phase 3.3: resolve from RBAC
-            account_type: "ADMIN",
-          };
-          setUser(derived);
+    const apply = (session: Session | null) => {
+      if (!session) {
+        if (active) {
+          setUser(null);
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Failed to initialize demo session:", error);
-      } finally {
-        setIsInitializing(false);
+        return;
       }
+      // Pembacaan profil/peran ditunda agar tidak memblokir callback auth.
+      void loadSessionUser(session)
+        .then((next) => {
+          if (active) setUser(next);
+        })
+        .catch((error) => {
+          console.error("Gagal memuat profil sesi:", error);
+          if (active) setUser(null);
+        })
+        .finally(() => {
+          if (active) setIsLoading(false);
+        });
     };
 
-    initializeDemoSession();
-  }, [authService]);
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      if (!session) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+      setTimeout(() => apply(session), 0);
+    });
+
+    void supabase.auth.getSession().then(({ data }) => apply(data.session));
+
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
 
   const signIn = useCallback(
     async (credentials: { username?: string; email?: string; password: string }) => {
-      try {
-        const result = await authService.authenticate(credentials);
-
-        if (!result.success) {
-          throw new Error(result.error || "Authentication failed");
-        }
-
-        if (!result.session || !result.user) {
-          throw new Error("Invalid authentication result");
-        }
-
-        // Store session and identity
-        setSessionId(result.session.session_id);
-        setUserIdentity(result.user);
-
-        // Fetch team memberships
-        const userMemberships = await authService.getTeamMemberships(result.user.id);
-        setMemberships(userMemberships);
-
-        // Derive session user from identity + memberships
-        const teamId = userMemberships[0]?.team_id; // Use first team as primary
-        const derived: SessionUser = {
-          id: result.user.id,
-          full_name: result.user.display_name,
-          email: result.user.email,
-          role: credentials.username ? "TEAM_OFFICIAL" : "SUPER_ADMIN", // Phase 3.3: resolve from RBAC
-          ...(teamId ? { team_id: teamId } : {}),
-          account_type: credentials.username ? "TEAM" : "ADMIN",
-        };
-
-        setUser(derived);
-      } catch (error) {
-        console.error("Sign in failed:", error);
-        throw error;
+      const email = credentials.email ?? credentials.username ?? "";
+      if (!email.includes("@")) {
+        throw new Error("Gunakan alamat email akun resmi Anda.");
       }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: credentials.password,
+      });
+      if (error) throw new Error(error.message);
+      if (data.session) setUser(await loadSessionUser(data.session));
     },
-    [authService],
+    [],
+  );
+
+  const signUp = useCallback(
+    async ({
+      email,
+      password,
+      full_name,
+    }: {
+      email: string;
+      password: string;
+      full_name: string;
+    }) => {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/masuk`,
+          data: { full_name },
+        },
+      });
+      if (error) throw new Error(error.message);
+    },
+    [],
   );
 
   const signOut = useCallback(async () => {
-    try {
-      if (sessionId && userIdentity) {
-        await authService.logout({
-          userId: userIdentity.id,
-          sessionId,
-        });
-      }
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      // Clear all session state
-      setUser(null);
-      setSessionId(null);
-      setUserIdentity(null);
-      setMemberships([]);
-    }
-  }, [authService, sessionId, userIdentity]);
+    await supabase.auth.signOut();
+    setUser(null);
+  }, []);
 
   const value = useMemo<SessionContextValue>(() => {
     const role: RoleKey = user?.role ?? "PUBLIC";
     return {
       user,
-      isAuthenticated: user !== null && !isInitializing,
+      isAuthenticated: user !== null,
+      isLoading,
       signIn,
+      signUp,
       signOut,
       can: (permission) => can(role, permission),
       canAny: (permissions) => canAny(role, permissions),
     };
-  }, [user, signIn, signOut, isInitializing]);
+  }, [user, isLoading, signIn, signUp, signOut]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
