@@ -58,11 +58,14 @@ function TeamLoginPage() {
           <div className="space-y-2">
             <Label htmlFor="email">Email Tim</Label>
             <Input
-              id="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              autoComplete="username"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
               disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
