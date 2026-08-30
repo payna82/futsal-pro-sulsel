@@ -401,34 +401,33 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async listUsers(): Promise<User[]> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, phone, contingent_id, venue_id, is_active, last_login_at, created_at");
-    if (error) return [];
-    const roles = await db.from("user_roles").select("user_id, role");
+    const profiles = await db.from("profiles").select("*").limit(1000);
+    if (profiles.error) return [];
+    const roles = await db.from("user_roles").select("*").limit(1000);
     const roleOf = new Map<string, RoleKey>();
-    for (const row of roles.data ?? []) {
-      roleOf.set(row.user_id as string, row.role as RoleKey);
+    for (const row of unwrapRows({ data: roles.data ?? [], error: null })) {
+      roleOf.set(row["user_id"] as string, row["role"] as RoleKey);
     }
-    return (data ?? []).map((row) => ({
-      id: row.id as string,
-      full_name: (row.full_name as string) || (row.email as string),
-      email: row.email as string,
-      ...optional("phone", row.phone),
-      role: roleOf.get(row.id as string) ?? "PUBLIC",
-      ...optional("contingent_id", row.contingent_id),
-      ...optional("venue_id", row.venue_id),
-      is_active: row.is_active as boolean,
-      ...optional("last_login_at", row.last_login_at),
-      created_at: row.created_at as string,
+    return unwrapRows(profiles).map((row) => ({
+      id: row["id"] as string,
+      full_name: (row["full_name"] as string) || (row["email"] as string),
+      email: row["email"] as string,
+      ...optional("phone", row["phone"]),
+      role: roleOf.get(row["id"] as string) ?? "PUBLIC",
+      ...optional("contingent_id", row["contingent_id"]),
+      ...optional("venue_id", row["venue_id"]),
+      is_active: (row["is_active"] as boolean) ?? true,
+      ...optional("last_login_at", row["last_login_at"]),
+      created_at: row["created_at"] as string,
     })) as User[];
   },
 
   async listAuditLogs(): Promise<AuditLog[]> {
-    const { data, error } = await supabase
+    const result = await db
       .from("audit_logs")
       .select("*")
       .order("created_at", { ascending: false })
+
       .limit(500);
     if (error) return [];
     return (data ?? []) as unknown as AuditLog[];
