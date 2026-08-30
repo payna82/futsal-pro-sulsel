@@ -33,7 +33,7 @@ const STATUS_LABEL: Record<Player["status"], string> = {
 
 function AdminPlayersRoute() {
   const data = useCompetitionData();
-  const players = useQuery(playersQuery());
+  const players = useQuery(playersQuery(actor));
   const [category, setCategory] = useState<CategoryKey>("MEN");
 
   const categoryId = data.categoryId(category);

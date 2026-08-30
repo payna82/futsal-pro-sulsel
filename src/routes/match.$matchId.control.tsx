@@ -106,7 +106,7 @@ function MatchControlRoute() {
   const events = useQuery(matchEventsQuery(matchId));
   const lineup = useQuery(lineupQuery(matchId));
   const officials = useQuery(matchOfficialsQuery(matchId));
-  const players = useQuery(playersQuery());
+  const players = useQuery(playersQuery(actor));
 
   const recordEvent = useRecordMatchEvent(matchId);
   const transition = useTransitionMatchStatus(matchId);

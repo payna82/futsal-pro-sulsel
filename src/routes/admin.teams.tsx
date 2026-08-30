@@ -27,8 +27,8 @@ const TEAM_STATUS_LABEL: Record<Team["status"], string> = {
 function AdminTeamsRoute() {
   const data = useCompetitionData();
   const contingents = useQuery(contingentsQuery());
-  const players = useQuery(playersQuery());
-  const officials = useQuery(teamOfficialsQuery());
+  const players = useQuery(playersQuery(actor));
+  const officials = useQuery(teamOfficialsQuery(actor));
 
   const contingentName = (id: string) => contingents.data?.find((c) => c.id === id)?.name ?? "—";
 

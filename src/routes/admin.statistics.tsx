@@ -23,7 +23,7 @@ export const Route = createFileRoute("/admin/statistics")({
 
 function AdminStatisticsRoute() {
   const data = useCompetitionData();
-  const players = useQuery(playersQuery());
+  const players = useQuery(playersQuery(actor));
   const [category, setCategory] = useState<CategoryKey>("MEN");
   const categoryId = data.categoryId(category);
 

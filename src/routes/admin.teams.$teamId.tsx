@@ -26,8 +26,8 @@ function TeamAdminDetail() {
   const { teamId } = Route.useParams();
   const data = useCompetitionData();
   const team = data.teams.find((item) => item.id === teamId);
-  const registration = useQuery(teamRegistrationQuery(teamId));
-  const accounts = useQuery(teamAccountsQuery());
+  const registration = useQuery(teamRegistrationQuery(teamId, actor));
+  const accounts = useQuery(teamAccountsQuery(actor));
   const create = useCreateTeamAccount();
   const updateProfile = useUpdateTeamProfile(teamId);
   const account = accounts.data?.find((item) => item.team_id === teamId);

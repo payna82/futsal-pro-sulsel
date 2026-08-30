@@ -18,8 +18,8 @@ export const Route = createFileRoute("/admin/contingents")({
 
 function AdminContingentsRoute() {
   const contingents = useQuery(contingentsQuery());
-  const players = useQuery(playersQuery());
-  const officials = useQuery(teamOfficialsQuery());
+  const players = useQuery(playersQuery(actor));
+  const officials = useQuery(teamOfficialsQuery(actor));
   const { teams, isLoading } = useCompetitionData();
 
   const rows = contingents.data ?? [];

@@ -47,11 +47,11 @@ type PortalView =
 export function TeamPortalPage({ view }: { view: PortalView }) {
   const teamId = useSession().user?.team_id ?? "";
   const data = useCompetitionData();
-  const registration = useQuery({ ...teamRegistrationQuery(teamId), enabled: Boolean(teamId) });
-  const profile = useQuery({ ...teamProfileQuery(teamId), enabled: Boolean(teamId) });
-  const players = useQuery(playersQuery());
-  const officials = useQuery(teamOfficialsQuery());
-  const documents = useQuery(registrationDocumentsQuery());
+  const registration = useQuery({ ...teamRegistrationQuery(teamId, actor), enabled: Boolean(teamId) });
+  const profile = useQuery({ ...teamProfileQuery(teamId, actor), enabled: Boolean(teamId) });
+  const players = useQuery(playersQuery(actor));
+  const officials = useQuery(teamOfficialsQuery(actor));
+  const documents = useQuery(registrationDocumentsQuery(actor));
   const team = data.teams.find((item) => item.id === teamId);
   if (!teamId || !team || !registration.data || !profile.data)
     return (

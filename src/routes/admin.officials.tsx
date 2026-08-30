@@ -30,7 +30,7 @@ const MATCH_ROLES: RoleKey[] = ["REFEREE", "TIMEKEEPER", "SCOREKEEPER", "MATCH_C
 
 function AdminOfficialsRoute() {
   const data = useCompetitionData();
-  const officials = useQuery(teamOfficialsQuery());
+  const officials = useQuery(teamOfficialsQuery(actor));
   const users = useQuery(usersQuery());
 
   const teamColumns: Column<TeamOfficial>[] = [

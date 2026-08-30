@@ -44,7 +44,7 @@ export const Route = createFileRoute("/admin/")({
 function AdminDashboardRoute() {
   const data = useCompetitionData();
   const contingents = useQuery(contingentsQuery());
-  const players = useQuery(playersQuery());
+  const players = useQuery(playersQuery(actor));
 
   const matches = data.matches;
   const today = matches.filter((m) => isMatchToday(m));

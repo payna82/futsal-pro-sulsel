@@ -21,9 +21,9 @@ export const Route = createFileRoute("/admin/verification")({
 
 function VerificationPage() {
   const data = useCompetitionData();
-  const players = useQuery(playersQuery());
-  const officials = useQuery(teamOfficialsQuery());
-  const documents = useQuery(registrationDocumentsQuery());
+  const players = useQuery(playersQuery(actor));
+  const officials = useQuery(teamOfficialsQuery(actor));
+  const documents = useQuery(registrationDocumentsQuery(actor));
   const review = useReviewRegistration();
   const [reason, setReason] = useState("");
   const pendingPlayers = (players.data ?? []).filter(
