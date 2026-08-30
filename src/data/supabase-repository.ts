@@ -183,13 +183,13 @@ function toMatchOfficial(row: Row): MatchOfficial {
 }
 
 async function selectAll(table: string, columns = "*"): Promise<Row[]> {
-  const { data, error } = await supabase.from(table).select(columns).limit(5000);
+  const { data, error } = await db.from(table).select(columns).limit(5000);
   if (error) throw new Error(error.message);
   return (data ?? []) as unknown as Row[];
 }
 
 async function fetchMatch(id: UUID): Promise<Match | null> {
-  const { data, error } = await supabase.from("matches").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await db.from("matches").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
   return data ? toMatch(data as Row) : null;
 }
@@ -225,7 +225,7 @@ async function audit(
   commandId?: UUID,
   result: "ACCEPTED" | "REPLAYED" = "ACCEPTED",
 ) {
-  await supabase.from("audit_logs").insert({
+  await db.from("audit_logs").insert({
     id: nextId("au"),
     actor_id: actorId,
     actor_name: "",
@@ -243,7 +243,7 @@ async function appendEvent(input: NewMatchEventInput & { command_id: string }) {
   const replay = existing.find((event) => event.command_id === input.command_id);
   if (replay) return { event: replay, replayed: true as const };
   const sequence = existing.reduce((max, event) => Math.max(max, event.sequence_no ?? 0), 0) + 1;
-  const inserted = unwrap(
+  const inserted = unwrapRow(
     await supabase
       .from("match_events")
       .insert({
@@ -268,7 +268,7 @@ async function appendEvent(input: NewMatchEventInput & { command_id: string }) {
 async function resyncAndBump(match: Match, patch: Partial<Match> = {}): Promise<Match> {
   const events = await eventsOf(match.id);
   const score = deriveScore(events, match.home_team_id, match.away_team_id);
-  const updated = unwrap(
+  const updated = unwrapRow(
     await supabase
       .from("matches")
       .update({
@@ -317,7 +317,7 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async getPlayer(id: UUID): Promise<Player> {
-    const row = unwrap(await supabase.from("players").select("*").eq("id", id).single());
+    const row = unwrapRow(await db.from("players").select("*").eq("id", id).single());
     return toPlayer(row as Row);
   },
 
@@ -326,7 +326,7 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async getTeamOfficial(id: UUID): Promise<TeamOfficial> {
-    const row = unwrap(await supabase.from("team_officials").select("*").eq("id", id).single());
+    const row = unwrapRow(await db.from("team_officials").select("*").eq("id", id).single());
     return toOfficial(row as Row);
   },
 
@@ -404,7 +404,7 @@ export const supabaseRepository: CompetitionRepository = {
       .from("profiles")
       .select("id, full_name, email, phone, contingent_id, venue_id, is_active, last_login_at, created_at");
     if (error) return [];
-    const roles = await supabase.from("user_roles").select("user_id, role");
+    const roles = await db.from("user_roles").select("user_id, role");
     const roleOf = new Map<string, RoleKey>();
     for (const row of roles.data ?? []) {
       roleOf.set(row.user_id as string, row.role as RoleKey);
@@ -640,9 +640,9 @@ export const supabaseRepository: CompetitionRepository = {
       if (error) throw new Error(error.message);
     }
     const name =
-      (await supabase.from("profiles").select("full_name").eq("id", user_id).maybeSingle()).data
+      (await db.from("profiles").select("full_name").eq("id", user_id).maybeSingle()).data
         ?.full_name ?? user_id;
-    const { error } = await supabase.from("match_officials").insert({
+    const { error } = await db.from("match_officials").insert({
       id: nextId("mo"),
       match_id,
       user_id,
