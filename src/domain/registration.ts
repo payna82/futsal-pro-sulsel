@@ -70,10 +70,11 @@ export interface RoleRequest {
 
 export type ISODateTime = string;
 
-export const DEMO_READ_ACTOR: ActorContext = {
-  userId: "demo-read",
+/** Aktor untuk pengunjung publik yang belum terautentikasi (read-only). */
+export const GUEST_ACTOR: ActorContext = {
+  userId: "guest",
   role: "PUBLIC",
-  permissions: ["team.read", "team.view_own", "player.read", "official.read", "document.upload"],
+  permissions: [...ROLE_PERMISSIONS.PUBLIC],
 };
 
 export type RegistrationStatus =
