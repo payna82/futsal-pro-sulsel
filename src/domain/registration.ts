@@ -1,5 +1,5 @@
 import type { OfficialRole, Player, RoleKey, Team, TeamOfficial, UUID } from "./types";
-import type { PermissionKey } from "./permissions";
+import { ROLE_PERMISSIONS, type PermissionKey } from "./permissions";
 
 export interface ActorContext {
   userId: UUID;
