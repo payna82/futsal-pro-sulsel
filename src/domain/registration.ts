@@ -1,5 +1,5 @@
 import type { OfficialRole, Player, RoleKey, Team, TeamOfficial, UUID } from "./types";
-import type { PermissionKey } from "./permissions";
+import { ROLE_PERMISSIONS, type PermissionKey } from "./permissions";
 
 export interface ActorContext {
   userId: UUID;
@@ -10,12 +10,7 @@ export interface ActorContext {
 
 /* ============================ Role Requests ============================ */
 
-export type RoleRequestStatus =
-  | "PENDING"
-  | "APPROVED"
-  | "REJECTED"
-  | "REVOKED"
-  | "CANCELLED";
+export type RoleRequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "REVOKED" | "CANCELLED";
 
 export const ROLE_REQUEST_STATUS_LABEL: Record<RoleRequestStatus, string> = {
   PENDING: "Menunggu Tinjauan",
@@ -36,15 +31,14 @@ export const SELF_REQUESTABLE_ROLES = [
   "TEAM_OFFICIAL",
 ] as const;
 
-export const SELF_REQUESTABLE_ROLE_LABELS: Record<
-  (typeof SELF_REQUESTABLE_ROLES)[number], string
-> = {
-  REFEREE: "Wasit Pertandingan",
-  TIMEKEEPER: "Pencatat Waktu",
-  SCOREKEEPER: "Pencatat Skor",
-  MEDIA: "Petugas Media & Publikasi",
-  TEAM_OFFICIAL: "Ofisial / Pengurus Tim",
-};
+export const SELF_REQUESTABLE_ROLE_LABELS: Record<(typeof SELF_REQUESTABLE_ROLES)[number], string> =
+  {
+    REFEREE: "Wasit Pertandingan",
+    TIMEKEEPER: "Pencatat Waktu",
+    SCOREKEEPER: "Pencatat Skor",
+    MEDIA: "Petugas Media & Publikasi",
+    TEAM_OFFICIAL: "Ofisial / Pengurus Tim",
+  };
 
 export interface SupportingDoc {
   name: string;
@@ -70,10 +64,11 @@ export interface RoleRequest {
 
 export type ISODateTime = string;
 
-export const DEMO_READ_ACTOR: ActorContext = {
-  userId: "demo-read",
+/** Aktor untuk pengunjung publik yang belum terautentikasi (read-only). */
+export const GUEST_ACTOR: ActorContext = {
+  userId: "guest",
   role: "PUBLIC",
-  permissions: ["team.read", "team.view_own", "player.read", "official.read", "document.upload"],
+  permissions: [...ROLE_PERMISSIONS.PUBLIC],
 };
 
 export type RegistrationStatus =

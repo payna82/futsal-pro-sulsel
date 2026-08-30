@@ -10,7 +10,8 @@ import {
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { PermissionKey } from "@/domain/permissions";
-import { can, canAny } from "@/domain/permissions";
+import { can, canAny, ROLE_PERMISSIONS } from "@/domain/permissions";
+import { GUEST_ACTOR, type ActorContext } from "@/domain/registration";
 import type { RoleKey } from "@/domain/types";
 
 /**
@@ -179,4 +180,21 @@ export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext);
   if (!ctx) throw new Error("useSession harus dipakai di dalam SessionProvider");
   return ctx;
+}
+
+/**
+ * Aktor otorisasi untuk lapisan repository, diturunkan dari sesi nyata.
+ * Pengunjung tanpa sesi memakai GUEST_ACTOR (read-only publik).
+ */
+export function useActor(): ActorContext {
+  const { user } = useSession();
+  return useMemo<ActorContext>(() => {
+    if (!user) return GUEST_ACTOR;
+    return {
+      userId: user.id,
+      role: user.role,
+      permissions: ROLE_PERMISSIONS[user.role] ?? [],
+      ...(user.team_id ? { teamId: user.team_id } : {}),
+    };
+  }, [user]);
 }

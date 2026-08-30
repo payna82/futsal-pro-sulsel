@@ -10,10 +10,7 @@ import { StatCard } from "@/components/common/StatCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  ROLE_LABEL,
-  type PermissionKey,
-} from "@/domain/permissions";
+import { ROLE_LABEL, type PermissionKey } from "@/domain/permissions";
 import {
   ROLE_REQUEST_STATUS_LABEL,
   SELF_REQUESTABLE_ROLE_LABELS,
@@ -46,16 +43,11 @@ export const Route = createFileRoute("/admin/role-requests")({
 });
 
 const STATUS_STYLE: Record<RoleRequestStatus, string> = {
-  PENDING:
-    "bg-warning/15 text-warning-foreground border-warning/40",
-  APPROVED:
-    "bg-success/12 text-success border-success/40",
-  REJECTED:
-    "bg-destructive/10 text-destructive border-destructive/30",
-  REVOKED:
-    "bg-destructive/10 text-destructive border-destructive/30",
-  CANCELLED:
-    "bg-muted text-muted-foreground border-border",
+  PENDING: "bg-warning/15 text-warning-foreground border-warning/40",
+  APPROVED: "bg-success/12 text-success border-success/40",
+  REJECTED: "bg-destructive/10 text-destructive border-destructive/30",
+  REVOKED: "bg-destructive/10 text-destructive border-destructive/30",
+  CANCELLED: "bg-muted text-muted-foreground border-border",
 };
 
 function RoleRequestStatusBadge({ status }: { status: RoleRequestStatus }) {
@@ -66,18 +58,10 @@ function RoleRequestStatusBadge({ status }: { status: RoleRequestStatus }) {
         STATUS_STYLE[status],
       )}
     >
-      {status === "PENDING" && (
-        <Clock className="size-3" aria-hidden />
-      )}
-      {status === "APPROVED" && (
-        <CheckCircle className="size-3" aria-hidden />
-      )}
-      {status === "REJECTED" && (
-        <XCircle className="size-3" aria-hidden />
-      )}
-      {status === "REVOKED" && (
-        <Ban className="size-3" aria-hidden />
-      )}
+      {status === "PENDING" && <Clock className="size-3" aria-hidden />}
+      {status === "APPROVED" && <CheckCircle className="size-3" aria-hidden />}
+      {status === "REJECTED" && <XCircle className="size-3" aria-hidden />}
+      {status === "REVOKED" && <Ban className="size-3" aria-hidden />}
       {ROLE_REQUEST_STATUS_LABEL[status]}
     </span>
   );
@@ -85,11 +69,13 @@ function RoleRequestStatusBadge({ status }: { status: RoleRequestStatus }) {
 
 function AdminRoleRequestsPage() {
   const { user, can } = useSession();
-  const roleRequests = useQuery(roleRequestsQuery({
-    userId: user?.id ?? "",
-    role: user?.role ?? "PUBLIC",
-    permissions: ([] as PermissionKey[]),
-  }));
+  const roleRequests = useQuery(
+    roleRequestsQuery({
+      userId: user?.id ?? "",
+      role: user?.role ?? "PUBLIC",
+      permissions: [] as PermissionKey[],
+    }),
+  );
   const users = useQuery(usersQuery());
   const contingents = useQuery(contingentsQuery());
   const venues = useQuery(venuesQuery());
@@ -114,10 +100,8 @@ function AdminRoleRequestsPage() {
     const u = (users.data ?? []).find((x) => x.id === userId);
     return u?.email ?? "-";
   };
-  const contingentName = (id?: string) =>
-    contingents.data?.find((c) => c.id === id)?.name;
-  const venueName = (id?: string) =>
-    venues.data?.find((v) => v.id === id)?.name;
+  const contingentName = (id?: string) => contingents.data?.find((c) => c.id === id)?.name;
+  const venueName = (id?: string) => venues.data?.find((v) => v.id === id)?.name;
   const teamName = (id?: string) => teams.data?.find((t) => t.id === id)?.name;
 
   const stats = useMemo(() => {
@@ -132,9 +116,7 @@ function AdminRoleRequestsPage() {
 
   const filteredRows = useMemo(() => {
     const rows = roleRequests.data ?? [];
-    return filter === "ALL"
-      ? rows
-      : rows.filter((r) => r.status === filter);
+    return filter === "ALL" ? rows : rows.filter((r) => r.status === filter);
   }, [roleRequests.data, filter]);
 
   const selected = (roleRequests.data ?? []).find((r) => r.id === selectedId) ?? null;
@@ -153,7 +135,9 @@ function AdminRoleRequestsPage() {
       },
       {
         onSuccess: () => {
-          toast.success(`Peran ${ROLE_LABEL[row.requested_role]} disetujui untuk ${requestorName(row.user_id)}.`);
+          toast.success(
+            `Peran ${ROLE_LABEL[row.requested_role]} disetujui untuk ${requestorName(row.user_id)}.`,
+          );
           setSelectedId(null);
           setDecisionNote("");
           setBindContingent("");
@@ -238,7 +222,9 @@ function AdminRoleRequestsPage() {
       hideOnMobile: true,
       cell: (r) => (
         <div className="text-xs text-muted-foreground space-y-0.5">
-          {r.contingent_id ? <p>Kontingen: {contingentName(r.contingent_id) ?? r.contingent_id}</p> : null}
+          {r.contingent_id ? (
+            <p>Kontingen: {contingentName(r.contingent_id) ?? r.contingent_id}</p>
+          ) : null}
           {r.venue_id ? <p>Venue: {venueName(r.venue_id) ?? r.venue_id}</p> : null}
           {r.team_id ? <p>Tim: {teamName(r.team_id) ?? r.team_id}</p> : null}
           {!r.contingent_id && !r.venue_id && !r.team_id ? <p>—</p> : null}
@@ -311,10 +297,32 @@ function AdminRoleRequestsPage() {
       isError={roleRequests.isError}
     >
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Total Permintaan" value={stats.all} hint="Seluruh riwayat permintaan peran" />
-        <StatCard label="Menunggu" value={stats.pending} tone="warning" icon={Clock} hint="Perlu tindakan panitia" />
-        <StatCard label="Disetujui" value={stats.approved} tone="success" icon={UserCheck} hint="Peran sudah aktif" />
-        <StatCard label="Ditolak" value={stats.rejected} tone="default" icon={UserX} hint="Permintaan ditolak atau dicabut" />
+        <StatCard
+          label="Total Permintaan"
+          value={stats.all}
+          hint="Seluruh riwayat permintaan peran"
+        />
+        <StatCard
+          label="Menunggu"
+          value={stats.pending}
+          tone="warning"
+          icon={Clock}
+          hint="Perlu tindakan panitia"
+        />
+        <StatCard
+          label="Disetujui"
+          value={stats.approved}
+          tone="success"
+          icon={UserCheck}
+          hint="Peran sudah aktif"
+        />
+        <StatCard
+          label="Ditolak"
+          value={stats.rejected}
+          tone="default"
+          icon={UserX}
+          hint="Permintaan ditolak atau dicabut"
+        />
       </div>
 
       {selected && selected.status === "PENDING" && canManage ? (

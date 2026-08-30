@@ -255,9 +255,8 @@ export function useCreateRoleRequest() {
   const actor = useActorContext();
   const invalidate = useRoleRequestInvalidation(actor?.userId);
   return useMutation({
-    mutationFn: (
-      input: Omit<Parameters<typeof repository.createRoleRequest>[0], "actor">,
-    ) => repository.createRoleRequest({ ...input, actor: requireActor(actor) }),
+    mutationFn: (input: Omit<Parameters<typeof repository.createRoleRequest>[0], "actor">) =>
+      repository.createRoleRequest({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
@@ -276,9 +275,8 @@ export function useApproveRoleRequest() {
   const actor = useActorContext();
   const invalidate = useRoleRequestInvalidation();
   return useMutation({
-    mutationFn: (
-      input: Omit<Parameters<typeof repository.approveRoleRequest>[0], "actor">,
-    ) => repository.approveRoleRequest({ ...input, actor: requireActor(actor) }),
+    mutationFn: (input: Omit<Parameters<typeof repository.approveRoleRequest>[0], "actor">) =>
+      repository.approveRoleRequest({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
@@ -287,9 +285,8 @@ export function useRejectRoleRequest() {
   const actor = useActorContext();
   const invalidate = useRoleRequestInvalidation();
   return useMutation({
-    mutationFn: (
-      input: Omit<Parameters<typeof repository.rejectRoleRequest>[0], "actor">,
-    ) => repository.rejectRoleRequest({ ...input, actor: requireActor(actor) }),
+    mutationFn: (input: Omit<Parameters<typeof repository.rejectRoleRequest>[0], "actor">) =>
+      repository.rejectRoleRequest({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
@@ -298,9 +295,8 @@ export function useRevokeUserRole() {
   const actor = useActorContext();
   const invalidate = useRoleRequestInvalidation();
   return useMutation({
-    mutationFn: (
-      input: Omit<Parameters<typeof repository.revokeUserRole>[0], "actor">,
-    ) => repository.revokeUserRole({ ...input, actor: requireActor(actor) }),
+    mutationFn: (input: Omit<Parameters<typeof repository.revokeUserRole>[0], "actor">) =>
+      repository.revokeUserRole({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }
@@ -309,9 +305,8 @@ export function useAssignUserRole() {
   const actor = useActorContext();
   const invalidate = useRoleRequestInvalidation();
   return useMutation({
-    mutationFn: (
-      input: Omit<Parameters<typeof repository.assignUserRole>[0], "actor">,
-    ) => repository.assignUserRole({ ...input, actor: requireActor(actor) }),
+    mutationFn: (input: Omit<Parameters<typeof repository.assignUserRole>[0], "actor">) =>
+      repository.assignUserRole({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
   });
 }

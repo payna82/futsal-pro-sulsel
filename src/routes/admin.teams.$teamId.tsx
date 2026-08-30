@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -26,8 +27,9 @@ function TeamAdminDetail() {
   const { teamId } = Route.useParams();
   const data = useCompetitionData();
   const team = data.teams.find((item) => item.id === teamId);
-  const registration = useQuery(teamRegistrationQuery(teamId));
-  const accounts = useQuery(teamAccountsQuery());
+  const actor = useActor();
+  const registration = useQuery(teamRegistrationQuery(teamId, actor));
+  const accounts = useQuery(teamAccountsQuery(actor));
   const create = useCreateTeamAccount();
   const updateProfile = useUpdateTeamProfile(teamId);
   const account = accounts.data?.find((item) => item.team_id === teamId);

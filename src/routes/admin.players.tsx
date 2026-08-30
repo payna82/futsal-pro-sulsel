@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AdminPage } from "@/components/admin/AdminPage";
@@ -33,7 +34,8 @@ const STATUS_LABEL: Record<Player["status"], string> = {
 
 function AdminPlayersRoute() {
   const data = useCompetitionData();
-  const players = useQuery(playersQuery());
+  const actor = useActor();
+  const players = useQuery(playersQuery(actor));
   const [category, setCategory] = useState<CategoryKey>("MEN");
 
   const categoryId = data.categoryId(category);

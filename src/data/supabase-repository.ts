@@ -33,11 +33,27 @@ import type {
 } from "@/domain/types";
 import {
   SELF_REQUESTABLE_ROLES,
+  DOCUMENT_TYPES,
+  canTransitionParticipantRegistration,
+  canTransitionRegistration,
+  isRegistrationLocked,
+  registrationSummary,
+  type AccountStatus,
   type ActorContext,
+  type DocumentStatus,
+  type DocumentType,
+  type RegistrationDocument,
+  type RegistrationEntityType,
+  type RegistrationStatus,
   type RoleRequest,
   type SupportingDoc,
+  type TeamAccount,
+  type TeamProfile,
+  type TeamRegistrationSummary,
+  type VerificationAction,
+  type VerificationHistory,
 } from "@/domain/registration";
-import { inMemoryRepository } from "./in-memory-repository";
+import type { PermissionKey } from "@/domain/permissions";
 import type { CompetitionRepository } from "./repository";
 
 /**
@@ -343,8 +359,7 @@ function toTeamProfile(row: Row): TeamProfile {
     contact_email: text("contact_email"),
     address: text("address"),
     ...optional("training_venue", data["training_venue"] as string | undefined),
-    registration_status:
-      (data["registration_status"] as RegistrationStatus | undefined) ?? "DRAFT",
+    registration_status: (data["registration_status"] as RegistrationStatus | undefined) ?? "DRAFT",
     updated_at: row["updated_at"] as string,
   };
 }
@@ -391,10 +406,7 @@ function toVerification(row: Row): VerificationHistory {
 }
 
 /** Menentukan tim pemilik entitas registrasi lewat database. */
-async function teamIdForEntity(
-  entityType: RegistrationEntityType,
-  entityId: UUID,
-): Promise<UUID> {
+async function teamIdForEntity(entityType: RegistrationEntityType, entityId: UUID): Promise<UUID> {
   if (entityType === "TEAM") return entityId;
   const table = entityType === "PLAYER" ? "players" : "team_officials";
   const { data, error } = await db.from(table).select("team_id").eq("id", entityId).maybeSingle();
@@ -425,8 +437,6 @@ async function saveTeamProfile(profile: TeamProfile): Promise<TeamProfile> {
 }
 
 export const supabaseRepository: CompetitionRepository = {
-
-
   async getTournament(): Promise<Tournament> {
     const rows = await selectAll("tournaments");
     const row = rows[0];
@@ -846,9 +856,7 @@ export const supabaseRepository: CompetitionRepository = {
   }): Promise<RoleRequest> {
     void actor;
     if (
-      !SELF_REQUESTABLE_ROLES.includes(
-        requested_role as (typeof SELF_REQUESTABLE_ROLES)[number],
-      )
+      !SELF_REQUESTABLE_ROLES.includes(requested_role as (typeof SELF_REQUESTABLE_ROLES)[number])
     ) {
       throw new Error("Peran ini tidak dapat diajukan secara mandiri.");
     }
@@ -1407,7 +1415,10 @@ export const supabaseRepository: CompetitionRepository = {
     operator_id,
     actor,
     ...input
-  }: Omit<TeamOfficial, "id"> & { operator_id?: UUID; actor: ActorContext }): Promise<TeamOfficial> {
+  }: Omit<TeamOfficial, "id"> & {
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<TeamOfficial> {
     assertTeamAccess(actor, input.team_id, "official.create");
     const inserted = unwrapRow(
       await db
@@ -1480,8 +1491,8 @@ export const supabaseRepository: CompetitionRepository = {
     if (entityType !== "TEAM") {
       const table = entityType === "PLAYER" ? "players" : "team_officials";
       const row = unwrapRow(await db.from(table).select("*").eq("id", entityId).single());
-      const current =
-        ((row["registration_status"] as RegistrationStatus | null) ?? "DRAFT") as RegistrationStatus;
+      const current = ((row["registration_status"] as RegistrationStatus | null) ??
+        "DRAFT") as RegistrationStatus;
       if (!canTransitionParticipantRegistration(current, "SUBMITTED"))
         throw new Error("Transisi registrasi tidak diizinkan.");
       const result = await db
@@ -1649,8 +1660,8 @@ export const supabaseRepository: CompetitionRepository = {
     } else {
       const table = entityType === "PLAYER" ? "players" : "team_officials";
       const row = unwrapRow(await db.from(table).select("*").eq("id", entityId).single());
-      const currentRegistration =
-        ((row["registration_status"] as RegistrationStatus | null) ?? "DRAFT") as RegistrationStatus;
+      const currentRegistration = ((row["registration_status"] as RegistrationStatus | null) ??
+        "DRAFT") as RegistrationStatus;
       if (!["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUIRED"].includes(currentRegistration))
         throw new Error("Data belum berada pada status pemeriksaan.");
       previous =

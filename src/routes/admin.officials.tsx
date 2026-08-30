@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/hooks/use-session";
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminPage } from "@/components/admin/AdminPage";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -30,7 +31,8 @@ const MATCH_ROLES: RoleKey[] = ["REFEREE", "TIMEKEEPER", "SCOREKEEPER", "MATCH_C
 
 function AdminOfficialsRoute() {
   const data = useCompetitionData();
-  const officials = useQuery(teamOfficialsQuery());
+  const actor = useActor();
+  const officials = useQuery(teamOfficialsQuery(actor));
   const users = useQuery(usersQuery());
 
   const teamColumns: Column<TeamOfficial>[] = [

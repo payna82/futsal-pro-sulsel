@@ -39,7 +39,7 @@ import {
   teamProfileQuery,
   teamOfficialsQuery,
 } from "@/hooks/queries";
-import { useSession } from "@/hooks/use-session";
+import { useSession, useActor } from "@/hooks/use-session";
 
 type PortalView =
   "overview" | "profile" | "players" | "new-player" | "officials" | "documents" | "submission";
@@ -47,11 +47,15 @@ type PortalView =
 export function TeamPortalPage({ view }: { view: PortalView }) {
   const teamId = useSession().user?.team_id ?? "";
   const data = useCompetitionData();
-  const registration = useQuery({ ...teamRegistrationQuery(teamId), enabled: Boolean(teamId) });
-  const profile = useQuery({ ...teamProfileQuery(teamId), enabled: Boolean(teamId) });
-  const players = useQuery(playersQuery());
-  const officials = useQuery(teamOfficialsQuery());
-  const documents = useQuery(registrationDocumentsQuery());
+  const actor = useActor();
+  const registration = useQuery({
+    ...teamRegistrationQuery(teamId, actor),
+    enabled: Boolean(teamId),
+  });
+  const profile = useQuery({ ...teamProfileQuery(teamId, actor), enabled: Boolean(teamId) });
+  const players = useQuery(playersQuery(actor));
+  const officials = useQuery(teamOfficialsQuery(actor));
+  const documents = useQuery(registrationDocumentsQuery(actor));
   const team = data.teams.find((item) => item.id === teamId);
   if (!teamId || !team || !registration.data || !profile.data)
     return (

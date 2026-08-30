@@ -205,10 +205,7 @@ export interface CompetitionRepository {
     team_id?: UUID;
     actor: ActorContext;
   }): Promise<RoleRequest>;
-  cancelRoleRequest(input: {
-    id: UUID;
-    actor: ActorContext;
-  }): Promise<RoleRequest>;
+  cancelRoleRequest(input: { id: UUID; actor: ActorContext }): Promise<RoleRequest>;
   approveRoleRequest(input: {
     id: UUID;
     decision_note?: string;

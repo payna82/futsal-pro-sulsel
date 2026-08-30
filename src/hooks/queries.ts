@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { repository } from "@/data";
 import type { UUID } from "@/domain/types";
-import { DEMO_READ_ACTOR } from "@/domain/registration";
+import { GUEST_ACTOR, type ActorContext } from "@/domain/registration";
 
 export const tournamentQuery = () =>
   queryOptions({ queryKey: ["tournament"], queryFn: () => repository.getTournament() });
@@ -18,13 +18,16 @@ export const groupsQuery = () =>
 export const teamsQuery = () =>
   queryOptions({ queryKey: ["teams"], queryFn: () => repository.listTeams() });
 
-export const playersQuery = () =>
-  queryOptions({ queryKey: ["players"], queryFn: () => repository.listPlayers(DEMO_READ_ACTOR) });
-
-export const teamOfficialsQuery = () =>
+export const playersQuery = (actor: ActorContext = GUEST_ACTOR) =>
   queryOptions({
-    queryKey: ["team-officials"],
-    queryFn: () => repository.listTeamOfficials(DEMO_READ_ACTOR),
+    queryKey: ["players", actor.userId],
+    queryFn: () => repository.listPlayers(actor),
+  });
+
+export const teamOfficialsQuery = (actor: ActorContext = GUEST_ACTOR) =>
+  queryOptions({
+    queryKey: ["team-officials", actor.userId],
+    queryFn: () => repository.listTeamOfficials(actor),
   });
 
 export const venuesQuery = () =>
@@ -66,36 +69,38 @@ export const usersQuery = () =>
 export const auditLogsQuery = () =>
   queryOptions({ queryKey: ["audit-logs"], queryFn: () => repository.listAuditLogs() });
 
-export const teamAccountsQuery = () =>
+export const teamAccountsQuery = (actor: ActorContext = GUEST_ACTOR) =>
   queryOptions({
-    queryKey: ["team-accounts"],
-    queryFn: () => repository.listTeamAccounts(DEMO_READ_ACTOR),
+    queryKey: ["team-accounts", actor.userId],
+    queryFn: () => repository.listTeamAccounts(actor),
   });
-export const teamRegistrationQuery = (teamId: UUID) =>
+export const teamRegistrationQuery = (teamId: UUID, actor: ActorContext = GUEST_ACTOR) =>
   queryOptions({
-    queryKey: ["team-registration", teamId],
-    queryFn: () => repository.getTeamRegistration(teamId, DEMO_READ_ACTOR),
+    queryKey: ["team-registration", teamId, actor.userId],
+    queryFn: () => repository.getTeamRegistration(teamId, actor),
   });
-export const teamProfileQuery = (teamId: UUID) =>
+export const teamProfileQuery = (teamId: UUID, actor: ActorContext = GUEST_ACTOR) =>
   queryOptions({
-    queryKey: ["team-profile", teamId],
-    queryFn: () => repository.getTeamProfile(teamId, DEMO_READ_ACTOR),
+    queryKey: ["team-profile", teamId, actor.userId],
+    queryFn: () => repository.getTeamProfile(teamId, actor),
   });
 export const registrationDocumentsQuery = (
+  actor: ActorContext = GUEST_ACTOR,
   entityType?: "PLAYER" | "OFFICIAL" | "TEAM",
   entityId?: UUID,
 ) =>
   queryOptions({
-    queryKey: ["registration-documents", entityType, entityId],
-    queryFn: () => repository.listRegistrationDocuments(DEMO_READ_ACTOR, entityType, entityId),
+    queryKey: ["registration-documents", actor.userId, entityType, entityId],
+    queryFn: () => repository.listRegistrationDocuments(actor, entityType, entityId),
   });
 export const verificationHistoryQuery = (
   entityType: "PLAYER" | "OFFICIAL" | "TEAM",
   entityId: UUID,
+  actor: ActorContext = GUEST_ACTOR,
 ) =>
   queryOptions({
-    queryKey: ["verification-history", entityType, entityId],
-    queryFn: () => repository.listVerificationHistory(entityType, entityId, DEMO_READ_ACTOR),
+    queryKey: ["verification-history", entityType, entityId, actor.userId],
+    queryFn: () => repository.listVerificationHistory(entityType, entityId, actor),
   });
 
 export const roleRequestsQuery = (actor: Parameters<typeof repository.listRoleRequests>[0]) =>
