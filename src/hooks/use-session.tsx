@@ -161,7 +161,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
-  }, []);
+    // Bersihkan state aplikasi (cache TanStack Query) lalu alihkan ke beranda publik.
+    queryClient.clear();
+    navigate({ to: "/", replace: true });
+  }, [queryClient, navigate]);
 
   const value = useMemo<SessionContextValue>(() => {
     const role: RoleKey = user?.role ?? "PUBLIC";
