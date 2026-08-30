@@ -27,8 +27,10 @@ export const Route = createFileRoute("/masuk")({
 });
 
 function LoginPage() {
-  const { signIn, isAuthenticated } = useSession();
+  const { signIn, signUp, isAuthenticated } = useSession();
   const navigate = useNavigate();
+  const [mode, setMode] = useState<"SIGN_IN" | "SIGN_UP">("SIGN_IN");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +44,12 @@ function LoginPage() {
     setIsLoading(true);
 
     try {
+      if (mode === "SIGN_UP") {
+        await signUp({ email, password, full_name: fullName });
+        toast.success("Akun dibuat. Periksa email untuk konfirmasi, lalu masuk.");
+        setMode("SIGN_IN");
+        return;
+      }
       await signIn({ email, password });
       toast.success("Berhasil masuk.");
       navigate({ to: "/admin" });
@@ -51,6 +59,8 @@ function LoginPage() {
       setIsLoading(false);
     }
   };
+
+
 
 
 
