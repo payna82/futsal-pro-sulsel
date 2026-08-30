@@ -290,9 +290,142 @@ async function resyncAndBump(match: Match, patch: Partial<Match> = {}): Promise<
   return toMatch(updated as Row);
 }
 
+/* =============================== Registrasi =============================== */
+
+function assertActor(actor: ActorContext | undefined): asserts actor is ActorContext {
+  if (!actor) throw new Error("ActorContext diperlukan.");
+}
+
+function assertRead(actor: ActorContext, permission: PermissionKey) {
+  assertActor(actor);
+  if (!actor.permissions.includes(permission)) throw new Error("Akses data ditolak.");
+}
+
+function assertTeamAccess(
+  actor: ActorContext | undefined,
+  teamId: UUID,
+  permission: PermissionKey,
+) {
+  assertActor(actor);
+  if (
+    !actor.permissions.includes(permission) ||
+    (actor.teamId !== undefined && actor.teamId !== teamId)
+  ) {
+    throw new Error("Akses tim ditolak.");
+  }
+}
+
+function assertAdmin(actor: ActorContext, permission: PermissionKey) {
+  assertActor(actor);
+  if (actor.teamId !== undefined) throw new Error("Akses verifikasi ditolak.");
+  if (!actor.permissions.includes(permission)) throw new Error("Akses admin ditolak.");
+}
+
+function toTeamAccount(row: Row): TeamAccount {
+  return {
+    id: row["id"] as UUID,
+    team_id: row["team_id"] as UUID,
+    username: row["username"] as string,
+    account_status: row["account_status"] as AccountStatus,
+    created_at: row["created_at"] as string,
+    updated_at: row["updated_at"] as string,
+    ...optional("last_login_at", row["last_login_at"] as string | null),
+  };
+}
+
+function toTeamProfile(row: Row): TeamProfile {
+  const data = (row["data"] as Record<string, unknown>) ?? {};
+  const text = (key: string) => (data[key] as string | undefined) ?? "";
+  return {
+    team_id: row["team_id"] as UUID,
+    contact_person: text("contact_person"),
+    contact_phone: text("contact_phone"),
+    contact_email: text("contact_email"),
+    address: text("address"),
+    ...optional("training_venue", data["training_venue"] as string | undefined),
+    registration_status:
+      (data["registration_status"] as RegistrationStatus | undefined) ?? "DRAFT",
+    updated_at: row["updated_at"] as string,
+  };
+}
+
+function profileToJson(profile: TeamProfile): Record<string, unknown> {
+  return {
+    contact_person: profile.contact_person,
+    contact_phone: profile.contact_phone,
+    contact_email: profile.contact_email,
+    address: profile.address,
+    registration_status: profile.registration_status,
+    ...(profile.training_venue ? { training_venue: profile.training_venue } : {}),
+  };
+}
+
+function toDocument(row: Row): RegistrationDocument {
+  return {
+    id: row["id"] as UUID,
+    entity_type: row["entity_type"] as RegistrationEntityType,
+    entity_id: row["entity_id"] as UUID,
+    type: row["type"] as DocumentType,
+    file_name: row["file_name"] as string,
+    storage_ref: (row["storage_path"] as string | null) ?? "",
+    status: row["status"] as DocumentStatus,
+    uploaded_at: row["uploaded_at"] as string,
+    ...optional("reviewer_id", row["reviewed_by"] as UUID | null),
+    ...optional("reviewed_at", row["reviewed_at"] as string | null),
+    ...optional("revision_reason", row["reason"] as string | null),
+  };
+}
+
+function toVerification(row: Row): VerificationHistory {
+  return {
+    id: row["id"] as UUID,
+    entity_type: row["entity_type"] as RegistrationEntityType,
+    entity_id: row["entity_id"] as UUID,
+    actor_id: row["actor_id"] as UUID,
+    action: row["action"] as VerificationAction,
+    previous_status: (row["previous_status"] as VerificationHistory["previous_status"]) ?? "DRAFT",
+    new_status: (row["new_status"] as VerificationHistory["new_status"]) ?? "DRAFT",
+    ...optional("reason", row["reason"] as string | null),
+    created_at: row["created_at"] as string,
+  };
+}
+
+/** Menentukan tim pemilik entitas registrasi lewat database. */
+async function teamIdForEntity(
+  entityType: RegistrationEntityType,
+  entityId: UUID,
+): Promise<UUID> {
+  if (entityType === "TEAM") return entityId;
+  const table = entityType === "PLAYER" ? "players" : "team_officials";
+  const { data, error } = await db.from(table).select("team_id").eq("id", entityId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return ((data as Row | null)?.["team_id"] as UUID | undefined) ?? "";
+}
+
+async function fetchTeamProfileRow(teamId: UUID): Promise<TeamProfile> {
+  const { data, error } = await db
+    .from("team_profiles")
+    .select("*")
+    .eq("team_id", teamId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Profil tim tidak ditemukan.");
+  return toTeamProfile(data as Row);
+}
+
+async function saveTeamProfile(profile: TeamProfile): Promise<TeamProfile> {
+  const updated_at = new Date().toISOString();
+  const result = await db
+    .from("team_profiles")
+    .update({ data: profileToJson(profile), updated_at })
+    .eq("team_id", profile.team_id)
+    .select("*")
+    .single();
+  return toTeamProfile(unwrapRow(result));
+}
+
 export const supabaseRepository: CompetitionRepository = {
-  // Registrasi tim masih memakai adapter sementara sampai Fase F (storage dokumen).
-  ...inMemoryRepository,
+
 
   async getTournament(): Promise<Tournament> {
     const rows = await selectAll("tournaments");
