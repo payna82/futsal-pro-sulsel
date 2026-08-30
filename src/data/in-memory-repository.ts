@@ -1057,9 +1057,9 @@ export const inMemoryRepository: CompetitionRepository = {
       request_reason,
       supporting_docs: supporting_docs ?? [],
       status: "PENDING",
-      contingent_id,
-      venue_id,
-      team_id,
+      ...(contingent_id ? { contingent_id } : {}),
+      ...(venue_id ? { venue_id } : {}),
+      ...(team_id ? { team_id } : {}),
       created_at: now,
       updated_at: now,
     };

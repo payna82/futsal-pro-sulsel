@@ -28,7 +28,7 @@ export const ROLE_REQUEST_STATUS_LABEL: Record<RoleRequestStatus, string> = {
 /** Daftar peran yang boleh diajukan secara mandiri oleh pengguna.
  *  Admin/Senior role (SUPER_ADMIN, TOURNAMENT_ADMIN, COMPETITION_MANAGER,
  *  VENUE_MANAGER, MATCH_COMMISSIONER) tidak dapat diajukan mandiri. */
-export const SELF_REQUESTABLE_ROLES: RoleKey[] = [
+export const SELF_REQUESTABLE_ROLES = [
   "REFEREE",
   "TIMEKEEPER",
   "SCOREKEEPER",
