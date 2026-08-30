@@ -10,6 +10,7 @@ import {
   Grid2x2,
   KeyRound,
   ListChecks,
+  LogOut,
   MapPin,
   Menu,
   ScrollText,
@@ -107,7 +108,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { user } = useSession();
+  const { user, signOut } = useSession();
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,6 +162,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 {ROLE_LABEL[user?.role ?? "PUBLIC"]}
               </p>
             </div>
+            <Button size="sm" variant="outline" onClick={signOut}>
+              <LogOut className="size-4" /> Keluar
+            </Button>
           </div>
         </header>
 
