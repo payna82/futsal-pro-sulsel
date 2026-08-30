@@ -1018,11 +1018,11 @@ export const inMemoryRepository: CompetitionRepository = {
   },
 
   /* -------------------------- Role Requests (RBAC) ------------------------- */
-  listRoleRequests(actor: ActorContext) {
+  async listRoleRequests(actor: ActorContext) {
     assertAdmin(actor, "role.manage");
     return clone(fx.roleRequests);
   },
-  listMyRoleRequests(actor: ActorContext) {
+  async listMyRoleRequests(actor: ActorContext) {
     assertActor(actor);
     return clone(fx.roleRequests.filter((r) => r.user_id === actor.userId));
   },
@@ -1057,9 +1057,9 @@ export const inMemoryRepository: CompetitionRepository = {
       request_reason,
       supporting_docs: supporting_docs ?? [],
       status: "PENDING",
-      contingent_id,
-      venue_id,
-      team_id,
+      ...(contingent_id ? { contingent_id } : {}),
+      ...(venue_id ? { venue_id } : {}),
+      ...(team_id ? { team_id } : {}),
       created_at: now,
       updated_at: now,
     };
@@ -1100,7 +1100,7 @@ export const inMemoryRepository: CompetitionRepository = {
     req.status = "APPROVED";
     req.reviewer_id = actor.userId;
     req.reviewed_at = new Date().toISOString();
-    req.decision_note = decision_note;
+    if (decision_note) req.decision_note = decision_note;
     if (contingent_id) req.contingent_id = contingent_id;
     if (venue_id) req.venue_id = venue_id;
     if (team_id) req.team_id = team_id;
@@ -1143,7 +1143,7 @@ export const inMemoryRepository: CompetitionRepository = {
       related.status = "REVOKED";
       related.reviewer_id = actor.userId;
       related.reviewed_at = new Date().toISOString();
-      related.decision_note = reason;
+      if (reason) related.decision_note = reason;
       related.updated_at = related.reviewed_at;
     }
     audit(actor.userId, "ROLE_REVOKED", "user_roles", user_id, reason ?? "Dicabut administrator.");
@@ -1177,9 +1177,9 @@ export const inMemoryRepository: CompetitionRepository = {
         status: "APPROVED",
         reviewer_id: actor.userId,
         reviewed_at: now,
-        contingent_id,
-        venue_id,
-        team_id,
+        ...(contingent_id ? { contingent_id } : {}),
+        ...(venue_id ? { venue_id } : {}),
+        ...(team_id ? { team_id } : {}),
         created_at: now,
         updated_at: now,
       });

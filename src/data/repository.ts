@@ -14,7 +14,7 @@ import type {
   VerificationHistory,
   ActorContext,
 } from "@/domain/registration";
-import type { MatchOfficialRole, MatchStatus, RoleKey, UUID } from "@/domain/types";
+import type { MatchOfficialRole, MatchStatus, RoleKey } from "@/domain/types";
 import type {
   AuditLog,
   Category,

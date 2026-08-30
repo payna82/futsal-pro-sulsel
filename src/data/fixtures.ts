@@ -20,6 +20,7 @@ import type {
   Venue,
 } from "@/domain/types";
 import type {
+  RoleRequest,
   RegistrationDocument,
   TeamAccount,
   TeamProfile,
@@ -608,3 +609,5 @@ export const registrationDocuments: RegistrationDocument[] = teams.flatMap((team
 });
 
 export const verificationHistory: VerificationHistory[] = [];
+
+export const roleRequests: RoleRequest[] = [];
