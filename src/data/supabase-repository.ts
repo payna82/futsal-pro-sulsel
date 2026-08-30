@@ -33,11 +33,27 @@ import type {
 } from "@/domain/types";
 import {
   SELF_REQUESTABLE_ROLES,
+  DOCUMENT_TYPES,
+  canTransitionParticipantRegistration,
+  canTransitionRegistration,
+  isRegistrationLocked,
+  registrationSummary,
+  type AccountStatus,
   type ActorContext,
+  type DocumentStatus,
+  type DocumentType,
+  type RegistrationDocument,
+  type RegistrationEntityType,
+  type RegistrationStatus,
   type RoleRequest,
   type SupportingDoc,
+  type TeamAccount,
+  type TeamProfile,
+  type TeamRegistrationSummary,
+  type VerificationAction,
+  type VerificationHistory,
 } from "@/domain/registration";
-import { inMemoryRepository } from "./in-memory-repository";
+import type { PermissionKey } from "@/domain/permissions";
 import type { CompetitionRepository } from "./repository";
 
 /**
