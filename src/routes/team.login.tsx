@@ -11,7 +11,7 @@ export const Route = createFileRoute("/team/login")({ component: TeamLoginPage }
 function TeamLoginPage() {
   const navigate = useNavigate();
   const { signIn } = useSession();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,11 +20,11 @@ function TeamLoginPage() {
     setIsLoading(true);
 
     try {
-      await signIn({ username, password });
+      await signIn({ email, password });
       toast.success("Berhasil masuk ke portal tim.");
       navigate({ to: "/team" });
     } catch (error) {
-      toast.error("Username atau kata sandi tidak valid.");
+      toast.error(error instanceof Error ? error.message : "Email atau kata sandi tidak valid.");
       console.error("Login failed:", error);
     } finally {
       setIsLoading(false);
@@ -46,7 +46,7 @@ function TeamLoginPage() {
           </p>
         </div>
         <p className="text-xs text-pitch-muted">
-          Mode demo in-memory. Kredensial produksi belum aktif.
+          Gunakan email akun tim yang terdaftar pada panitia.
         </p>
       </div>
       <div className="flex items-center justify-center p-6">
@@ -56,7 +56,7 @@ function TeamLoginPage() {
             <h2 className="mt-1 text-3xl font-bold">Masuk Portal Tim</h2>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email Tim</Label>
             <Input
               id="username"
               value={username}
