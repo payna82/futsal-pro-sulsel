@@ -27,9 +27,26 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminRouteLayout() {
+  const { isAuthenticated, isLoading } = useSession();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) navigate({ to: "/masuk", replace: true });
+  }, [isAuthenticated, isLoading, navigate]);
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="space-y-3 p-8">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
   return (
     <AdminLayout>
       <Outlet />
     </AdminLayout>
   );
+
 }
