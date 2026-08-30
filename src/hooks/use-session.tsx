@@ -73,6 +73,8 @@ async function loadSessionUser(session: Session): Promise<SessionUser> {
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let active = true;
