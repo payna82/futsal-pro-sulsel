@@ -427,10 +427,10 @@ export const supabaseRepository: CompetitionRepository = {
       .from("audit_logs")
       .select("*")
       .order("created_at", { ascending: false })
-
       .limit(500);
-    if (error) return [];
-    return (data ?? []) as unknown as AuditLog[];
+    if (result.error) return [];
+    return unwrapRows(result) as unknown as AuditLog[];
+
   },
 
   /* ------------------------------- Mutations ------------------------------ */
