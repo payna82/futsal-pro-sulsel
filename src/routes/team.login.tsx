@@ -81,7 +81,7 @@ function TeamLoginPage() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Memeriksa…" : "Masuk"}
           </Button>
-          <p className="text-xs text-muted-foreground">Demo: `makassar.putra` / `makassar2026`</p>
+          <p className="text-xs text-muted-foreground">Gunakan email dan kata sandi akun tim Anda.</p>
         </form>
       </div>
     </div>
