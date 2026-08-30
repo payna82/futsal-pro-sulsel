@@ -1,5 +1,9 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/hooks/use-session";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
