@@ -45,11 +45,41 @@ import type { CompetitionRepository } from "./repository";
 
 type Row = Record<string, unknown>;
 
-function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
+interface QueryResult {
+  data: Row[] | Row | null;
+  error: { message: string } | null;
+}
+
+/**
+ * Pembungkus longgar untuk klien database. Tabel kompetisi memakai kunci
+ * bertipe text yang sudah divalidasi oleh domain, sehingga pemetaan baris
+ * dilakukan eksplisit lewat fungsi `to*` di bawah.
+ */
+interface TableQuery extends PromiseLike<QueryResult> {
+  select(columns?: string): TableQuery;
+  insert(values: unknown): TableQuery;
+  update(values: unknown): TableQuery;
+  eq(column: string, value: unknown): TableQuery;
+  order(column: string, options?: { ascending?: boolean }): TableQuery;
+  limit(count: number): TableQuery;
+  single(): PromiseLike<QueryResult>;
+  maybeSingle(): PromiseLike<QueryResult>;
+}
+
+const db = supabase as unknown as { from(table: string): TableQuery };
+
+function unwrapRow(result: QueryResult): Row {
   if (result.error) throw new Error(result.error.message);
-  if (result.data === null) throw new Error("Data tidak ditemukan.");
+  if (!result.data || Array.isArray(result.data)) throw new Error("Data tidak ditemukan.");
   return result.data;
 }
+
+function unwrapRows(result: QueryResult): Row[] {
+  if (result.error) throw new Error(result.error.message);
+  if (!result.data) return [];
+  return Array.isArray(result.data) ? result.data : [result.data];
+}
+
 
 const nextId = (prefix: string) =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
