@@ -269,8 +269,9 @@ async function resyncAndBump(match: Match, patch: Partial<Match> = {}): Promise<
   const events = await eventsOf(match.id);
   const score = deriveScore(events, match.home_team_id, match.away_team_id);
   const updated = unwrapRow(
-    await supabase
+    await db
       .from("matches")
+
       .update({
         ...patch,
         home_score: score.home,
