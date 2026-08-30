@@ -1,10 +1,12 @@
 # AUTHENTICATION ARCHITECTURE REPORT
+
 ## Phase 3.1 — Authentication Foundation
+
 **Date**: 2026-08-28  
 **Status**: COMPLETE  
 **Tests**: 17 passing (100%)
 **Build**: PASS  
-**TypeScript**: PASS  
+**TypeScript**: PASS
 
 ---
 
@@ -13,14 +15,14 @@
 Phase 3.1 establishes the correct authentication architecture before implementing full RBAC/server authorization. The implementation separates user identity from team membership, creates a clean authentication boundary, and ensures no credential material is exposed through React state or UI.
 
 **Phase Scope**: Authentication Foundation only  
-**Not Included**: RBAC, Server Authorization, Production Credentials, Supabase Auth  
+**Not Included**: RBAC, Server Authorization, Production Credentials, Supabase Auth
 
 ### Architecture Achievement
 
 ```
 UserIdentity ←─ AuthenticatedSession ─→ TeamMembership ←─ Team
    (user)          (session)              (link)          (org)
-  
+
 No User-Team
 duplication.
 No credential
@@ -32,6 +34,7 @@ exposure.
 ## PART 1: EXISTING AUTHENTICATION ANALYSIS
 
 ### Previous Architecture (Pre-Phase 3.1)
+
 - **Session**: React Context (`SessionProvider`) with hard-coded DEMO_USER
 - **User Model**: `SessionUser` interface (id, full_name, email, role, team_id, account_type)
 - **Role**: Client-side string (no RBAC)
@@ -41,6 +44,7 @@ exposure.
 - **Persistence**: React memory only (no cookies, no refresh, no expiry)
 
 ### Security Issues Identified
+
 1. ✗ Session contains no expiry logic
 2. ✗ Team and User conflated (team_id in SessionUser)
 3. ✗ No logout implementation (session cleared in memory only)
@@ -48,6 +52,7 @@ exposure.
 5. ✗ No session lifecycle management
 
 ### Preserved Functionality
+
 - ✓ `/masuk` (admin login) UI flow unchanged
 - ✓ `/team/login` (team login) UI flow unchanged
 - ✓ `useSession()` hook API backward compatible
@@ -64,15 +69,16 @@ exposure.
 **Location**: `src/domain/authentication.ts`
 
 #### 1. UserIdentity
+
 Represents any authenticated user (admin or team user). Never contains password material.
 
 ```typescript
 interface UserIdentity {
   id: UUID;
-  username?: string;        // optional, for team accounts
+  username?: string; // optional, for team accounts
   email: string;
   display_name: string;
-  status: UserStatus;       // ACTIVE | INVITED | DISABLED | SUSPENDED
+  status: UserStatus; // ACTIVE | INVITED | DISABLED | SUSPENDED
   created_at: ISODateTime;
   updated_at: ISODateTime;
   last_login_at?: ISODateTime;
@@ -82,15 +88,16 @@ interface UserIdentity {
 **Key**: No password, credential_digest, or sensitive authentication material.
 
 #### 2. TeamMembership
+
 Links a user to a team. Enables one user → multiple teams pattern.
 
 ```typescript
 interface TeamMembership {
   id: UUID;
-  user_id: UUID;           // FK to UserIdentity
-  team_id: UUID;           // FK to Team
+  user_id: UUID; // FK to UserIdentity
+  team_id: UUID; // FK to Team
   status: MembershipStatus; // ACTIVE | INVITED | INACTIVE
-  role?: RoleKey;          // User's role within this team context
+  role?: RoleKey; // User's role within this team context
   joined_at: ISODateTime;
   updated_at: ISODateTime;
 }
@@ -99,13 +106,14 @@ interface TeamMembership {
 **Key**: Separates user from team. Enables flexible team assignment.
 
 #### 3. AuthenticatedSession
+
 Represents a valid user session. No credential material.
 
 ```typescript
 interface AuthenticatedSession {
   user_id: UUID;
   session_id: UUID;
-  status: SessionStatus;        // ACTIVE | EXPIRED | REVOKED
+  status: SessionStatus; // ACTIVE | EXPIRED | REVOKED
   authenticated_at: ISODateTime;
   expires_at: ISODateTime;
   last_activity_at?: ISODateTime;
@@ -116,12 +124,13 @@ interface AuthenticatedSession {
 **Key**: Immutable after creation. Contains no password or secrets.
 
 #### 4. LoginCredentials
+
 Input-only type for authentication. Never stored in session or state.
 
 ```typescript
 interface LoginCredentials {
-  username?: string;  // for team login
-  email?: string;     // for admin login
+  username?: string; // for team login
+  email?: string; // for admin login
   password: string;
 }
 ```
@@ -133,6 +142,7 @@ interface LoginCredentials {
 ## PART 3: TEAM ACCOUNT MIGRATION
 
 ### Old Model
+
 ```
 TeamAccount {
   id: UUID
@@ -144,6 +154,7 @@ TeamAccount {
 ```
 
 ### New Model
+
 ```
 UserIdentity {
   id: UUID
@@ -161,6 +172,7 @@ TeamMembership {
 ```
 
 **Migration Path**:
+
 1. Create UserIdentity from TeamAccount
 2. Create TeamMembership linking user to team
 3. TeamAccount.id becomes UserIdentity.id for continuity
@@ -173,9 +185,11 @@ TeamMembership {
 ## PART 4: ADMIN IDENTITY
 
 ### Implementation
+
 Admin users are **not** a separate type. They use the same `UserIdentity`.
 
 **Current Demo Admin**:
+
 ```
 UserIdentity {
   id: "usr-admin-1"
@@ -187,6 +201,7 @@ UserIdentity {
 ```
 
 **Role vs. Identity**:
+
 - Identity: `UserIdentity` (who you are)
 - Role: Resolved from RBAC in Phase 3.3 (what you can do)
 - NOT stored in UserIdentity
@@ -196,9 +211,11 @@ UserIdentity {
 ## PART 5: AUTHENTICATION BOUNDARY
 
 ### Design Pattern
+
 Located in `src/domain/authentication-service.ts` and `src/domain/demo-authentication-adapter.ts`.
 
 **AuthenticationService**: Thin public API
+
 ```typescript
 async authenticate(credentials: LoginCredentials): Promise<AuthenticationResult>
 async getSession(sessionId: UUID): Promise<AuthenticatedSession | null>
@@ -210,10 +227,12 @@ async refreshSession(sessionId: UUID): Promise<AuthenticatedSession | null>
 ```
 
 **AuthenticationAdapter**: Pluggable implementation interface
+
 - `DemoAuthenticationAdapter`: In-memory (Phase 3.1)
 - Future: Supabase Auth, database-backed (Phase 3.2+)
 
 **Separation**:
+
 - Service API public and stable
 - Adapter swappable for different backends
 - No authentication logic in routes/components
@@ -223,6 +242,7 @@ async refreshSession(sessionId: UUID): Promise<AuthenticatedSession | null>
 ## PART 6: DEMO AUTHENTICATION COMPATIBILITY
 
 ### DemoAuthenticationAdapter Features
+
 - ✓ In-memory storage of sessions and identities
 - ✓ Demo admin pre-initialized
 - ✓ Demo team user ("test.team") pre-configured
@@ -230,7 +250,9 @@ async refreshSession(sessionId: UUID): Promise<AuthenticatedSession | null>
 - ✓ Fast iteration for development
 
 ### IMPORTANT: Security Caveat
+
 **This is NOT production-secure**.
+
 - Demo adapter accepts any password
 - No credential hashing
 - Sessions stored in memory (lost on restart)
@@ -244,6 +266,7 @@ async refreshSession(sessionId: UUID): Promise<AuthenticatedSession | null>
 ## PART 7: ACTOR CONTEXT DERIVATION
 
 ### Conceptual Flow
+
 ```
 AuthenticatedSession
         ↓
@@ -262,6 +285,7 @@ ActorContext {
 ### Implementation
 
 **In `useActorContext()` (src/hooks/mutations.ts)**:
+
 ```typescript
 function useActorContext(): ActorContext | undefined {
   const { user, can } = useSession();
@@ -286,10 +310,12 @@ function useActorContext(): ActorContext | undefined {
 ### Classification of Changes
 
 **REMOVED** (UI no longer constructs):
+
 - Direct `signIn({ id, full_name, email, role, ... })` construction
 - Manual role assignment in routes
 
 **REPLACED WITH** (authentication service):
+
 - `signIn({ username, password })` or `signIn({ email, password })`
 - Authentication service derives UserIdentity + SessionUser
 - Role resolved from RBAC (Phase 3.3)
@@ -297,25 +323,31 @@ function useActorContext(): ActorContext | undefined {
 ### Route Updates
 
 #### Team Login (`/team/login`)
+
 **Before**:
+
 ```typescript
-login.mutate({ username, password }, {
-  onSuccess: (account) => {
-    signIn({
-      id: account.id,
-      full_name: account.username,
-      email: `${account.username}@team.demo`,
-      role: "TEAM_OFFICIAL",  // ← Manual assignment
-      team_id: account.team_id,
-    });
-  }
-});
+login.mutate(
+  { username, password },
+  {
+    onSuccess: (account) => {
+      signIn({
+        id: account.id,
+        full_name: account.username,
+        email: `${account.username}@team.demo`,
+        role: "TEAM_OFFICIAL", // ← Manual assignment
+        team_id: account.team_id,
+      });
+    },
+  },
+);
 ```
 
 **After**:
+
 ```typescript
 try {
-  await signIn({ username, password });  // ← Delegates to auth service
+  await signIn({ username, password }); // ← Delegates to auth service
   navigate({ to: "/team" });
 } catch (error) {
   toast.error("Username atau kata sandi tidak valid.");
@@ -323,22 +355,25 @@ try {
 ```
 
 #### Admin Login (`/masuk`)
+
 **Before**:
+
 ```typescript
 const account = users.find((u) => u.id === accountId);
 signIn({
   id: account.id,
   full_name: account.full_name,
   email: account.email,
-  role: account.role,  // ← From selected user
+  role: account.role, // ← From selected user
 });
 ```
 
 **After**:
+
 ```typescript
 const account = users.find((u) => u.id === accountId);
 try {
-  await signIn({ email: account.email, password });  // ← Via auth service
+  await signIn({ email: account.email, password }); // ← Via auth service
   navigate({ to: "/admin" });
 } catch (error) {
   toast.error("Email atau kata sandi tidak valid.");
@@ -365,10 +400,12 @@ try {
 5. **Navigation**: → `/team` (team portal)
 
 ### Error Handling
+
 Generic error message: "Username atau kata sandi tidak valid."  
 **Never reveals**: account existence, password correctness
 
 ### Session Lifecycle
+
 - Created: After successful authentication
 - Active: Until expiry (24 hours default)
 - On Logout: Marked REVOKED
@@ -393,6 +430,7 @@ Generic error message: "Username atau kata sandi tidak valid."
 5. **Navigation**: → `/admin` (admin panel)
 
 ### Difference from Team Login
+
 - Uses email, not username
 - No TeamMembership created
 - Same authentication service (no separate flow)
@@ -425,12 +463,15 @@ const signOut = useCallback(async () => {
 ```
 
 ### Query Cache Invalidation
+
 **Location**: To be implemented in Phase 3.2  
 **Current**: React QueryClient not cleared on logout (TODO)  
 **Phase 3.2**: Add `queryClient.clear()` or selective invalidation
 
 ### Protected Routes
+
 After logout:
+
 - ✓ User redirected from `/admin/*`
 - ✓ User redirected from `/team/*`
 - ✓ User redirected from `/match/*/control`
@@ -444,6 +485,7 @@ After logout:
 ## PART 12: SESSION EXPIRATION MODEL
 
 ### Lifecycle States
+
 ```
 AUTHENTICATED
      ↓
@@ -455,20 +497,24 @@ UNAUTHENTICATED (← must login again)
 ```
 
 Also possible:
+
 - REVOKED: Admin logout or session invalidation
 
 ### Expiration Logic
+
 - **Default TTL**: 24 hours from authentication
 - **On Access**: Check if `now > expires_at`
 - **On Refresh**: Extend by 24 hours (if still active)
 - **No Silent Refresh**: User must explicitly act (Phase 3.2 can add refresh)
 
 ### Current Implementation
+
 ```typescript
-const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);  // 24 hours
+const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
 ```
 
 **Production Path** (Phase 3.2):
+
 - Implement refresh token infrastructure
 - Add `/refresh-session` endpoint
 - Silent refresh on background request
@@ -542,26 +588,29 @@ const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);  // 24 hours
 
 ```typescript
 type AuthenticationError =
-  | "INVALID_CREDENTIALS"      // Wrong username/email or password
-  | "ACCOUNT_DISABLED"         // Account exists but disabled
-  | "ACCOUNT_SUSPENDED"        // Account exists but suspended
-  | "ACCOUNT_NOT_FOUND"        // (Unreachable - use INVALID_CREDENTIALS)
-  | "SESSION_EXPIRED"          // Session no longer valid
-  | "UNAUTHENTICATED"          // Operation requires authentication
+  | "INVALID_CREDENTIALS" // Wrong username/email or password
+  | "ACCOUNT_DISABLED" // Account exists but disabled
+  | "ACCOUNT_SUSPENDED" // Account exists but suspended
+  | "ACCOUNT_NOT_FOUND" // (Unreachable - use INVALID_CREDENTIALS)
+  | "SESSION_EXPIRED" // Session no longer valid
+  | "UNAUTHENTICATED"; // Operation requires authentication
 ```
 
 ### Error Messaging Strategy
 
 **Public (to UI)**:
+
 - Invalid credentials → "Username atau kata sandi tidak valid."
 - Disabled account → "ACCOUNT_DISABLED"
 - Session expired → (redirect to login)
 
 **Internal (logs)**:
+
 - Detailed error for debugging
 - Never sent to client
 
 **No Account Enumeration**:
+
 - Both "account doesn't exist" and "wrong password" → "INVALID_CREDENTIALS"
 - Attacker cannot determine if email is registered
 
@@ -570,6 +619,7 @@ type AuthenticationError =
 ## PART 15: ROUTE GUARDS
 
 ### Current Implementation
+
 **Location**: `src/routes/admin.tsx`, `src/routes/team.tsx`
 
 **Type**: UI-only guards (TanStack Router)
@@ -580,10 +630,11 @@ beforeLoad: async ({ context }) => {
   if (!context.session.isAuthenticated) {
     throw redirect({ to: "/masuk" });
   }
-}
+};
 ```
 
 ### Protected Routes
+
 - `/admin/*` - requires admin session
 - `/team/*` - requires team session with team_id
 - `/match/:matchId/control` - requires operator/referee role
@@ -592,11 +643,13 @@ beforeLoad: async ({ context }) => {
 - `/` and public routes - public
 
 ### Limitations (Phase 3.1)
+
 - Guards are UI-only (can be bypassed with DevTools)
 - No server validation
 - Role-based access not enforced
 
 ### Phase 3.2+
+
 - Add server-side route guards
 - Validate session token with backend
 - Enforce RBAC on server
@@ -607,14 +660,17 @@ beforeLoad: async ({ context }) => {
 ## PART 16: QUERY CACHE MANAGEMENT
 
 ### Current State
+
 TanStack Query cache not cleared on logout.
 
 ### Phase 3.1 TODO
+
 Add to `signOut()`:
+
 ```typescript
 const signOut = useCallback(async () => {
   // ... existing logout logic ...
-  
+
   // Clear protected query cache
   queryClient.removeQueries({
     queryKey: ["team"],  // All team data
@@ -622,7 +678,7 @@ const signOut = useCallback(async () => {
   queryClient.removeQueries({
     queryKey: ["admin"],  // All admin data
   });
-  
+
   // Keep public data (competition, schedule, standings)
 }, [...]);
 ```
@@ -630,18 +686,21 @@ const signOut = useCallback(async () => {
 ### Cache Categories
 
 **Clear on Logout**:
+
 - Team profile and registration data
 - Team player/official lists
 - Admin audit logs
 - Admin user management
 
 **Preserve**:
+
 - Competition schedule
 - Standings (public data)
 - Match results
 - Player stats (public)
 
 ### Phase 3.2+
+
 Implement cache versioning tied to session ID for automatic invalidation.
 
 ---
@@ -657,6 +716,7 @@ Implement cache versioning tied to session ID for automatic invalidation.
 ### Test Categories
 
 #### User Authentication (Tests 1-6)
+
 1. ✓ Valid team login creates session
 2. ✓ Invalid team login returns generic error
 3. ✓ Disabled team account login fails
@@ -665,25 +725,30 @@ Implement cache versioning tied to session ID for automatic invalidation.
 6. ✓ Logout invalidates session
 
 #### Session Lifecycle (Tests 7-8)
+
 7. ✓ Get session returns valid session
 8. ✓ Expired session returns null
 
 #### Identity & Membership (Tests 9-11)
+
 9. ✓ Get user identity without password
 10. ✓ Team membership resolves for team user
 11. ✓ Admin has no team membership
 
 #### Security (Tests 12-13)
+
 12. ✓ Session contains no password
 13. ✓ Unauthenticated cannot access protected operations
 
 #### Derivation & Refresh (Tests 14-17)
+
 14. ✓ Session identity resolves user
 15. ✓ Session refresh extends expiry
 16. ✓ Expired session cannot be refreshed
 17. ✓ Repeated team login does not duplicate membership
 
 ### Test Execution
+
 ```bash
 deno test --config tests/deno.json --sloppy-imports tests/authentication.integration.test.ts
 
@@ -695,20 +760,22 @@ Result: ok | 17 passed | 0 failed
 ## PART 18: OWNERSHIP REGRESSION VERIFICATION
 
 ### Team A/B Isolation Test
+
 **Not in authentication tests** (covered in Phase 2.6 Team Registration tests).
 
 **Verify**:
+
 ```typescript
 // Team A logs in
-await signIn({ username: "teamA", password: "pwd" })
+await signIn({ username: "teamA", password: "pwd" });
 const sessionA = useSession();
 
 // Session A has teamId="tm-A"
-assertEquals(sessionA.user.team_id, "tm-A")
+assertEquals(sessionA.user.team_id, "tm-A");
 
 // ActorContext for Team A
 const actorA = useActorContext();
-assertEquals(actorA.teamId, "tm-A")
+assertEquals(actorA.teamId, "tm-A");
 
 // Team A → Team A player = ALLOW ✓
 // Team A → Team B player = DENY ✓
@@ -723,10 +790,12 @@ assertEquals(actorA.teamId, "tm-A")
 ### Current Status: ✓ PASS
 
 **Tests Running**:
+
 - `tests/match-integrity.test.ts`: 4 passing
 - `/match/:matchId/control` route still loads
 
 **Verification**:
+
 ```bash
 deno test tests/match-integrity.test.ts tests/team-registration.integration.test.ts
 
@@ -734,6 +803,7 @@ Result: ok | 11 passed (team registration) + 4 passed (match) = 15 total
 ```
 
 **No Changes to Match Logic**:
+
 - Match Center business logic unchanged
 - `useSession()` still provides user
 - `useActorContext()` still works
@@ -746,23 +816,29 @@ Result: ok | 11 passed (team registration) + 4 passed (match) = 15 total
 ## PART 20: UI & DESIGN
 
 ### Design System Preserved
+
 - ✓ Same Lovable component library (Button, Input, Select, Form)
 - ✓ Same color tokens and typography
 - ✓ Same layout (dark pitch background, centered form)
 - ✓ Same error toast messaging
 
 ### Login Route Cosmetics
+
 **No Changes**:
+
 - `/masuk` (admin) - unchanged
 - `/team/login` (team) - unchanged
 
 **Minor Additions**:
+
 - Loading state: "Memeriksa…" → "Masuk"
 - Disabled form while loading
 - Error messages from auth service
 
 ### Session Provider Changes
+
 **Not Visible to UI**:
+
 - Internal use of `AuthenticationService`
 - Derivation of `SessionUser` from identity + membership
 - All changes encapsulated in hook
@@ -772,12 +848,14 @@ Result: ok | 11 passed (team registration) + 4 passed (match) = 15 total
 ## PART 21: VALIDATION RESULTS
 
 ### TypeScript Compilation
+
 ```bash
 npx tsc --noEmit
 Result: ✓ No errors
 ```
 
 ### Build
+
 ```bash
 npm run build
 Result: ✓ built in 1.13s
@@ -785,6 +863,7 @@ Result: ✓ built in 1.13s
 ```
 
 ### Tests
+
 ```bash
 deno test tests/authentication.integration.test.ts
          tests/match-integrity.test.ts
@@ -796,6 +875,7 @@ Result: ✓ ok | 28 passed | 0 failed
 ```
 
 ### ESLint
+
 ```bash
 npx eslint src/domain/authentication*.ts src/hooks/use-session.tsx
 Result: ✓ No errors (after auto-fix of formatting)
@@ -808,6 +888,7 @@ Result: ✓ No errors (after auto-fix of formatting)
 ### Files Created/Modified
 
 **Created**:
+
 - `src/domain/authentication.ts` - Domain models
 - `src/domain/authentication-service.ts` - Service interface
 - `src/domain/demo-authentication-adapter.ts` - Demo implementation
@@ -815,11 +896,13 @@ Result: ✓ No errors (after auto-fix of formatting)
 - `AUTHENTICATION-ARCHITECTURE-REPORT.md` (this file)
 
 **Modified**:
+
 - `src/hooks/use-session.tsx` - Now uses AuthenticationService
 - `src/routes/team.login.tsx` - Uses new signIn API
 - `src/routes/masuk.tsx` - Uses new signIn API
 
 **Unchanged**:
+
 - Domain types (Role, User, etc.)
 - Component libraries
 - Match Center logic
@@ -871,7 +954,7 @@ Result: ✓ No errors (after auto-fix of formatting)
    │  (in-memory)│            │  Memberships     │
    │             │            │  (in-memory)     │
    └─────────────┘            └──────────────────┘
-   
+
    Phase 3.2+:
    └──────────────┬─────────────────┐
                   ▼                  ▼
@@ -886,6 +969,7 @@ Result: ✓ No errors (after auto-fix of formatting)
 ## CONCEPTUAL DATA FLOW
 
 ### Login Flow
+
 ```
 User enters username/password
            │
@@ -916,6 +1000,7 @@ User enters username/password
 ```
 
 ### Logout Flow
+
 ```
 useSession.signOut()
            │
@@ -941,6 +1026,7 @@ useSession.signOut()
 ## PHASE DEPENDENCIES
 
 ### Phase 3.1 (Complete)
+
 - ✓ UserIdentity domain model
 - ✓ TeamMembership domain model
 - ✓ AuthenticatedSession model
@@ -952,6 +1038,7 @@ useSession.signOut()
 - ✓ 17 integration tests
 
 ### Phase 3.2 (Planned)
+
 - [ ] Supabase Auth integration
 - [ ] Database session storage
 - [ ] Refresh token infrastructure
@@ -963,6 +1050,7 @@ useSession.signOut()
 - [ ] Production credential hashing
 
 ### Phase 3.3 (Planned)
+
 - [ ] Full RBAC implementation
 - [ ] Role-based permission resolution
 - [ ] Server-side authorization checks
@@ -1006,6 +1094,7 @@ useSession.signOut()
 ## RECOMMENDATIONS FOR PHASE 3.2
 
 ### Priority 1: Security
+
 1. Implement password hashing (bcrypt/Argon2)
 2. Move sessions to database with encryption
 3. Implement secure session cookies (httpOnly)
@@ -1013,12 +1102,14 @@ useSession.signOut()
 5. Audit log all authentication events
 
 ### Priority 2: Reliability
+
 1. Implement refresh token mechanism
 2. Add session timeout warnings to UI
 3. Handle session expiration gracefully
 4. Test session lifecycle edge cases
 
 ### Priority 3: Experience
+
 1. Add "Remember me" option (opt-in)
 2. Implement password reset flow
 3. Add login attempt notifications
@@ -1028,22 +1119,23 @@ useSession.signOut()
 
 ## FINAL STATUS
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| **Core Implementation** | ✓ COMPLETE | AuthenticationService + DemoAdapter |
-| **Test Coverage** | ✓ 17/17 PASS | Comprehensive coverage |
-| **Build** | ✓ PASS | No TypeScript/build errors |
-| **Backward Compatibility** | ✓ MAINTAINED | useSession API unchanged |
-| **ActorContext** | ✓ PRESERVED | Still works for authorization |
-| **Match Center** | ✓ REGRESSION PASS | No impact on existing logic |
-| **Team Registration** | ✓ REGRESSION PASS | 7/7 tests still pass |
-| **Route Regression** | ✓ VERIFIED | Login flows working |
+| Aspect                     | Status            | Notes                               |
+| -------------------------- | ----------------- | ----------------------------------- |
+| **Core Implementation**    | ✓ COMPLETE        | AuthenticationService + DemoAdapter |
+| **Test Coverage**          | ✓ 17/17 PASS      | Comprehensive coverage              |
+| **Build**                  | ✓ PASS            | No TypeScript/build errors          |
+| **Backward Compatibility** | ✓ MAINTAINED      | useSession API unchanged            |
+| **ActorContext**           | ✓ PRESERVED       | Still works for authorization       |
+| **Match Center**           | ✓ REGRESSION PASS | No impact on existing logic         |
+| **Team Registration**      | ✓ REGRESSION PASS | 7/7 tests still pass                |
+| **Route Regression**       | ✓ VERIFIED        | Login flows working                 |
 
 ---
 
 ## CONCLUSION
 
 **Phase 3.1 Successfully Establishes**:
+
 1. ✓ Separation of User and Team identities
 2. ✓ Clean authentication boundary via AuthenticationService
 3. ✓ Pluggable authentication adapter architecture
@@ -1055,6 +1147,7 @@ useSession.signOut()
 9. ✓ Comprehensive integration test coverage
 
 **Ready For**:
+
 - ✓ Phase 3.2: Production authentication infrastructure
 - ✓ Phase 3.3: Full RBAC and server authorization
 - ✓ Phase 4: Advanced features (MFA, audit logging, etc.)
@@ -1067,13 +1160,13 @@ useSession.signOut()
 **Phase**: 3.1 — Authentication Foundation  
 **Author**: Implementation Agent  
 **Status**: FINAL  
-**Approval**: Ready for review  
+**Approval**: Ready for review
 
 **AUTHENTICATION FOUNDATION READY**: **YES**  
 **PRODUCTION AUTHENTICATION READY**: **NO** (Phase 3.2)  
 **RBAC READY**: **NO** (Phase 3.3)  
-**SERVER AUTHORIZATION READY**: **NO** (Phase 3.3)  
+**SERVER AUTHORIZATION READY**: **NO** (Phase 3.3)
 
 ---
 
-*End of Authentication Architecture Report*
+_End of Authentication Architecture Report_

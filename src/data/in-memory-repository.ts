@@ -16,10 +16,12 @@ import {
   isDocumentApproved,
   isRegistrationLocked,
   registrationSummary,
+  SELF_REQUESTABLE_ROLES,
 } from "@/domain/registration";
 import type {
   DocumentStatus,
   RegistrationEntityType,
+  RoleRequest,
   TeamProfile,
   VerificationAction,
   ActorContext,
@@ -32,6 +34,7 @@ import type {
   MatchOfficialRole,
   Player,
   MatchStatus,
+  RoleKey,
   Team,
   TeamOfficial,
   StandingRow,
@@ -1012,5 +1015,176 @@ export const inMemoryRepository: CompetitionRepository = {
       entityId,
       reason ?? `Memproses ${action}`,
     );
+  },
+
+  /* -------------------------- Role Requests (RBAC) ------------------------- */
+  listRoleRequests(actor: ActorContext) {
+    assertAdmin(actor, "role.manage");
+    return clone(fx.roleRequests);
+  },
+  listMyRoleRequests(actor: ActorContext) {
+    assertActor(actor);
+    return clone(fx.roleRequests.filter((r) => r.user_id === actor.userId));
+  },
+  async createRoleRequest({
+    requested_role,
+    request_reason,
+    supporting_docs,
+    contingent_id,
+    venue_id,
+    team_id,
+    actor,
+  }) {
+    assertActor(actor);
+    if (!SELF_REQUESTABLE_ROLES.includes(requested_role as (typeof SELF_REQUESTABLE_ROLES)[number])) {
+      throw new Error("Peran ini tidak dapat diajukan secara mandiri.");
+    }
+    if (!request_reason.trim() || request_reason.trim().length < 10) {
+      throw new Error("Alasan pengajuan terlalu singkat (minimal 10 karakter).");
+    }
+    const existingPending = fx.roleRequests.find(
+      (r) =>
+        r.user_id === actor.userId &&
+        r.requested_role === requested_role &&
+        r.status === "PENDING",
+    );
+    if (existingPending) throw new Error("Anda masih memiliki pengajuan menunggu untuk peran ini.");
+    const now = new Date().toISOString();
+    const req: RoleRequest = {
+      id: nextId("rr"),
+      user_id: actor.userId,
+      requested_role,
+      request_reason,
+      supporting_docs: supporting_docs ?? [],
+      status: "PENDING",
+      contingent_id,
+      venue_id,
+      team_id,
+      created_at: now,
+      updated_at: now,
+    };
+    fx.roleRequests.push(req);
+    audit(actor.userId, "ROLE_REQUESTED", "role_requests", req.id, request_reason);
+    return clone(req);
+  },
+  async cancelRoleRequest({ id, actor }) {
+    assertActor(actor);
+    const req = fx.roleRequests.find((r) => r.id === id);
+    if (!req) throw new Error("Permintaan peran tidak ditemukan.");
+    if (req.user_id !== actor.userId) throw new Error("Anda tidak memiliki izin ini.");
+    if (req.status !== "PENDING")
+      throw new Error("Hanya permintaan yang masih menunggu yang dapat dibatalkan.");
+    req.status = "CANCELLED";
+    req.updated_at = new Date().toISOString();
+    audit(actor.userId, "ROLE_CANCELLED", "role_requests", req.id, "Dibatalkan pemohon.");
+    return clone(req);
+  },
+  async approveRoleRequest({
+    id,
+    decision_note,
+    contingent_id,
+    venue_id,
+    team_id,
+    actor,
+  }) {
+    assertAdmin(actor, "role.manage");
+    const req = fx.roleRequests.find((r) => r.id === id);
+    if (!req) throw new Error("Permintaan peran tidak ditemukan.");
+    if (req.status !== "PENDING") throw new Error("Permintaan ini sudah diproses.");
+    const user = fx.users.find((u) => u.id === req.user_id);
+    if (user && user.role !== req.requested_role) {
+      user.role = req.requested_role as RoleKey;
+      if (contingent_id) user.contingent_id = contingent_id;
+      if (venue_id) user.venue_id = venue_id;
+    }
+    req.status = "APPROVED";
+    req.reviewer_id = actor.userId;
+    req.reviewed_at = new Date().toISOString();
+    req.decision_note = decision_note;
+    if (contingent_id) req.contingent_id = contingent_id;
+    if (venue_id) req.venue_id = venue_id;
+    if (team_id) req.team_id = team_id;
+    req.updated_at = req.reviewed_at;
+    audit(
+      actor.userId,
+      "ROLE_ASSIGNED",
+      "role_requests",
+      req.id,
+      `${req.requested_role} → ${user?.full_name ?? req.user_id}`,
+    );
+    return clone(req);
+  },
+  async rejectRoleRequest({ id, decision_note, actor }) {
+    assertAdmin(actor, "role.manage");
+    const req = fx.roleRequests.find((r) => r.id === id);
+    if (!req) throw new Error("Permintaan peran tidak ditemukan.");
+    if (req.status !== "PENDING") throw new Error("Permintaan ini sudah diproses.");
+    if (!decision_note.trim() || decision_note.trim().length < 6)
+      throw new Error("Catatan penolakan terlalu singkat.");
+    req.status = "REJECTED";
+    req.reviewer_id = actor.userId;
+    req.reviewed_at = new Date().toISOString();
+    req.decision_note = decision_note;
+    req.updated_at = req.reviewed_at;
+    audit(actor.userId, "ROLE_REJECTED", "role_requests", req.id, decision_note);
+    return clone(req);
+  },
+  async revokeUserRole({ user_id, role, reason, actor }) {
+    assertAdmin(actor, "role.manage");
+    if (role === "PUBLIC") throw new Error("Peran PUBLIC tidak dapat dicabut.");
+    const user = fx.users.find((u) => u.id === user_id);
+    if (!user) throw new Error("Pengguna tidak ditemukan.");
+    if (user.role !== role) return false;
+    user.role = "PUBLIC";
+    const related = fx.roleRequests.find(
+      (r) => r.user_id === user_id && r.requested_role === role && r.status === "APPROVED",
+    );
+    if (related) {
+      related.status = "REVOKED";
+      related.reviewer_id = actor.userId;
+      related.reviewed_at = new Date().toISOString();
+      related.decision_note = reason;
+      related.updated_at = related.reviewed_at;
+    }
+    audit(actor.userId, "ROLE_REVOKED", "user_roles", user_id, reason ?? "Dicabut administrator.");
+    return true;
+  },
+  async assignUserRole({ user_id, role, contingent_id, venue_id, team_id, actor }) {
+    assertAdmin(actor, "role.manage");
+    const user = fx.users.find((u) => u.id === user_id);
+    if (!user) throw new Error("Pengguna tidak ditemukan.");
+    user.role = role;
+    if (contingent_id) user.contingent_id = contingent_id;
+    if (venue_id) user.venue_id = venue_id;
+    const now = new Date().toISOString();
+    const existing = fx.roleRequests.find(
+      (r) => r.user_id === user_id && r.requested_role === role,
+    );
+    if (existing) {
+      if (existing.status === "PENDING") {
+        existing.status = "APPROVED";
+        existing.reviewer_id = actor.userId;
+        existing.reviewed_at = now;
+        existing.updated_at = now;
+      }
+    } else {
+      fx.roleRequests.push({
+        id: nextId("rr"),
+        user_id,
+        requested_role: role,
+        request_reason: `Ditetapkan langsung oleh ${actorName(actor.userId)}.`,
+        supporting_docs: [],
+        status: "APPROVED",
+        reviewer_id: actor.userId,
+        reviewed_at: now,
+        contingent_id,
+        venue_id,
+        team_id,
+        created_at: now,
+        updated_at: now,
+      });
+    }
+    audit(actor.userId, "ROLE_ASSIGNED", "user_roles", user_id, role);
+    return true;
   },
 };

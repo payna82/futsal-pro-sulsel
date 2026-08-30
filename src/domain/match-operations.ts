@@ -4,7 +4,7 @@ import { allowedEvents, PERIOD_DURATION_SECONDS } from "./match-state";
 /** Masukan pembuatan event. Id dan created_at ditentukan lapisan data. */
 export interface NewMatchEventInput {
   match_id: UUID;
-    command_id: UUID;
+  command_id: UUID;
   type: MatchEventType;
   period: MatchPeriod;
   timestamp: number;
@@ -59,14 +59,16 @@ export function validateMatchEvent(
   if (input.team_id && input.player_id) {
     const squad = ctx.playersOfTeam(input.team_id);
     if (!squad.includes(input.player_id)) return "Pemain bukan bagian dari tim yang dipilih.";
-    if (ctx.playerEligible && !ctx.playerEligible(input.player_id)) return "Pemain tidak memenuhi syarat untuk kejadian ini.";
+    if (ctx.playerEligible && !ctx.playerEligible(input.player_id))
+      return "Pemain tidak memenuhi syarat untuk kejadian ini.";
     const playerIn = input.metadata?.["player_in"];
     if (input.type === "SUBSTITUTION") {
       if (typeof playerIn !== "string" || playerIn.length === 0) {
         return "Pemain masuk wajib dipilih.";
       }
       if (!squad.includes(playerIn)) return "Pemain masuk bukan bagian dari tim yang dipilih.";
-      if (ctx.playerEligible && !ctx.playerEligible(playerIn)) return "Pemain masuk tidak memenuhi syarat untuk kejadian ini.";
+      if (ctx.playerEligible && !ctx.playerEligible(playerIn))
+        return "Pemain masuk tidak memenuhi syarat untuk kejadian ini.";
       if (playerIn === input.player_id) return "Pemain keluar dan masuk tidak boleh sama.";
     }
   }
@@ -85,10 +87,14 @@ export function validateMatchEvent(
       return "Alasan koreksi wajib diisi.";
     }
     if (correction !== "VOID") return "Payload koreksi tidak valid.";
-    if (ctx.existingEvents?.some((event) =>
-      event.type === "MATCH_CORRECTION" && event.metadata["target_event_id"] === targetEventId &&
-      event.metadata["correction"] === "VOID"
-    )) {
+    if (
+      ctx.existingEvents?.some(
+        (event) =>
+          event.type === "MATCH_CORRECTION" &&
+          event.metadata["target_event_id"] === targetEventId &&
+          event.metadata["correction"] === "VOID",
+      )
+    ) {
       return "Event sudah dikoreksi.";
     }
   }
@@ -112,10 +118,11 @@ export function deriveScore(
 }
 
 export function isEventVoided(event: MatchEvent, events: MatchEvent[]): boolean {
-  return events.some((correction) =>
-    correction.type === "MATCH_CORRECTION" &&
-    correction.metadata["target_event_id"] === event.id &&
-    correction.metadata["correction"] === "VOID"
+  return events.some(
+    (correction) =>
+      correction.type === "MATCH_CORRECTION" &&
+      correction.metadata["target_event_id"] === event.id &&
+      correction.metadata["correction"] === "VOID",
   );
 }
 

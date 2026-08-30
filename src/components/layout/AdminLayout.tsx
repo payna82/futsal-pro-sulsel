@@ -39,7 +39,7 @@ const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
       { to: "/admin", label: "Dasbor", icon: Gauge },
       { to: "/admin/schedule", label: "Jadwal", icon: CalendarDays },
       { to: "/admin/matches", label: "Pertandingan", icon: Activity },
-        { to: "/admin/verification", label: "Verifikasi", icon: ClipboardList },
+      { to: "/admin/verification", label: "Verifikasi", icon: ClipboardList },
       { to: "/admin/match-officials", label: "Perangkat Pertandingan", icon: Megaphone },
     ],
   },

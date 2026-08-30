@@ -5,6 +5,8 @@ import type {
   DocumentType,
   RegistrationDocument,
   RegistrationEntityType,
+  RoleRequest,
+  RoleRequestStatus,
   TeamAccount,
   TeamProfile,
   TeamRegistrationSummary,
@@ -12,7 +14,7 @@ import type {
   VerificationHistory,
   ActorContext,
 } from "@/domain/registration";
-import type { MatchOfficialRole, MatchStatus } from "@/domain/types";
+import type { MatchOfficialRole, MatchStatus, RoleKey, UUID } from "@/domain/types";
 import type {
   AuditLog,
   Category,
@@ -190,4 +192,48 @@ export interface CompetitionRepository {
     operator_id?: UUID;
     actor: ActorContext;
   }): Promise<void>;
+
+  /* -------------------------- Role Requests (RBAC) ------------------------- */
+  listRoleRequests(actor: ActorContext): Promise<RoleRequest[]>;
+  listMyRoleRequests(actor: ActorContext): Promise<RoleRequest[]>;
+  createRoleRequest(input: {
+    requested_role: RoleKey;
+    request_reason: string;
+    supporting_docs?: { name: string; description?: string }[];
+    contingent_id?: UUID;
+    venue_id?: UUID;
+    team_id?: UUID;
+    actor: ActorContext;
+  }): Promise<RoleRequest>;
+  cancelRoleRequest(input: {
+    id: UUID;
+    actor: ActorContext;
+  }): Promise<RoleRequest>;
+  approveRoleRequest(input: {
+    id: UUID;
+    decision_note?: string;
+    contingent_id?: UUID;
+    venue_id?: UUID;
+    team_id?: UUID;
+    actor: ActorContext;
+  }): Promise<RoleRequest>;
+  rejectRoleRequest(input: {
+    id: UUID;
+    decision_note: string;
+    actor: ActorContext;
+  }): Promise<RoleRequest>;
+  revokeUserRole(input: {
+    user_id: UUID;
+    role: RoleKey;
+    reason?: string;
+    actor: ActorContext;
+  }): Promise<boolean>;
+  assignUserRole(input: {
+    user_id: UUID;
+    role: RoleKey;
+    contingent_id?: UUID;
+    venue_id?: UUID;
+    team_id?: UUID;
+    actor: ActorContext;
+  }): Promise<boolean>;
 }

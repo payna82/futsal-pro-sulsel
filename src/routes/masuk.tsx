@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/hooks/use-session";
 
-
 export const Route = createFileRoute("/masuk")({
   head: () => ({
     meta: [
@@ -59,10 +58,6 @@ function LoginPage() {
       setIsLoading(false);
     }
   };
-
-
-
-
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -154,9 +149,6 @@ function LoginPage() {
             Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh perubahan
             status pertandingan dicatat atas nama akun yang sedang masuk.
           </p>
-
-
-
 
           <Link to="/" className="block text-center text-sm text-primary hover:underline">
             Kembali ke situs publik

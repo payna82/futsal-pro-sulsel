@@ -65,7 +65,6 @@ function TeamLoginPage() {
               autoComplete="email"
               required
               disabled={isLoading}
-
             />
           </div>
           <div className="space-y-2">

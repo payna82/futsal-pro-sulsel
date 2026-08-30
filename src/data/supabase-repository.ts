@@ -31,6 +31,12 @@ import type {
   UUID,
   Venue,
 } from "@/domain/types";
+import {
+  SELF_REQUESTABLE_ROLES,
+  type ActorContext,
+  type RoleRequest,
+  type SupportingDoc,
+} from "@/domain/registration";
 import { inMemoryRepository } from "./in-memory-repository";
 import type { CompetitionRepository } from "./repository";
 
@@ -79,7 +85,6 @@ function unwrapRows(result: QueryResult): Row[] {
   if (!result.data) return [];
   return Array.isArray(result.data) ? result.data : [result.data];
 }
-
 
 const nextId = (prefix: string) =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -336,7 +341,9 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async listMatches(): Promise<Match[]> {
-    return (await selectAll("matches")).map(toMatch).sort((a, b) => a.match_number - b.match_number);
+    return (await selectAll("matches"))
+      .map(toMatch)
+      .sort((a, b) => a.match_number - b.match_number);
   },
 
   async getMatch(id: UUID) {
@@ -430,7 +437,6 @@ export const supabaseRepository: CompetitionRepository = {
       .limit(500);
     if (result.error) return [];
     return unwrapRows(result) as unknown as AuditLog[];
-
   },
 
   /* ------------------------------- Mutations ------------------------------ */
@@ -665,4 +671,258 @@ export const supabaseRepository: CompetitionRepository = {
     );
     return this.listMatchOfficials(match_id);
   },
+
+  /* -------------------------- Role Requests (RBAC) ------------------------- */
+
+  async listRoleRequests(actor: ActorContext): Promise<RoleRequest[]> {
+    void actor;
+    const result = await db
+      .from("role_requests")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    return unwrapRows(result).map(toRoleRequest);
+  },
+
+  async listMyRoleRequests(actor: ActorContext): Promise<RoleRequest[]> {
+    const result = await db
+      .from("role_requests")
+      .select("*")
+      .eq("user_id", actor.userId)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    return unwrapRows(result).map(toRoleRequest);
+  },
+
+  async createRoleRequest({
+    requested_role,
+    request_reason,
+    supporting_docs,
+    contingent_id,
+    venue_id,
+    team_id,
+    actor,
+  }: {
+    requested_role: RoleKey;
+    request_reason: string;
+    supporting_docs?: SupportingDoc[];
+    contingent_id?: UUID;
+    venue_id?: UUID;
+    team_id?: UUID;
+    actor: ActorContext;
+  }): Promise<RoleRequest> {
+    void actor;
+    if (
+      !SELF_REQUESTABLE_ROLES.includes(
+        requested_role as (typeof SELF_REQUESTABLE_ROLES)[number],
+      )
+    ) {
+      throw new Error("Peran ini tidak dapat diajukan secara mandiri.");
+    }
+    if (!request_reason.trim() || request_reason.trim().length < 10) {
+      throw new Error("Alasan pengajuan terlalu singkat (minimal 10 karakter).");
+    }
+    const row = unwrapRow(
+      await db
+        .from("role_requests")
+        .insert({
+          id: nextId("rr"),
+          user_id: actor.userId,
+          requested_role,
+          request_reason,
+          supporting_docs: supporting_docs ?? [],
+          status: "PENDING",
+          ...optional("contingent_id", contingent_id),
+          ...optional("venue_id", venue_id),
+          ...optional("team_id", team_id),
+        })
+        .select("*")
+        .single(),
+    );
+    return toRoleRequest(row);
+  },
+
+  async cancelRoleRequest({ id, actor }: { id: UUID; actor: ActorContext }): Promise<RoleRequest> {
+    void actor;
+    const row = unwrapRow(
+      await db
+        .from("role_requests")
+        .update({ status: "CANCELLED" })
+        .eq("id", id)
+        .select("*")
+        .single(),
+    );
+    return toRoleRequest(row);
+  },
+
+  async approveRoleRequest({
+    id,
+    decision_note,
+    contingent_id,
+    venue_id,
+    team_id,
+    actor,
+  }: {
+    id: UUID;
+    decision_note?: string;
+    contingent_id?: UUID;
+    venue_id?: UUID;
+    team_id?: UUID;
+    actor: ActorContext;
+  }): Promise<RoleRequest> {
+    void actor;
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>
+    )("approve_role_request", {
+      _request_id: id,
+      _decision_note: decision_note ?? null,
+      _contingent_id: contingent_id ?? null,
+      _venue_id: venue_id ?? null,
+      _team_id: team_id ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Gagal menyetujui permintaan peran.");
+    return toRoleRequest(data as unknown as Row);
+  },
+
+  async rejectRoleRequest({
+    id,
+    decision_note,
+    actor,
+  }: {
+    id: UUID;
+    decision_note: string;
+    actor: ActorContext;
+  }): Promise<RoleRequest> {
+    void actor;
+    if (!decision_note.trim() || decision_note.trim().length < 6) {
+      throw new Error("Catatan penolakan terlalu singkat.");
+    }
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>
+    )("reject_role_request", {
+      _request_id: id,
+      _decision_note: decision_note,
+    });
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Gagal menolak permintaan peran.");
+    return toRoleRequest(data as unknown as Row);
+  },
+
+  async revokeUserRole({
+    user_id,
+    role,
+    reason,
+    actor,
+  }: {
+    user_id: UUID;
+    role: RoleKey;
+    reason?: string;
+    actor: ActorContext;
+  }): Promise<boolean> {
+    void actor;
+    if (role === "PUBLIC") throw new Error("Peran PUBLIC tidak dapat dicabut.");
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>
+    )("revoke_user_role", {
+      _user_id: user_id,
+      _role: role,
+      _reason: reason ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return Boolean(data);
+  },
+
+  async assignUserRole({
+    user_id,
+    role,
+    contingent_id,
+    venue_id,
+    team_id,
+    actor,
+  }: {
+    user_id: UUID;
+    role: RoleKey;
+    contingent_id?: UUID;
+    venue_id?: UUID;
+    team_id?: UUID;
+    actor: ActorContext;
+  }): Promise<boolean> {
+    void actor;
+    const existing = await db
+      .from("role_requests")
+      .select("*")
+      .eq("user_id", user_id)
+      .eq("requested_role", role)
+      .eq("status", "PENDING")
+      .limit(1)
+      .maybeSingle();
+    if (existing.error) throw new Error(existing.error.message);
+    const callRpcApprove = async (rid: UUID) => {
+      const fn = supabase.rpc as unknown as (
+        fnName: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      return fn("approve_role_request", {
+        _request_id: rid,
+        _decision_note: "Penugasan langsung oleh administrator.",
+        _contingent_id: contingent_id ?? null,
+        _venue_id: venue_id ?? null,
+        _team_id: team_id ?? null,
+      });
+    };
+    if (existing.data) {
+      const { error } = await callRpcApprove((existing.data as Row)["id"] as UUID);
+      if (error) throw new Error(error.message);
+      return true;
+    }
+    const pending = await db
+      .from("role_requests")
+      .insert({
+        id: nextId("rr"),
+        user_id,
+        requested_role: role,
+        request_reason: `Ditetapkan langsung oleh administrator.`,
+        supporting_docs: [],
+        status: "PENDING",
+        ...optional("contingent_id", contingent_id),
+        ...optional("venue_id", venue_id),
+        ...optional("team_id", team_id),
+      })
+      .select("*")
+      .single();
+    if (pending.error) throw new Error(pending.error.message);
+    const req = pending.data as unknown as Row;
+    const { error: apvErr } = await callRpcApprove(req["id"] as UUID);
+    if (apvErr) throw new Error(apvErr.message);
+    return true;
+  },
 };
+
+function toRoleRequest(row: Row): RoleRequest {
+  return {
+    id: row["id"] as UUID,
+    user_id: row["user_id"] as UUID,
+    requested_role: row["requested_role"] as RoleKey,
+    request_reason: row["request_reason"] as string,
+    supporting_docs: (row["supporting_docs"] as SupportingDoc[]) ?? [],
+    status: row["status"] as RoleRequest["status"],
+    ...optional("reviewer_id", row["reviewer_id"] as UUID | null),
+    ...optional("reviewed_at", row["reviewed_at"] as string | null),
+    ...optional("decision_note", row["decision_note"] as string | null),
+    ...optional("contingent_id", row["contingent_id"] as UUID | null),
+    ...optional("venue_id", row["venue_id"] as UUID | null),
+    ...optional("team_id", row["team_id"] as UUID | null),
+    created_at: row["created_at"] as string,
+    updated_at: row["updated_at"] as string,
+  };
+}

@@ -1,4 +1,4 @@
-import type { OfficialRole, Player, Team, TeamOfficial, UUID } from "./types";
+import type { OfficialRole, Player, RoleKey, Team, TeamOfficial, UUID } from "./types";
 import type { PermissionKey } from "./permissions";
 
 export interface ActorContext {
@@ -7,6 +7,68 @@ export interface ActorContext {
   teamId?: UUID;
   permissions: PermissionKey[];
 }
+
+/* ============================ Role Requests ============================ */
+
+export type RoleRequestStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "REVOKED"
+  | "CANCELLED";
+
+export const ROLE_REQUEST_STATUS_LABEL: Record<RoleRequestStatus, string> = {
+  PENDING: "Menunggu Tinjauan",
+  APPROVED: "Disetujui",
+  REJECTED: "Ditolak",
+  REVOKED: "Dicabut",
+  CANCELLED: "Dibatalkan",
+};
+
+/** Daftar peran yang boleh diajukan secara mandiri oleh pengguna.
+ *  Admin/Senior role (SUPER_ADMIN, TOURNAMENT_ADMIN, COMPETITION_MANAGER,
+ *  VENUE_MANAGER, MATCH_COMMISSIONER) tidak dapat diajukan mandiri. */
+export const SELF_REQUESTABLE_ROLES: RoleKey[] = [
+  "REFEREE",
+  "TIMEKEEPER",
+  "SCOREKEEPER",
+  "MEDIA",
+  "TEAM_OFFICIAL",
+] as const;
+
+export const SELF_REQUESTABLE_ROLE_LABELS: Record<
+  (typeof SELF_REQUESTABLE_ROLES)[number], string
+> = {
+  REFEREE: "Wasit Pertandingan",
+  TIMEKEEPER: "Pencatat Waktu",
+  SCOREKEEPER: "Pencatat Skor",
+  MEDIA: "Petugas Media & Publikasi",
+  TEAM_OFFICIAL: "Ofisial / Pengurus Tim",
+};
+
+export interface SupportingDoc {
+  name: string;
+  description?: string;
+}
+
+export interface RoleRequest {
+  id: UUID;
+  user_id: UUID;
+  requested_role: RoleKey;
+  request_reason: string;
+  supporting_docs: SupportingDoc[];
+  status: RoleRequestStatus;
+  reviewer_id?: UUID;
+  reviewed_at?: ISODateTime;
+  decision_note?: string;
+  contingent_id?: UUID;
+  venue_id?: UUID;
+  team_id?: UUID;
+  created_at: ISODateTime;
+  updated_at: ISODateTime;
+}
+
+export type ISODateTime = string;
 
 export const DEMO_READ_ACTOR: ActorContext = {
   userId: "demo-read",

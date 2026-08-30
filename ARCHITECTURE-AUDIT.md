@@ -173,12 +173,12 @@ Use normalized tables for tournaments, categories, contingents, teams, players, 
 
 # 14. Concurrency Risks
 
-| Mutation | Atomic requirement | Lock/version | Unique/append-only rule |
-| --- | --- | --- | --- |
-| `recordMatchEvent()` | Validate current match, insert one immutable event, update/rebuild score projection, and audit together. | Lock match row or use optimistic `version`; reject stale status/version. | Unique idempotency key per match; event ledger append-only; stable per-match sequence. |
-| `transitionMatchStatus()` | Check current status, update status/period/clock, insert all generated events, projection, and audit together. | `SELECT ... FOR UPDATE` or conditional `UPDATE ... WHERE version = ?`. | Enforce legal transition in server/domain function; generated event batch cannot partially commit. |
-| `updateMatchClock()` | Apply a clock command/snapshot only if it is newer and valid, then audit it. | Match row lock or optimistic version; preferably one authoritative clock operator/lease. | Unique command ID; do not let stale clients overwrite newer clock state. |
-| `assignMatchOfficial()` | Validate eligibility and current assignment, replace or append history, and audit together. | Lock `(match_id, role)` or use conditional upsert/version. | Unique `(match_id, role)` and prevent duplicate user assignment per match. |
+| Mutation                  | Atomic requirement                                                                                             | Lock/version                                                                             | Unique/append-only rule                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `recordMatchEvent()`      | Validate current match, insert one immutable event, update/rebuild score projection, and audit together.       | Lock match row or use optimistic `version`; reject stale status/version.                 | Unique idempotency key per match; event ledger append-only; stable per-match sequence.             |
+| `transitionMatchStatus()` | Check current status, update status/period/clock, insert all generated events, projection, and audit together. | `SELECT ... FOR UPDATE` or conditional `UPDATE ... WHERE version = ?`.                   | Enforce legal transition in server/domain function; generated event batch cannot partially commit. |
+| `updateMatchClock()`      | Apply a clock command/snapshot only if it is newer and valid, then audit it.                                   | Match row lock or optimistic version; preferably one authoritative clock operator/lease. | Unique command ID; do not let stale clients overwrite newer clock state.                           |
+| `assignMatchOfficial()`   | Validate eligibility and current assignment, replace or append history, and audit together.                    | Lock `(match_id, role)` or use conditional upsert/version.                               | Unique `(match_id, role)` and prevent duplicate user assignment per match.                         |
 
 All four operations currently mutate shared in-memory objects without locking, versioning, or transaction semantics. JavaScript's single event loop does not model the multi-process and multi-operator races expected after migration.
 

@@ -4,7 +4,6 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/hooks/use-session";
 
-
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
@@ -48,5 +47,4 @@ function AdminRouteLayout() {
       <Outlet />
     </AdminLayout>
   );
-
 }

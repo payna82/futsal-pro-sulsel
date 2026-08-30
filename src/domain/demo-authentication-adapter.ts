@@ -202,8 +202,7 @@ export class DemoAuthenticationAdapter implements AuthenticationAdapter {
       if (!userIdentity) return genericError;
 
       // Verify status
-      if (userIdentity.status === "DISABLED")
-        return { success: false, error: "ACCOUNT_DISABLED" };
+      if (userIdentity.status === "DISABLED") return { success: false, error: "ACCOUNT_DISABLED" };
       if (userIdentity.status === "SUSPENDED")
         return { success: false, error: "ACCOUNT_SUSPENDED" };
 

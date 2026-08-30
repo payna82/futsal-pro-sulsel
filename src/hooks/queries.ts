@@ -97,3 +97,15 @@ export const verificationHistoryQuery = (
     queryKey: ["verification-history", entityType, entityId],
     queryFn: () => repository.listVerificationHistory(entityType, entityId, DEMO_READ_ACTOR),
   });
+
+export const roleRequestsQuery = (actor: Parameters<typeof repository.listRoleRequests>[0]) =>
+  queryOptions({
+    queryKey: ["role-requests"],
+    queryFn: () => repository.listRoleRequests(actor),
+  });
+
+export const myRoleRequestsQuery = (actor: Parameters<typeof repository.listMyRoleRequests>[0]) =>
+  queryOptions({
+    queryKey: ["my-role-requests", actor.userId],
+    queryFn: () => repository.listMyRoleRequests(actor),
+  });
