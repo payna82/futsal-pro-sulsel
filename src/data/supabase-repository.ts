@@ -633,15 +633,18 @@ export const supabaseRepository: CompetitionRepository = {
     const now = new Date().toISOString();
     const previous = current.find((item) => item.role === role && item.active !== false);
     if (previous) {
-      const { error } = await supabase
+      const { error } = await db
         .from("match_officials")
         .update({ active: false, effective_to: now })
         .eq("id", previous.id);
       if (error) throw new Error(error.message);
     }
+    const profile = await db.from("profiles").select("*").eq("id", user_id).maybeSingle();
     const name =
-      (await db.from("profiles").select("full_name").eq("id", user_id).maybeSingle()).data
-        ?.full_name ?? user_id;
+      (!profile.error && !Array.isArray(profile.data)
+        ? (profile.data?.["full_name"] as string | undefined)
+        : undefined) ?? user_id;
+
     const { error } = await db.from("match_officials").insert({
       id: nextId("mo"),
       match_id,
