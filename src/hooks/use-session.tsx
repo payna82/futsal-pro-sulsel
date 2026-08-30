@@ -7,6 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { PermissionKey } from "@/domain/permissions";
@@ -71,6 +73,8 @@ async function loadSessionUser(session: Session): Promise<SessionUser> {
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let active = true;
@@ -157,7 +161,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
-  }, []);
+    // Bersihkan state aplikasi (cache TanStack Query) lalu alihkan ke beranda publik.
+    queryClient.clear();
+    navigate({ to: "/", replace: true });
+  }, [queryClient, navigate]);
 
   const value = useMemo<SessionContextValue>(() => {
     const role: RoleKey = user?.role ?? "PUBLIC";
