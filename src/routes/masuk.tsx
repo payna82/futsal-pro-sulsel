@@ -88,11 +88,27 @@ function LoginPage() {
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
           <div>
             <p className="label-caps text-primary">PORPROV Sulsel 2026</p>
-            <h2 className="mt-1 text-3xl font-bold">Masuk Panel Panitia</h2>
+            <h2 className="mt-1 text-3xl font-bold">
+              {mode === "SIGN_IN" ? "Masuk Panel Panitia" : "Daftar Akun Petugas"}
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Gunakan akun petugas yang diterbitkan panitia pelaksana.
             </p>
           </div>
+
+          {mode === "SIGN_UP" ? (
+            <div className="space-y-2">
+              <Label htmlFor="full-name">Nama Lengkap</Label>
+              <Input
+                id="full-name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+                required
+                disabled={isLoading}
+              />
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="email">Email Petugas</Label>
@@ -116,20 +132,30 @@ function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              autoComplete="current-password"
+              autoComplete={mode === "SIGN_IN" ? "current-password" : "new-password"}
               required
               disabled={isLoading}
             />
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Memeriksa…" : "Masuk"}
+            {isLoading ? "Memproses…" : mode === "SIGN_IN" ? "Masuk" : "Daftar"}
           </Button>
 
+          <button
+            type="button"
+            onClick={() => setMode(mode === "SIGN_IN" ? "SIGN_UP" : "SIGN_IN")}
+            className="w-full text-sm text-primary hover:underline"
+          >
+            {mode === "SIGN_IN" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+          </button>
+
           <p className="text-xs text-muted-foreground">
-            Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh
-            perubahan status pertandingan dicatat atas nama akun yang sedang masuk.
+            Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh perubahan
+            status pertandingan dicatat atas nama akun yang sedang masuk.
           </p>
+
+
 
 
           <Link to="/" className="block text-center text-sm text-primary hover:underline">
