@@ -157,7 +157,7 @@ function AdminScheduleRoute() {
           searchable
           searchPlaceholder="Cari tim…"
           searchValue={(m) => `${data.teamName(m.home_team_id)} ${data.teamName(m.away_team_id)}`}
-          emptyMessage="Tidak ada pertandingan sesuai filter."
+          emptyMessage="Belum ada pertandingan sesuai filter."
         />
       </div>
 

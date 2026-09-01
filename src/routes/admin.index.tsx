@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CalendarDays,
   CircleCheck,
+  Clock,
   MapPin,
   Users,
   UsersRound,
@@ -21,6 +22,8 @@ import { isMatchToday } from "@/domain/match-operations";
 import { contingentsQuery, playersQuery } from "@/hooks/queries";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import { formatDateTime } from "@/lib/format";
+import { repository } from "@/data";
+import { can, type Role } from "@/domain/permissions";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -48,6 +51,18 @@ function AdminDashboardRoute() {
   const contingents = useQuery(contingentsQuery());
   const actor = useActor();
   const players = useQuery(playersQuery(actor));
+  const userRole = actor.role as Role;
+
+  // Pending approvals
+  const roleRequests = useQuery({
+    queryKey: ["role-requests"],
+    queryFn: () => repository.listRoleRequests(actor),
+    enabled: can(userRole, "role.manage"),
+  });
+
+  const pendingContingents = (contingents.data ?? []).filter((c) => c.status === "PENDING");
+  const pendingRoleRequests = (roleRequests.data ?? []).filter((r) => r.status === "PENDING");
+  const hasPendingApprovals = pendingContingents.length > 0 || pendingRoleRequests.length > 0;
 
   const matches = data.matches;
   const today = matches.filter((m) => isMatchToday(m));
@@ -113,9 +128,32 @@ function AdminDashboardRoute() {
         />
       </div>
 
+      {hasPendingApprovals && (
+        <div className="mt-6 rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Clock className="h-5 w-5 text-warning" />
+              <div>
+                <p className="font-medium text-warning-foreground">Persetujuan Menunggu Tindakan Anda</p>
+                <p className="text-sm text-warning-foreground/80">
+                  {pendingContingents.length > 0 && `${pendingContingents.length} kontingen`}
+                  {pendingContingents.length > 0 && pendingRoleRequests.length > 0 && ", "}
+                  {pendingRoleRequests.length > 0 && `${pendingRoleRequests.length} permintaan peran`}
+                </p>
+              </div>
+            </div>
+            <Link to="/admin/committee-dashboard">
+              <Button size="sm" variant="outline">
+                Lihat Semua Persetujuan
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <section className="mt-8 space-y-3">
         <h2 className="text-lg font-bold">Pertandingan Langsung</h2>
-        <MatchGrid matches={live} emptyMessage="Tidak ada pertandingan yang sedang berlangsung." />
+        <MatchGrid matches={live} emptyMessage="Belum ada pertandingan yang sedang berlangsung." />
       </section>
 
       <section className="mt-8 space-y-3">
@@ -132,7 +170,7 @@ function AdminDashboardRoute() {
         <h2 className="text-lg font-bold">Peringatan Operasional</h2>
         {alerts.length === 0 ? (
           <EmptyState
-            title="Tidak ada peringatan operasional"
+            title="Belum ada peringatan operasional"
             description="Semua jalur pertandingan, venue, dan jadwal terlihat dalam kondisi normal saat ini."
           />
         ) : (
@@ -167,7 +205,7 @@ function AdminDashboardRoute() {
           {today.length === 0 ? (
             <li className="p-0">
               <EmptyState
-                title="Tidak ada pertandingan hari ini"
+                title="Belum ada pertandingan hari ini"
                 description="Belum ada jadwal yang masuk untuk tanggal saat ini. Silakan cek agenda lain atau jadwal berikutnya."
                 className="rounded-none border-0 bg-transparent py-8"
               />

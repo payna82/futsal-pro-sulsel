@@ -1,5 +1,8 @@
 {
   "imports": {
     "@/": "../src/"
+  },
+  "tasks": {
+    "test:team-registration": "deno test --sloppy-imports --config tests/deno.json tests/team-registration.integration.test.ts"
   }
 }

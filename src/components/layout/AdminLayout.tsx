@@ -31,6 +31,7 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof Gauge;
+  badge?: number;
 }
 
 const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
@@ -38,6 +39,7 @@ const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
     title: "Operasional",
     items: [
       { to: "/admin", label: "Dasbor", icon: Gauge },
+      { to: "/admin/committee-dashboard", label: "Persetujuan Menunggu", icon: Gauge },
       { to: "/admin/schedule", label: "Jadwal", icon: CalendarDays },
       { to: "/admin/matches", label: "Pertandingan", icon: Activity },
       { to: "/admin/verification", label: "Verifikasi", icon: ClipboardList },
@@ -93,10 +95,17 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 to={item.to}
                 activeOptions={{ exact: item.to === "/admin" }}
                 onClick={onNavigate}
-                className="flex items-center gap-3 rounded-sm px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:bg-sidebar-primary data-[status=active]:text-sidebar-primary-foreground"
+                className="flex items-center justify-between gap-3 rounded-sm px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:bg-sidebar-primary data-[status=active]:text-sidebar-primary-foreground"
               >
-                <item.icon className="size-4 shrink-0" aria-hidden />
-                <span className="truncate">{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <item.icon className="size-4 shrink-0" aria-hidden />
+                  <span className="truncate">{item.label}</span>
+                </div>
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="ml-auto flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

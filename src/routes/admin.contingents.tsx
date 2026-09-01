@@ -3,25 +3,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useActor } from "@/hooks/use-session";
 import { AdminPage } from "@/components/admin/AdminPage";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { ContingentStatusBadge } from "@/components/admin/ContingentStatusBadge";
 import { Button } from "@/components/ui/button";
 import type { Contingent } from "@/domain/types";
 import { contingentsQuery, playersQuery, teamOfficialsQuery } from "@/hooks/queries";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import { adminHead } from "@/lib/head";
-
-const contingentStatusLabel: Record<Contingent["status"], string> = {
-  PENDING: "Menunggu Verifikasi",
-  VERIFIED: "Disetujui / Aktif",
-  REJECTED: "Ditolak",
-  DEACTIVATED: "Dinonaktifkan",
-};
-
-const contingentStatusClass: Record<Contingent["status"], string> = {
-  PENDING: "label-caps text-warning-foreground",
-  VERIFIED: "label-caps text-success",
-  REJECTED: "label-caps text-destructive",
-  DEACTIVATED: "label-caps text-muted-foreground",
-};
 
 export const Route = createFileRoute("/admin/contingents")({
   head: () =>
@@ -69,7 +56,7 @@ function AdminContingentsRoute() {
     {
       key: "status",
       header: "Status",
-      cell: (c) => <span className={contingentStatusClass[c.status]}>{contingentStatusLabel[c.status]}</span>,
+      cell: (c) => <ContingentStatusBadge status={c.status} />,
     },
     {
       key: "actions",

@@ -4,6 +4,9 @@ import { Building2, CheckCircle2, ShieldAlert, Users, XCircle } from "lucide-rea
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "@/components/admin/AdminPage";
+import { ContingentStatusBadge } from "@/components/admin/ContingentStatusBadge";
+import { DecisionNoteField } from "@/components/admin/DecisionNoteField";
+import { ApprovalActions } from "@/components/admin/ApprovalActions";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +21,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import { contingentsQuery, playersQuery, teamOfficialsQuery, usersQuery } from "@/hooks/queries";
 import { useActor } from "@/hooks/use-session";
@@ -35,20 +37,6 @@ export const Route = createFileRoute("/admin/contingents/$contingentId")({
 });
 
 type ContingentStatus = "PENDING" | "VERIFIED" | "REJECTED" | "DEACTIVATED";
-
-const statusLabel: Record<ContingentStatus, string> = {
-  PENDING: "Menunggu Verifikasi",
-  VERIFIED: "Disetujui / Aktif",
-  REJECTED: "Ditolak",
-  DEACTIVATED: "Dinonaktifkan",
-};
-
-const statusClass: Record<ContingentStatus, string> = {
-  PENDING: "border-warning/40 bg-warning/10 text-warning-foreground",
-  VERIFIED: "border-success/40 bg-success/10 text-success",
-  REJECTED: "border-destructive/40 bg-destructive/10 text-destructive",
-  DEACTIVATED: "border-muted-foreground/40 bg-muted text-muted-foreground",
-};
 
 const statusDescription: Record<ContingentStatus, string> = {
   PENDING: "Kontingen masih menunggu pemeriksaan data dan kelengkapan administrasi.",
@@ -272,9 +260,7 @@ function ContingentDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass[status]}`}>
-              {statusLabel[status]}
-            </span>
+            <ContingentStatusBadge status={status} />
             <p className="mt-2 text-sm text-muted-foreground">{statusDescription[status]}</p>
             <p className="mt-2 text-xs text-muted-foreground">{pendingTeams} tim menunggu keputusan</p>
           </CardContent>
@@ -308,20 +294,26 @@ function ContingentDashboardPage() {
               ))}
             </div>
 
-            <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <p className="label-caps text-muted-foreground">Catatan keputusan</p>
-              <Textarea
-                value={decisionNote}
-                onChange={(event) => setDecisionNote(event.target.value)}
-                className="mt-3 min-h-[120px]"
-              />
-            </div>
+            <DecisionNoteField
+              value={decisionNote}
+              onChange={setDecisionNote}
+              label="Catatan Keputusan"
+              placeholder="Jelaskan alasan keputusan approval, penolakan, atau deactivation kontingen..."
+              minLength={0}
+              required={false}
+              disabled={updateStatus.isPending}
+            />
 
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleApprove}>Setujui Kontingen</Button>
-              <Button variant="outline" onClick={handleReject}>Tolak Kontingen</Button>
-              <Button variant="destructive" onClick={handleDeactivate}>Nonaktifkan</Button>
-            </div>
+            <ApprovalActions
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onCancel={handleDeactivate}
+              isPending={updateStatus.isPending}
+              approveLabel="Setujui Kontingen"
+              rejectLabel="Tolak Kontingen"
+              cancelLabel="Nonaktifkan"
+              rejectVariant="destructive"
+            />
           </CardContent>
         </Card>
 

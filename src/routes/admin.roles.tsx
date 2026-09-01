@@ -64,7 +64,7 @@ function AdminRolesRoute() {
           rows={rows}
           columns={columns}
           getRowId={(r) => r}
-          emptyMessage="Tidak ada peran."
+          emptyMessage="Belum ada peran."
         />
       </div>
     </AdminPage>

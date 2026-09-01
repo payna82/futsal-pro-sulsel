@@ -5,11 +5,21 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { UserCheck, UserX, ShieldAlert, Clock, CheckCircle, XCircle, Ban } from "lucide-react";
 import { AdminPage } from "@/components/admin/AdminPage";
+import { DecisionNoteField } from "@/components/admin/DecisionNoteField";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { StatCard } from "@/components/common/StatCard";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ROLE_LABEL, type PermissionKey } from "@/domain/permissions";
 import {
   ROLE_REQUEST_STATUS_LABEL,
@@ -91,6 +101,9 @@ function AdminRoleRequestsPage() {
   const [bindVenue, setBindVenue] = useState<string>("");
   const [bindTeam, setBindTeam] = useState<string>("");
   const [filter, setFilter] = useState<RoleRequestStatus | "ALL">("PENDING");
+  const [pendingApproval, setPendingApproval] = useState<{
+    action: "APPROVE" | "REJECT";
+  } | null>(null);
 
   const requestorName = (userId: string) => {
     const u = (users.data ?? []).find((x) => x.id === userId);
@@ -123,8 +136,9 @@ function AdminRoleRequestsPage() {
 
   const canManage = can("role.manage");
 
-  const runApprove = (row: RoleRequest) => {
-    if (!canManage) return;
+  const confirmApproval = () => {
+    const row = selected;
+    if (!row || !canManage) return;
     approve.mutate(
       {
         id: row.id,
@@ -138,6 +152,7 @@ function AdminRoleRequestsPage() {
           toast.success(
             `Peran ${ROLE_LABEL[row.requested_role]} disetujui untuk ${requestorName(row.user_id)}.`,
           );
+          setPendingApproval(null);
           setSelectedId(null);
           setDecisionNote("");
           setBindContingent("");
@@ -149,17 +164,15 @@ function AdminRoleRequestsPage() {
     );
   };
 
-  const runReject = (row: RoleRequest) => {
-    if (!canManage) return;
-    if (decisionNote.trim().length < 6) {
-      toast.error("Catatan penolakan minimal 6 karakter.");
-      return;
-    }
+  const confirmReject = () => {
+    const row = selected;
+    if (!row || !canManage) return;
     reject.mutate(
       { id: row.id, decision_note: decisionNote.trim() },
       {
         onSuccess: () => {
           toast.success("Permintaan peran ditolak.");
+          setPendingApproval(null);
           setSelectedId(null);
           setDecisionNote("");
         },
@@ -400,23 +413,24 @@ function AdminRoleRequestsPage() {
           </div>
 
           <div>
-            <Label htmlFor="decision-note">Catatan Keputusan (wajib untuk penolakan)</Label>
-            <Textarea
-              id="decision-note"
+            <DecisionNoteField
               value={decisionNote}
-              onChange={(e) => setDecisionNote(e.target.value)}
+              onChange={setDecisionNote}
+              label="Catatan Keputusan"
               placeholder={
                 selected.requested_role === "REFEREE"
                   ? "Contoh: Sertifikat wasit terverifikasi, nomor lisensi A-123."
                   : "Contoh: Disetujui sesuai rekomendasi panitia teknis."
               }
-              className="mt-1"
+              minLength={0}
+              required={false}
+              disabled={approve.isPending || reject.isPending}
             />
           </div>
 
           <div className="flex flex-wrap gap-2 pt-1">
             <Button
-              onClick={() => runApprove(selected)}
+              onClick={() => setPendingApproval({ action: "APPROVE" })}
               disabled={approve.isPending || reject.isPending}
             >
               <UserCheck className="mr-1.5 size-4" />
@@ -424,7 +438,7 @@ function AdminRoleRequestsPage() {
             </Button>
             <Button
               variant="destructive"
-              onClick={() => runReject(selected)}
+              onClick={() => setPendingApproval({ action: "REJECT" })}
               disabled={reject.isPending || approve.isPending || decisionNote.trim().length < 6}
             >
               <UserX className="mr-1.5 size-4" />
@@ -433,6 +447,49 @@ function AdminRoleRequestsPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Approval Confirmation Dialog */}
+      <AlertDialog open={pendingApproval !== null} onOpenChange={() => setPendingApproval(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Keputusan Permintaan Peran</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingApproval?.action === "APPROVE" && (
+                <>
+                  Anda akan menyetujui permintaan peran <strong>{ROLE_LABEL[selected?.requested_role]}</strong> untuk{" "}
+                  <strong>{requestorName(selected?.user_id)}</strong>.
+                </>
+              )}
+              {pendingApproval?.action === "REJECT" && (
+                <>
+                  Anda akan menolak permintaan peran <strong>{ROLE_LABEL[selected?.requested_role]}</strong> untuk{" "}
+                  <strong>{requestorName(selected?.user_id)}</strong>. Catatan penolakan diperlukan.
+                </>
+              )}
+              <br />
+              <br />
+              {bindContingent && <p>📍 Kontingen: {contingentName(bindContingent)}</p>}
+              {bindVenue && <p>📍 Venue: {venueName(bindVenue)}</p>}
+              {bindTeam && <p>📍 Tim: {teamName(bindTeam)}</p>}
+              <br />
+              Aksi ini tidak dapat dibatalkan dan akan tercatat dalam audit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={approve.isPending || reject.isPending}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={
+                approve.isPending ||
+                reject.isPending ||
+                (pendingApproval?.action === "REJECT" && decisionNote.trim().length < 6)
+              }
+              onClick={pendingApproval?.action === "APPROVE" ? confirmApproval : confirmReject}
+            >
+              Ya, Lanjutkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="mt-6">
         <DataTable
@@ -448,7 +505,7 @@ function AdminRoleRequestsPage() {
           }
           emptyMessage={
             filter === "PENDING"
-              ? "Tidak ada permintaan peran yang menunggu tindakan."
+              ? "Belum ada permintaan peran yang menunggu tindakan."
               : "Belum ada riwayat permintaan peran."
           }
           toolbar={

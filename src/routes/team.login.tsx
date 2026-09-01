@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSession } from "@/hooks/use-session";
+import { resolveAuthDestination, useSession } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/team/login")({ component: TeamLoginPage });
 
@@ -14,8 +14,7 @@ function TeamLoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      const target = user?.account_type === "TEAM" || user?.role === "TEAM_OFFICIAL" ? "/team" : "/admin";
-      navigate({ to: target, replace: true });
+      navigate({ to: resolveAuthDestination(user), replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, user]);
 

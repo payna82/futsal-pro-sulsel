@@ -25,6 +25,7 @@ import { Route as TopSkorRouteImport } from './routes/top-skor'
 import { Route as VenueRouteImport } from './routes/venue'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminCommitteeDashboardRouteImport } from './routes/admin.committee-dashboard'
 import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
 import { Route as AdminContingentsRouteImport } from './routes/admin.contingents'
 import { Route as AdminGroupsRouteImport } from './routes/admin.groups'
@@ -136,6 +137,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
   id: '/audit-logs',
   path: '/audit-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommitteeDashboardRoute = AdminCommitteeDashboardRouteImport.update({
+  id: '/committee-dashboard',
+  path: '/committee-dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCompetitionsRoute = AdminCompetitionsRouteImport.update({
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/committee-dashboard': typeof AdminCommitteeDashboardRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/contingents': typeof AdminContingentsRouteWithChildren
   '/admin/groups': typeof AdminGroupsRoute
@@ -365,6 +372,7 @@ export interface FileRoutesByTo {
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/committee-dashboard': typeof AdminCommitteeDashboardRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/contingents': typeof AdminContingentsRouteWithChildren
   '/admin/groups': typeof AdminGroupsRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/top-skor': typeof TopSkorRoute
   '/venue': typeof VenueRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/committee-dashboard': typeof AdminCommitteeDashboardRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/contingents': typeof AdminContingentsRouteWithChildren
   '/admin/groups': typeof AdminGroupsRoute
@@ -468,6 +477,7 @@ export interface FileRouteTypes {
     | '/top-skor'
     | '/venue'
     | '/admin/audit-logs'
+    | '/admin/committee-dashboard'
     | '/admin/competitions'
     | '/admin/contingents'
     | '/admin/groups'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/top-skor'
     | '/venue'
     | '/admin/audit-logs'
+    | '/admin/committee-dashboard'
     | '/admin/competitions'
     | '/admin/contingents'
     | '/admin/groups'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/top-skor'
     | '/venue'
     | '/admin/audit-logs'
+    | '/admin/committee-dashboard'
     | '/admin/competitions'
     | '/admin/contingents'
     | '/admin/groups'
@@ -733,6 +745,13 @@ declare module '@tanstack/react-router' {
       path: '/audit-logs'
       fullPath: '/admin/audit-logs'
       preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/committee-dashboard': {
+      id: '/admin/committee-dashboard'
+      path: '/committee-dashboard'
+      fullPath: '/admin/committee-dashboard'
+      preLoaderRoute: typeof AdminCommitteeDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/competitions': {
@@ -989,6 +1008,7 @@ const AdminTeamsRouteWithChildren = AdminTeamsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminCommitteeDashboardRoute: typeof AdminCommitteeDashboardRoute
   AdminCompetitionsRoute: typeof AdminCompetitionsRoute
   AdminContingentsRoute: typeof AdminContingentsRouteWithChildren
   AdminGroupsRoute: typeof AdminGroupsRoute
@@ -1012,6 +1032,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminCommitteeDashboardRoute: AdminCommitteeDashboardRoute,
   AdminCompetitionsRoute: AdminCompetitionsRoute,
   AdminContingentsRoute: AdminContingentsRouteWithChildren,
   AdminGroupsRoute: AdminGroupsRoute,

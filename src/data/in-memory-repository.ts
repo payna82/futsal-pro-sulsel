@@ -143,6 +143,12 @@ function assertTeamAccess(
   permission: Parameters<typeof can>[1],
 ) {
   assertActor(actor);
+  const team = fx.teams.find((item) => item.id === teamId);
+  if (!team) throw new Error("Tim tidak ditemukan.");
+  const contingent = fx.contingents.find((item) => item.id === team.contingent_id);
+  if (contingent && (contingent.status === "REJECTED" || contingent.status === "DEACTIVATED")) {
+    throw new Error("Akses tim ditolak. Kontingen belum aktif.");
+  }
   if (
     !actor.permissions.includes(permission) ||
     (actor.teamId !== undefined && actor.teamId !== teamId)
@@ -340,6 +346,13 @@ export const inMemoryRepository: CompetitionRepository = {
       (item) => item.username === username.trim() && item.credential_digest === `demo:${password}`,
     );
     if (!account || account.account_status !== "ACTIVE") return null;
+    const team = fx.teams.find((item) => item.id === account.team_id);
+    const contingent = team ? fx.contingents.find((item) => item.id === team.contingent_id) : undefined;
+    if (
+      contingent &&
+      (contingent.status === "REJECTED" || contingent.status === "DEACTIVATED")
+    )
+      return null;
     account.last_login_at = new Date().toISOString();
     account.updated_at = account.last_login_at;
     return clone({

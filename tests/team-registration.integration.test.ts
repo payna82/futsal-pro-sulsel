@@ -40,6 +40,78 @@ Deno.test("registration transition guard rejects invalid state changes", async (
   }, Error);
 });
 
+Deno.test("rejected or deactivated contingent blocks team access", async () => {
+  const contingent = (await inMemoryRepository.listContingents())[0];
+  const originalStatus = contingent.status;
+
+  try {
+    await inMemoryRepository.updateContingentStatus({
+      contingent_id: contingent.id,
+      status: "REJECTED",
+      decision_note: "Kontingen ditolak karena datanya tidak memenuhi syarat.",
+      actor: admin,
+    });
+
+    const team = await inMemoryRepository.createTeam({
+      contingent_id: contingent.id,
+      category_id: "cat-men",
+      name: "Rejected Contingent Team",
+      short_name: "RCT",
+      primary_color: "#2f3b46",
+      actor: admin,
+    });
+
+    const blocked: ActorContext = {
+      userId: `team-${team.id}`,
+      role: "TEAM_OFFICIAL",
+      teamId: team.id,
+      permissions: [
+        "team.view_own",
+        "team.profile.read",
+        "team.profile.update",
+        "player.read",
+        "player.create",
+        "player.update",
+        "player.submit",
+        "official.read",
+        "official.create",
+        "official.update",
+        "official.submit",
+        "document.upload",
+        "submission.submit",
+        "report.view",
+      ],
+    };
+
+    await assertRejects(
+      () => inMemoryRepository.getTeamProfile(team.id, blocked),
+      Error,
+      "belum aktif",
+    );
+    await assertRejects(
+      () =>
+        inMemoryRepository.createPlayer({
+          team_id: team.id,
+          full_name: "Blocked Player",
+          jersey_number: 13,
+          position: "FLANK",
+          birth_date: "2000-01-01",
+          is_captain: false,
+          actor: blocked,
+        }),
+      Error,
+      "belum aktif",
+    );
+  } finally {
+    await inMemoryRepository.updateContingentStatus({
+      contingent_id: contingent.id,
+      status: originalStatus,
+      decision_note: "Reset status kontingen agar data uji tidak memengaruhi test berikutnya.",
+      actor: admin,
+    });
+  }
+});
+
 Deno.test(
   "team account creation, duplicate protection, login, disable, and credential privacy",
   async () => {

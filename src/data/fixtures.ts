@@ -79,7 +79,14 @@ export const contingents: Contingent[] = regions.map(([name, short, code], i) =>
   region_code: code,
   manager_name: `Manajer Kontingen ${short}`,
   contact: `0812-3300-10${i + 1}`,
-  status: i % 4 === 0 ? "PENDING" : i % 4 === 1 ? "VERIFIED" : i % 4 === 2 ? "REJECTED" : "DEACTIVATED",
+  status:
+    i === 0
+      ? "PENDING"
+      : i === 4
+        ? "REJECTED"
+        : i === 7
+          ? "DEACTIVATED"
+          : "VERIFIED",
 }));
 
 export const groups: Group[] = [

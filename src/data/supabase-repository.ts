@@ -343,12 +343,25 @@ function assertRead(actor: ActorContext, permission: PermissionKey) {
   if (!actor.permissions.includes(permission)) throw new Error("Akses data ditolak.");
 }
 
-function assertTeamAccess(
+async function assertTeamAccess(
   actor: ActorContext | undefined,
   teamId: UUID,
   permission: PermissionKey,
 ) {
   assertActor(actor);
+  const team = unwrapRows(await db.from("teams").select("id, contingent_id").eq("id", teamId).limit(1))[0] as
+    | { id: UUID; contingent_id: UUID }
+    | undefined;
+  if (!team) throw new Error("Tim tidak ditemukan.");
+  const contingent = unwrapRows(
+    await db.from("contingents").select("id, status").eq("id", team.contingent_id).limit(1),
+  )[0] as { id: UUID; status: ContingentStatus } | undefined;
+  if (
+    contingent &&
+    (contingent.status === "REJECTED" || contingent.status === "DEACTIVATED")
+  ) {
+    throw new Error("Akses tim ditolak. Kontingen belum aktif.");
+  }
   if (
     !actor.permissions.includes(permission) ||
     (actor.teamId !== undefined && actor.teamId !== teamId)
@@ -1158,7 +1171,7 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async getTeamAccount(teamId: UUID, actor: ActorContext): Promise<TeamAccount> {
-    assertTeamAccess(actor, teamId, "team.read");
+    await assertTeamAccess(actor, teamId, "team.read");
     const { data, error } = await db
       .from("team_accounts")
       .select("*")
@@ -1186,12 +1199,12 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async getTeamProfile(teamId: UUID, actor: ActorContext): Promise<TeamProfile> {
-    assertTeamAccess(actor, teamId, "team.profile.read");
+    await assertTeamAccess(actor, teamId, "team.profile.read");
     return fetchTeamProfileRow(teamId);
   },
 
   async getTeamRegistration(teamId: UUID, actor: ActorContext): Promise<TeamRegistrationSummary> {
-    assertTeamAccess(actor, teamId, "team.view_own");
+    await assertTeamAccess(actor, teamId, "team.view_own");
     const [teamRow, profile, playerRows, officialRows, documentRows] = await Promise.all([
       db.from("teams").select("*").eq("id", teamId).maybeSingle(),
       fetchTeamProfileRow(teamId),
@@ -1232,7 +1245,7 @@ export const supabaseRepository: CompetitionRepository = {
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Dokumen tidak ditemukan.");
     const document = toDocument(data as Row);
-    assertTeamAccess(
+    await assertTeamAccess(
       actor,
       await teamIdForEntity(document.entity_type, document.entity_id),
       "team.view_own",
@@ -1245,7 +1258,7 @@ export const supabaseRepository: CompetitionRepository = {
     entityId: UUID,
     actor: ActorContext,
   ): Promise<VerificationHistory[]> {
-    assertTeamAccess(actor, await teamIdForEntity(entityType, entityId), "team.view_own");
+    await assertTeamAccess(actor, await teamIdForEntity(entityType, entityId), "team.view_own");
     const rows = unwrapRows(
       await db
         .from("registration_documents")
@@ -1401,7 +1414,7 @@ export const supabaseRepository: CompetitionRepository = {
     operator_id?: UUID;
     actor: ActorContext;
   }): Promise<TeamProfile> {
-    assertTeamAccess(actor, team_id, "team.profile.update");
+    await assertTeamAccess(actor, team_id, "team.profile.update");
     const current = await fetchTeamProfileRow(team_id);
     if (isRegistrationLocked(current.registration_status))
       throw new Error("Profil yang disetujui tidak dapat diubah langsung.");
@@ -1439,7 +1452,7 @@ export const supabaseRepository: CompetitionRepository = {
     operator_id?: UUID;
     actor: ActorContext;
   }): Promise<Player> {
-    assertTeamAccess(actor, input.team_id, "player.create");
+    await assertTeamAccess(actor, input.team_id, "player.create");
     const profile = await fetchTeamProfileRow(input.team_id).catch(() => null);
     if (profile && isRegistrationLocked(profile.registration_status))
       throw new Error("Registrasi tim sudah terkunci.");
@@ -1492,7 +1505,7 @@ export const supabaseRepository: CompetitionRepository = {
   }): Promise<Player> {
     const current = unwrapRow(await db.from("players").select("*").eq("id", id).single());
     const player = toPlayer(current);
-    assertTeamAccess(actor, player.team_id, "player.update");
+    await assertTeamAccess(actor, player.team_id, "player.update");
     if (player.status === "ELIGIBLE")
       throw new Error("Pemain yang disetujui tidak dapat diubah langsung.");
     const profile = await fetchTeamProfileRow(player.team_id).catch(() => null);
@@ -1519,7 +1532,7 @@ export const supabaseRepository: CompetitionRepository = {
     operator_id?: UUID;
     actor: ActorContext;
   }): Promise<TeamOfficial> {
-    assertTeamAccess(actor, input.team_id, "official.create");
+    await assertTeamAccess(actor, input.team_id, "official.create");
     const inserted = unwrapRow(
       await db
         .from("team_officials")
@@ -1559,7 +1572,7 @@ export const supabaseRepository: CompetitionRepository = {
     const official = toOfficial(
       unwrapRow(await db.from("team_officials").select("*").eq("id", id).single()),
     );
-    assertTeamAccess(actor, official.team_id, "official.update");
+    await assertTeamAccess(actor, official.team_id, "official.update");
     if (official.registration_status === "APPROVED")
       throw new Error("Ofisial yang disetujui tidak dapat diubah langsung.");
     const updated = toOfficial(
@@ -1587,7 +1600,7 @@ export const supabaseRepository: CompetitionRepository = {
     actor: ActorContext;
   }): Promise<void> {
     const teamId = await teamIdForEntity(entityType, entityId);
-    assertTeamAccess(actor, teamId, "submission.submit");
+    await assertTeamAccess(actor, teamId, "submission.submit");
     if (entityType !== "TEAM") {
       const table = entityType === "PLAYER" ? "players" : "team_officials";
       const row = unwrapRow(await db.from(table).select("*").eq("id", entityId).single());
@@ -1644,7 +1657,7 @@ export const supabaseRepository: CompetitionRepository = {
     actor: ActorContext;
   }): Promise<RegistrationDocument> {
     const teamId = await teamIdForEntity(entityType, entityId);
-    assertTeamAccess(actor, teamId, "document.upload");
+    await assertTeamAccess(actor, teamId, "document.upload");
     const now = new Date().toISOString();
     const existingRows = unwrapRows(
       await db

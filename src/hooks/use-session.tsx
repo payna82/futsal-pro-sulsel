@@ -77,6 +77,12 @@ async function loadSessionUser(session: Session): Promise<SessionUser> {
   };
 }
 
+export function resolveAuthDestination(user: SessionUser | null): string {
+  if (!user) return "/masuk";
+  if (user.account_type === "TEAM" || user.role === "TEAM_OFFICIAL") return "/team";
+  return "/admin";
+}
+
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
