@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { AlertCircle, CheckCircle2, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -218,19 +220,33 @@ function Profile({ teamId, profile }: { teamId: string; profile: TeamProfile }) 
           <div className="sm:col-span-2">
             <Button
               disabled={update.isPending}
-              onClick={() =>
-                update.mutate({
-                  contact_person: contact,
-                  contact_phone: phone,
-                  contact_email: email,
-                  address,
-                  ...(profile.training_venue ? { training_venue: profile.training_venue } : {}),
-                  registration_status: profile.registration_status,
-                })
-              }
+              onClick={() => {
+                update.mutate(
+                  {
+                    contact_person: contact,
+                    contact_phone: phone,
+                    contact_email: email,
+                    address,
+                    ...(profile.training_venue ? { training_venue: profile.training_venue } : {}),
+                    registration_status: profile.registration_status,
+                  },
+                  {
+                    onSuccess: () => toast.success("Profil tim berhasil disimpan."),
+                    onError: (error) =>
+                      toast.error(
+                        error instanceof Error ? error.message : "Profil gagal disimpan.",
+                      ),
+                  },
+                );
+              }}
             >
-              Simpan Profil
+              {update.isPending ? "Menyimpan..." : "Simpan Profil"}
             </Button>
+            {update.isError ? (
+              <p className="mt-2 text-sm text-destructive">
+                Profil gagal disimpan. Periksa data lalu coba lagi.
+              </p>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -291,19 +307,35 @@ function Players({
                 </Select>
               </div>
               <Button
-                onClick={() =>
-                  createPlayer.mutate({
-                    team_id: teamId,
-                    full_name: name,
-                    jersey_number: Number(number),
-                    position,
-                    birth_date: "2000-01-01",
-                    is_captain: false,
-                  })
-                }
+                disabled={createPlayer.isPending || !name.trim()}
+                onClick={() => {
+                  createPlayer.mutate(
+                    {
+                      team_id: teamId,
+                      full_name: name,
+                      jersey_number: Number(number),
+                      position,
+                      birth_date: "2000-01-01",
+                      is_captain: false,
+                    },
+                    {
+                      onSuccess: () => {
+                        toast.success("Pemain berhasil ditambahkan.");
+                        setName("");
+                      },
+                      onError: (error) =>
+                        toast.error(
+                          error instanceof Error ? error.message : "Pemain gagal ditambahkan.",
+                        ),
+                    },
+                  );
+                }}
               >
-                Simpan Pemain
+                {createPlayer.isPending ? "Menyimpan..." : "Simpan Pemain"}
               </Button>
+              {createPlayer.isError ? (
+                <p className="text-sm text-destructive">Pemain gagal disimpan. Coba lagi.</p>
+              ) : null}
             </CardContent>
           </Card>
         ) : null}
@@ -372,11 +404,28 @@ function Officials({
             </Select>
           </div>
           <Button
-            onClick={() => create.mutate({ team_id: teamId, full_name: name, role })}
-            disabled={create.isPending}
+            onClick={() =>
+              create.mutate(
+                { team_id: teamId, full_name: name, role },
+                {
+                  onSuccess: () => {
+                    toast.success("Ofisial berhasil ditambahkan.");
+                    setName("");
+                  },
+                  onError: (error) =>
+                    toast.error(
+                      error instanceof Error ? error.message : "Ofisial gagal ditambahkan.",
+                    ),
+                },
+              )
+            }
+            disabled={create.isPending || !name.trim()}
           >
-            Simpan Ofisial
+            {create.isPending ? "Menyimpan..." : "Simpan Ofisial"}
           </Button>
+          {create.isError ? (
+            <p className="text-sm text-destructive">Ofisial gagal disimpan. Coba lagi.</p>
+          ) : null}
         </CardContent>
       </Card>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -402,8 +451,9 @@ function Documents({
 }) {
   const upload = useUploadDocument();
   const [entityId, setEntityId] = useState("");
+  const [entityType, setEntityType] = useState<"PLAYER" | "OFFICIAL" | "TEAM">("PLAYER");
   const [type, setType] = useState<(typeof DOCUMENT_TYPES)[number]["key"]>("IDENTITY");
-  const [file, setFile] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   return (
     <>
       <PageHeader
@@ -412,12 +462,28 @@ function Documents({
         description="Dokumen disimpan sebagai metadata private demo dan siap dipindahkan ke storage terautentikasi."
       />
       <Card>
-        <CardContent className="grid gap-3 pt-6 sm:grid-cols-4">
-          <Field label="ID Pemain/Ofisial" value={entityId} onChange={setEntityId} />
+        <CardContent className="grid gap-3 pt-6 sm:grid-cols-2 lg:grid-cols-5">
+          <Field label="ID Entitas" value={entityId} onChange={setEntityId} />
+          <div className="space-y-1">
+            <Label htmlFor="document-entity-type">Pemilik Dokumen</Label>
+            <Select
+              value={entityType}
+              onValueChange={(value) => setEntityType(value as typeof entityType)}
+            >
+              <SelectTrigger id="document-entity-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PLAYER">Pemain</SelectItem>
+                <SelectItem value="OFFICIAL">Ofisial</SelectItem>
+                <SelectItem value="TEAM">Tim</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div>
-            <Label>Jenis</Label>
+            <Label htmlFor="document-type">Jenis</Label>
             <Select value={type} onValueChange={(value) => setType(value as typeof type)}>
-              <SelectTrigger>
+              <SelectTrigger id="document-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -429,12 +495,44 @@ function Documents({
               </SelectContent>
             </Select>
           </div>
-          <Field label="Nama File" value={file} onChange={setFile} />
+          <div className="space-y-1 lg:col-span-2">
+            <Label htmlFor="document-file">Berkas</Label>
+            <Input
+              id="document-file"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            />
+            <p className="text-xs text-muted-foreground">PDF, JPG, atau PNG. Maksimal 5 MB.</p>
+          </div>
           <Button
-            onClick={() => upload.mutate({ entityType: "PLAYER", entityId, type, file_name: file })}
+            disabled={upload.isPending || !entityId.trim() || !file}
+            onClick={() => {
+              if (!file) return;
+              if (file.size > 5 * 1024 * 1024) {
+                toast.error("Ukuran berkas maksimal 5 MB.");
+                return;
+              }
+              upload.mutate(
+                { entityType, entityId, type, file_name: file.name },
+                {
+                  onSuccess: () => {
+                    toast.success("Dokumen berhasil dikirim untuk pemeriksaan.");
+                    setFile(null);
+                  },
+                  onError: (error) =>
+                    toast.error(error instanceof Error ? error.message : "Dokumen gagal dikirim."),
+                },
+              );
+            }}
           >
-            Unggah
+            <UploadCloud className="size-4" /> {upload.isPending ? "Mengirim..." : "Kirim Dokumen"}
           </Button>
+          {upload.isError ? (
+            <p className="text-sm text-destructive lg:col-span-5">
+              Dokumen gagal dikirim. Periksa ID dan coba lagi.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
       <div className="grid gap-3">
@@ -479,15 +577,46 @@ function Submission({
           <p>Pemain: {summary.players.length}</p>
           <p>Ofisial: {summary.officials.length}</p>
           <p>Menunggu pemeriksaan: {summary.pending_count}</p>
+          <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-4 text-sm">
+            <ReadinessItem
+              ok={summary.profile.registration_status !== "DRAFT"}
+              label="Profil tim sudah diajukan"
+            />
+            <ReadinessItem ok={summary.players.length > 0} label="Minimal satu pemain terdaftar" />
+            <ReadinessItem
+              ok={summary.officials.length > 0}
+              label="Minimal satu ofisial terdaftar"
+            />
+            <ReadinessItem
+              ok={summary.pending_count === 0}
+              label="Tidak ada dokumen menunggu pemeriksaan"
+            />
+          </div>
           <Button
             disabled={!summary.is_ready || submit.isPending}
-            onClick={() => submit.mutate({ entityType: "TEAM", entityId: teamId })}
+            onClick={() =>
+              submit.mutate(
+                { entityType: "TEAM", entityId: teamId },
+                {
+                  onSuccess: () => toast.success("Pengajuan registrasi berhasil dikirim."),
+                  onError: (error) =>
+                    toast.error(
+                      error instanceof Error ? error.message : "Pengajuan gagal dikirim.",
+                    ),
+                },
+              )
+            }
           >
-            Kirim Pengajuan
+            {submit.isPending ? "Mengirim..." : "Kirim Pengajuan"}
           </Button>
           {!summary.is_ready ? (
             <p className="text-sm text-warning-foreground">
-              Lengkapi dokumen wajib sebelum mengirim.
+              Lengkapi semua persyaratan di atas sebelum mengirim.
+            </p>
+          ) : null}
+          {submit.isError ? (
+            <p className="text-sm text-destructive">
+              Pengajuan gagal dikirim. Coba lagi setelah memeriksa persyaratan.
             </p>
           ) : null}
         </CardContent>
@@ -506,10 +635,24 @@ function Field({
   onChange: (value: string) => void;
   type?: string;
 }) {
+  const id = `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className="space-y-1">
-      <Label>{label}</Label>
-      <Input type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+    </div>
+  );
+}
+
+function ReadinessItem({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      {ok ? (
+        <CheckCircle2 className="size-4 text-success" aria-hidden />
+      ) : (
+        <AlertCircle className="size-4 text-warning-foreground" aria-hidden />
+      )}
+      <span className={ok ? "text-foreground" : "text-muted-foreground"}>{label}</span>
     </div>
   );
 }

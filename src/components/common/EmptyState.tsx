@@ -19,9 +19,10 @@ export function EmptyState({
         className,
       )}
     >
-      <p className="text-sm font-semibold text-primary">Belum ada data</p>
-      <h3 className="mt-2 text-xl font-bold">{title}</h3>
-      {description ? <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p> : null}
+      <h3 className="text-xl font-bold">{title}</h3>
+      {description ? (
+        <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
+      ) : null}
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );

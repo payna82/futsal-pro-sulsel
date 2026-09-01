@@ -59,7 +59,9 @@ function VerificationPage() {
     <ApprovalActions
       onApprove={() => setPendingReview({ entityType, entityId, entityName, action: "APPROVED" })}
       onReject={() => setPendingReview({ entityType, entityId, entityName, action: "REJECTED" })}
-      onCancel={() => setPendingReview({ entityType, entityId, entityName, action: "REVISION_REQUESTED" })}
+      onCancel={() =>
+        setPendingReview({ entityType, entityId, entityName, action: "REVISION_REQUESTED" })
+      }
       isPending={review.isPending}
       approveLabel="Setujui"
       rejectLabel="Tolak"
@@ -79,20 +81,30 @@ function VerificationPage() {
         </Badge>
       ),
     },
-    { key: "actions", header: "Aksi", cell: (player) => actions("PLAYER", player.id, player.full_name) },
+    {
+      key: "actions",
+      header: "Aksi",
+      cell: (player) => actions("PLAYER", player.id, player.full_name),
+    },
   ];
   const officialColumns: Column<TeamOfficial>[] = [
     { key: "name", header: "Ofisial", cell: (official) => official.full_name },
     { key: "team", header: "Tim", cell: (official) => data.teamName(official.team_id) },
     { key: "role", header: "Peran", cell: (official) => official.role },
-    { key: "actions", header: "Aksi", cell: (official) => actions("OFFICIAL", official.id, official.full_name) },
+    {
+      key: "actions",
+      header: "Aksi",
+      cell: (official) => actions("OFFICIAL", official.id, official.full_name),
+    },
   ];
   return (
     <AdminPage
       permission="player.verify"
       title="Pusat Verifikasi"
       description="Periksa pemain, ofisial, dan dokumen sebelum persetujuan."
-      isLoading={data.isLoading || players.isLoading || officials.isLoading}
+      isLoading={data.isLoading || players.isLoading || officials.isLoading || documents.isLoading}
+      isError={data.isError || players.isError || officials.isError || documents.isError}
+      errorMessage="Data verifikasi gagal dimuat. Periksa koneksi lalu muat ulang halaman."
     >
       <div className="mt-6 space-y-6">
         <section>
@@ -128,13 +140,21 @@ function VerificationPage() {
             <AlertDialogTitle>Konfirmasi Keputusan Verifikasi</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingReview?.action === "APPROVED" && (
-                <>Anda akan menyetujui verifikasi data <strong>{pendingReview.entityName}</strong>.</>
+                <>
+                  Anda akan menyetujui verifikasi data <strong>{pendingReview.entityName}</strong>.
+                </>
               )}
               {pendingReview?.action === "REVISION_REQUESTED" && (
-                <>Anda akan meminta revisi data <strong>{pendingReview.entityName}</strong>. Pastikan alasan sudah dicatat.</>
+                <>
+                  Anda akan meminta revisi data <strong>{pendingReview.entityName}</strong>.
+                  Pastikan alasan sudah dicatat.
+                </>
               )}
               {pendingReview?.action === "REJECTED" && (
-                <>Anda akan menolak verifikasi data <strong>{pendingReview.entityName}</strong>. Alasan penolakan diperlukan.</>
+                <>
+                  Anda akan menolak verifikasi data <strong>{pendingReview.entityName}</strong>.
+                  Alasan penolakan diperlukan.
+                </>
               )}
               <br />
               <br />
@@ -142,12 +162,17 @@ function VerificationPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          {(pendingReview?.action === "REVISION_REQUESTED" || pendingReview?.action === "REJECTED") && (
+          {(pendingReview?.action === "REVISION_REQUESTED" ||
+            pendingReview?.action === "REJECTED") && (
             <div className="py-2">
               <DecisionNoteField
                 value={reason}
                 onChange={setReason}
-                label={pendingReview.action === "REVISION_REQUESTED" ? "Alasan Revisi" : "Alasan Penolakan"}
+                label={
+                  pendingReview.action === "REVISION_REQUESTED"
+                    ? "Alasan Revisi"
+                    : "Alasan Penolakan"
+                }
                 placeholder={
                   pendingReview.action === "REVISION_REQUESTED"
                     ? "Jelaskan dokumen/data apa yang perlu diperbaiki..."

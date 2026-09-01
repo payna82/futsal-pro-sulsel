@@ -656,53 +656,27 @@ export const supabaseRepository: CompetitionRepository = {
   async recordMatchEvent(input: NewMatchEventInput & { actor?: ActorContext }) {
     const actor = input.actor ?? GUEST_ACTOR;
     assertActor(actor);
-    if (!actor.permissions.includes("match.record_event")) {
-      throw new Error("Akses pertandingan ditolak.");
-    }
-    const match = await requireMatch(input.match_id);
-    const id = input.command_id ?? nextId("cmd");
-    const existing = await eventsOf(match.id);
-    const replay = existing.find((event) => event.command_id === id);
-    if (replay) {
-      await audit(
-        input.operator_id ?? "system",
-        "MATCH_EVENT_CREATE",
-        "match_events",
-        replay.id,
-        "Mengulang command event yang sudah diterima",
-        id,
-        "REPLAYED",
-      );
-      return replay;
-    }
-    assertVersion(match, input.expected_version);
-    const lineup = await this.listLineup(match.id);
-    const players = await selectAll("players").then((rows) => rows.map(toPlayer));
-    const error = validateMatchEvent(
-      { ...input, command_id: id },
-      {
-        status: match.status,
-        homeTeamId: match.home_team_id,
-        awayTeamId: match.away_team_id,
-        playersOfTeam: (teamId) =>
-          lineup.filter((entry) => entry.team_id === teamId).map((entry) => entry.player_id),
-        playerEligible: (playerId) =>
-          players.some((player) => player.id === playerId && player.status === "ELIGIBLE"),
-        existingEvents: existing,
-      },
-    );
-    if (error) throw new Error(error);
-    const { event } = await appendEvent({ ...input, command_id: id });
-    await resyncAndBump(match);
-    await audit(
-      input.operator_id ?? "system",
-      "MATCH_EVENT_CREATE",
-      "match_events",
-      match.id,
-      `Mencatat ${input.type} pada pertandingan #${match.match_number}`,
-      id,
-    );
-    return event;
+    if (!actor.permissions.includes("match.record_event")) throw new Error("Akses pertandingan ditolak.");
+    const commandId = input.command_id ?? nextId("cmd");
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>
+    )("record_match_event", {
+      _match_id: input.match_id,
+      _command_id: commandId,
+      _timestamp: input.timestamp,
+      _period: input.period,
+      _team_id: input.team_id ?? null,
+      _player_id: input.player_id ?? null,
+      _type: input.type,
+      _metadata: input.metadata ?? {},
+      _expected_version: input.expected_version ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Event pertandingan gagal disimpan.");
+    return toEvent(data as Row);
   },
 
   async transitionMatchStatus({
@@ -725,50 +699,21 @@ export const supabaseRepository: CompetitionRepository = {
     if (!currentActor.permissions.includes("match.manage")) {
       throw new Error("Akses pertandingan ditolak.");
     }
-    const match = await requireMatch(match_id);
     const id = command_id ?? nextId("cmd");
-    assertVersion(match, expected_version);
-    assertMatchStatusConsistency(match.status, match.period);
-    assertValidMatchTransition(match.status, to);
-    const from = match.status;
-    const period = periodForStatus(to, match.period);
-    assertMatchStatusConsistency(to, period);
-    const resetClock = to === "LIVE" && (from === "READY" || from === "HALFTIME");
-    const type = statusTransitionEvent(to);
-    if (type) {
-      await appendEvent({
-        match_id,
-        command_id: `${id}-period`,
-        type,
-        period,
-        timestamp: resetClock ? 0 : match.clock_seconds,
-        operator_id: operator_id ?? "system",
-      });
-      if (to === "LIVE" && from === "READY") {
-        await appendEvent({
-          match_id,
-          command_id: `${id}-start`,
-          type: "MATCH_START",
-          period,
-          timestamp: 0,
-          operator_id: operator_id ?? "system",
-        });
-      }
-    }
-    const updated = await resyncAndBump(match, {
-      status: to,
-      period,
-      ...(resetClock ? { clock_seconds: 0 } : {}),
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>
+    )("transition_match_status", {
+      _match_id: match_id,
+      _to: to,
+      _command_id: id,
+      _expected_version: expected_version ?? null,
     });
-    await audit(
-      operator_id ?? "system",
-      "MATCH_STATUS_CHANGE",
-      "matches",
-      match.id,
-      `Mengubah status ${from} menjadi ${to}`,
-      id,
-    );
-    return updated;
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Status pertandingan gagal diubah.");
+    return toMatch(data as Row);
   },
 
   async updateMatchClock({
@@ -791,22 +736,21 @@ export const supabaseRepository: CompetitionRepository = {
     if (!currentActor.permissions.includes("match.operate_clock")) {
       throw new Error("Akses pertandingan ditolak.");
     }
-    const match = await requireMatch(match_id);
-    assertVersion(match, expected_version);
-    assertMatchStatusConsistency(match.status, match.period);
-    if (!Number.isFinite(clock_seconds) || clock_seconds < 0 || clock_seconds > 1200) {
-      throw new Error("Jam pertandingan tidak valid.");
-    }
-    const updated = await resyncAndBump(match, { clock_seconds: Math.round(clock_seconds) });
-    await audit(
-      operator_id ?? "system",
-      "MATCH_CLOCK_UPDATE",
-      "matches",
-      match.id,
-      `Memperbarui jam pertandingan menjadi ${Math.round(clock_seconds)} detik`,
-      command_id ?? nextId("cmd"),
-    );
-    return updated;
+    const id = command_id ?? nextId("cmd");
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>
+    )("update_match_clock", {
+      _match_id: match_id,
+      _clock_seconds: Math.round(clock_seconds),
+      _command_id: id,
+      _expected_version: expected_version ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Jam pertandingan gagal diperbarui.");
+    return toMatch(data as Row);
   },
 
   async updateMatchSchedule({

@@ -4,9 +4,8 @@
       "C:\\Program Files\\nodejs\\node.exe",
       "D:\\PROYEK WEB MASTER\\futsal-pro-sulsel\\node_modules\\@playwright\\test\\cli.js",
       "test",
+      "tests/e2e/scenario-3.spec.ts",
       "tests/e2e/scenario-5.spec.ts",
-      "-g",
-      "5.3|5.4",
       "--project=chromium"
     ],
     "configFile": "D:\\PROYEK WEB MASTER\\futsal-pro-sulsel\\playwright.config.ts",
@@ -80,6 +79,159 @@
   },
   "suites": [
     {
+      "title": "scenario-3.spec.ts",
+      "file": "scenario-3.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Scenario 3: Permission Denial Scenarios",
+          "file": "scenario-3.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "3.1 Unauthenticated users cannot access the team portal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2982,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-01T08:35:25.003Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7baa9228d5fefb7346e5-1fc85ff8b7cd3e6adb12",
+              "file": "scenario-3.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "3.2 Permission denied hides actions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1992,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-01T08:35:30.473Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7baa9228d5fefb7346e5-fcee25664d36ba44a7b9",
+              "file": "scenario-3.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "3.3 Rejected contingent blocks team operations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1291,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-01T08:35:32.506Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7baa9228d5fefb7346e5-96c423860fdcd6fb2d88",
+              "file": "scenario-3.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "3.4 Error messages are actionable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 900,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-01T08:35:33.830Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7baa9228d5fefb7346e5-50ab26dea4c568004d3f",
+              "file": "scenario-3.spec.ts",
+              "line": 74,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "scenario-5.spec.ts",
       "file": "scenario-5.spec.ts",
       "column": 0,
@@ -92,6 +244,74 @@
           "line": 11,
           "column": 6,
           "specs": [
+            {
+              "title": "5.1 All approvals logged in audit trail",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1257,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-01T08:35:34.801Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "75d2e0579f02b761442e-8a1303e961330e1a2f9b",
+              "file": "scenario-5.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "5.2 Decision notes persisted in database",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 999,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-01T08:35:36.086Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "75d2e0579f02b761442e-649c3410d05011932a55",
+              "file": "scenario-5.spec.ts",
+              "line": 58,
+              "column": 3
+            },
             {
               "title": "5.3 Audit trail accessible to authorized users",
               "ok": true,
@@ -108,12 +328,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1771,
+                      "duration": 922,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-09-01T08:09:56.603Z",
+                      "startTime": "2026-09-01T08:35:37.113Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -142,12 +362,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6392,
+                      "duration": 2466,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-09-01T08:10:00.614Z",
+                      "startTime": "2026-09-01T08:35:38.065Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -167,9 +387,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-01T08:09:43.312Z",
-    "duration": 24354.012,
-    "expected": 2,
+    "startTime": "2026-09-01T08:35:23.682Z",
+    "duration": 17475.603000000003,
+    "expected": 8,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
