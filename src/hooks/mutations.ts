@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { repository } from "@/data";
 import type { NewMatchEventInput } from "@/domain/match-operations";
-import type { MatchOfficialRole, MatchStatus, UUID } from "@/domain/types";
+import type { ContingentStatus, MatchOfficialRole, MatchStatus, UUID } from "@/domain/types";
 import { useSession } from "@/hooks/use-session";
 import type { ActorContext, DocumentType, RegistrationEntityType } from "@/domain/registration";
 import { PERMISSIONS } from "@/domain/permissions";
@@ -238,6 +238,27 @@ export function useReviewRegistration() {
       reason?: string;
     }) => repository.reviewRegistration({ ...input, actor: requireActor(actor) }),
     onSuccess: invalidate,
+  });
+}
+
+export function useUpdateContingentStatus() {
+  const queryClient = useQueryClient();
+  const actor = useActorContext();
+  return useMutation({
+    mutationFn: (input: {
+      contingent_id: UUID;
+      status: ContingentStatus;
+      decision_note?: string;
+    }) =>
+      repository.updateContingentStatus({
+        ...input,
+        actor: requireActor(actor),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contingents"] });
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+    },
   });
 }
 

@@ -76,6 +76,8 @@ export interface Category {
   format: string;
 }
 
+export type ContingentStatus = "PENDING" | "VERIFIED" | "REJECTED" | "DEACTIVATED";
+
 export interface Contingent {
   id: UUID;
   tournament_id: UUID;
@@ -84,6 +86,7 @@ export interface Contingent {
   region_code: string;
   manager_name: string;
   contact: string;
+  status: ContingentStatus;
 }
 
 export interface Team {

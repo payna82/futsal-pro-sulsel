@@ -167,6 +167,19 @@ function toTeam(row: Row): Team {
   };
 }
 
+function toContingent(row: Row): Contingent {
+  return {
+    id: row["id"] as string,
+    tournament_id: row["tournament_id"] as string,
+    name: row["name"] as string,
+    short_name: row["short_name"] as string,
+    region_code: row["region_code"] as string,
+    manager_name: (row["manager_name"] as string) ?? "",
+    contact: (row["contact"] as string) ?? "",
+    status: ((row["status"] as Contingent["status"]) ?? "PENDING") as Contingent["status"],
+  };
+}
+
 function toPlayer(row: Row): Player {
   return {
     id: row["id"] as string,
@@ -463,7 +476,37 @@ export const supabaseRepository: CompetitionRepository = {
 
   async listContingents(): Promise<Contingent[]> {
     const rows = await selectAll("contingents");
-    return (rows as unknown as Contingent[]).sort((a, b) => a.name.localeCompare(b.name));
+    return rows.map(toContingent).sort((a, b) => a.name.localeCompare(b.name));
+  },
+
+  async updateContingentStatus({
+    contingent_id,
+    status,
+    decision_note,
+    operator_id,
+    actor,
+  }): Promise<Contingent> {
+    assertAdmin(actor, "contingent.manage");
+    const current = unwrapRow(
+      await db
+        .from("contingents")
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", contingent_id)
+        .select("*")
+        .single(),
+    );
+    const contingent = toContingent(current);
+    await audit(
+      operator_id ?? actor.userId,
+      `CONTINGENT_${status}`,
+      "contingents",
+      contingent.id,
+      decision_note ?? `Status kontingen diubah menjadi ${status}`,
+    );
+    return contingent;
   },
 
   async listGroups(): Promise<Group[]> {

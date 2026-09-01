@@ -112,7 +112,9 @@ CREATE TABLE public.contingents (
   short_name text NOT NULL,
   region_code text NOT NULL,
   manager_name text NOT NULL DEFAULT '',
-  contact text NOT NULL DEFAULT ''
+  contact text NOT NULL DEFAULT '',
+  status text NOT NULL DEFAULT 'PENDING'
+    CHECK (status IN ('PENDING','VERIFIED','REJECTED','DEACTIVATED'))
 );
 
 CREATE TABLE public.venues (

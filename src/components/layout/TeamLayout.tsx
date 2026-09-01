@@ -18,6 +18,7 @@ export function TeamLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useSession();
   const accountMode = user?.account_type === "TEAM" ? "Akses Tim" : "Akun Tim";
+  const contingentLabel = user?.contingent_id ? "Kontingen terikat" : "Belum terikat kontingen";
   const navigation = (
     <nav className="flex flex-col gap-1 p-3">
       {NAV.map(([to, label]) => (
@@ -72,6 +73,7 @@ export function TeamLayout({ children }: { children: ReactNode }) {
                   {accountMode}
                 </p>
                 <p className="text-xs font-medium">{user?.full_name ?? "Akun Tim"}</p>
+                <p className="text-[9px] text-muted-foreground">{contingentLabel}</p>
               </div>
             </div>
             <Button size="sm" variant="outline" onClick={signOut}>

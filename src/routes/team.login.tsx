@@ -69,7 +69,10 @@ function TeamLoginPage() {
 
           <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Portal khusus tim</p>
-            <p className="mt-1">Gunakan akun tim yang sudah terdaftar dan disetujui oleh panitia.</p>
+            <p className="mt-1">
+              Akun tim hanya dapat mengelola data tim dalam kontingennya masing-masing. Untuk akses
+              panitia, gunakan halaman masuk resmi di bawah ini.
+            </p>
             <Link to="/masuk" className="mt-2 inline-flex font-medium text-primary hover:underline">
               Masuk sebagai panitia
             </Link>

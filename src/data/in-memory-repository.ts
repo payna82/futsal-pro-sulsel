@@ -199,7 +199,23 @@ export const inMemoryRepository: CompetitionRepository = {
     return fx.categories;
   },
   async listContingents() {
-    return fx.contingents;
+    return clone(fx.contingents);
+  },
+  async updateContingentStatus({ contingent_id, status, decision_note, operator_id, actor }) {
+    assertAdmin(actor, "contingent.manage");
+    const contingent = fx.contingents.find((item) => item.id === contingent_id);
+    if (!contingent) throw new Error("Kontingen tidak ditemukan.");
+    if (!decision_note || decision_note.trim().length < 6)
+      throw new Error("Catatan keputusan wajib diisi minimal 6 karakter.");
+    contingent.status = status;
+    audit(
+      operator_id ?? actor.userId,
+      `CONTINGENT_${status}`,
+      "contingents",
+      contingent.id,
+      decision_note,
+    );
+    return clone(contingent);
   },
   async listGroups() {
     return fx.groups;

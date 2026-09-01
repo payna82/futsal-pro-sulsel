@@ -19,6 +19,7 @@ import type {
   AuditLog,
   Category,
   Contingent,
+  ContingentStatus,
   Group,
   Match,
   MatchEvent,
@@ -43,6 +44,13 @@ export interface CompetitionRepository {
   getTournament(): Promise<Tournament>;
   listCategories(): Promise<Category[]>;
   listContingents(): Promise<Contingent[]>;
+  updateContingentStatus(input: {
+    contingent_id: UUID;
+    status: ContingentStatus;
+    decision_note?: string;
+    operator_id?: UUID;
+    actor: ActorContext;
+  }): Promise<Contingent>;
   listGroups(): Promise<Group[]>;
   listTeams(): Promise<Team[]>;
   listPlayers(actor: ActorContext): Promise<Player[]>;

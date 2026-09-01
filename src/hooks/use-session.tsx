@@ -27,6 +27,7 @@ export interface SessionUser {
   email: string;
   role: RoleKey;
   team_id?: string;
+  contingent_id?: string;
   account_type?: "ADMIN" | "TEAM";
 }
 
@@ -49,7 +50,11 @@ async function loadSessionUser(session: Session): Promise<SessionUser> {
   const email = session.user.email ?? "";
 
   const [profileResult, roleResult] = await Promise.all([
-    supabase.from("profiles").select("full_name, team_id").eq("id", userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("full_name, team_id, contingent_id")
+      .eq("id", userId)
+      .maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", userId).limit(1).maybeSingle(),
   ]);
 
@@ -59,6 +64,7 @@ async function loadSessionUser(session: Session): Promise<SessionUser> {
     email;
   const role = (roleResult.data?.role as RoleKey | undefined) ?? "PUBLIC";
   const teamId = profileResult.data?.team_id ?? undefined;
+  const contingentId = profileResult.data?.contingent_id ?? undefined;
 
   return {
     id: userId,
@@ -66,6 +72,7 @@ async function loadSessionUser(session: Session): Promise<SessionUser> {
     email,
     role,
     ...(teamId ? { team_id: teamId } : {}),
+    ...(contingentId ? { contingent_id: contingentId } : {}),
     account_type: role === "TEAM_OFFICIAL" ? "TEAM" : "ADMIN",
   };
 }
