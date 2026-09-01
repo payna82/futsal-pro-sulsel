@@ -82,7 +82,7 @@ export interface CompetitionRepository {
 
   /* ------------------------------- Mutations ------------------------------ */
   /** Menyimpan event pertandingan (immutable append) dan menurunkan ulang skor. */
-  recordMatchEvent(input: NewMatchEventInput): Promise<MatchEvent>;
+  recordMatchEvent(input: NewMatchEventInput & { actor?: ActorContext }): Promise<MatchEvent>;
   /** Perpindahan status. Transisi ilegal ditolak. */
   transitionMatchStatus(input: {
     match_id: UUID;

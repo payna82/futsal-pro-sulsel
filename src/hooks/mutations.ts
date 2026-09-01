@@ -46,10 +46,12 @@ function useMatchInvalidation(matchId: UUID) {
 
 export function useRecordMatchEvent(matchId: UUID) {
   const invalidate = useMatchInvalidation(matchId);
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: MatchEventCommandInput) =>
       repository.recordMatchEvent({
         ...input,
+        actor: requireActor(actor),
         command_id: input.command_id ?? newCommandId("event"),
       }),
     onSuccess: invalidate,
@@ -58,11 +60,13 @@ export function useRecordMatchEvent(matchId: UUID) {
 
 export function useTransitionMatchStatus(matchId: UUID) {
   const invalidate = useMatchInvalidation(matchId);
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: { to: MatchStatus; operator_id: UUID }) =>
       repository.transitionMatchStatus({
         match_id: matchId,
         ...input,
+        actor: requireActor(actor),
         command_id: newCommandId("status"),
       }),
     onSuccess: invalidate,
@@ -71,13 +75,13 @@ export function useTransitionMatchStatus(matchId: UUID) {
 
 export function useUpdateMatchClock(matchId: UUID) {
   const invalidate = useMatchInvalidation(matchId);
-  const { user } = useSession();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (clock_seconds: number) =>
       repository.updateMatchClock({
         match_id: matchId,
         clock_seconds,
-        ...(user ? { operator_id: user.id } : {}),
+        actor: requireActor(actor),
         command_id: newCommandId("clock"),
       }),
     onSuccess: invalidate,
@@ -86,12 +90,12 @@ export function useUpdateMatchClock(matchId: UUID) {
 
 export function useUpdateMatchSchedule() {
   const queryClient = useQueryClient();
-  const { user } = useSession();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: { match_id: UUID; kickoff_at?: string; venue_id?: UUID; court?: number }) =>
       repository.updateMatchSchedule({
         ...input,
-        ...(user ? { operator_id: user.id } : {}),
+        actor: requireActor(actor),
         command_id: newCommandId("schedule"),
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["matches"] }),
@@ -100,13 +104,19 @@ export function useUpdateMatchSchedule() {
 
 export function useAssignMatchOfficial() {
   const queryClient = useQueryClient();
+  const actor = useActorContext();
   return useMutation({
     mutationFn: (input: {
       match_id: UUID;
       role: MatchOfficialRole;
       user_id: UUID;
       operator_id?: UUID;
-    }) => repository.assignMatchOfficial({ ...input, command_id: newCommandId("official") }),
+    }) =>
+      repository.assignMatchOfficial({
+        ...input,
+        actor: requireActor(actor),
+        command_id: newCommandId("official"),
+      }),
     onSuccess: async (_data, vars) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["match-officials", vars.match_id] }),

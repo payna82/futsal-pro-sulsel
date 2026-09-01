@@ -21,6 +21,30 @@ export function canTransition(from: MatchStatus, to: MatchStatus): boolean {
   return TRANSITIONS[from].includes(to);
 }
 
+const VALID_PERIODS_BY_STATUS: Record<MatchStatus, MatchPeriod[]> = {
+  SCHEDULED: ["PRE_MATCH"],
+  CHECK_IN: ["PRE_MATCH"],
+  LINEUP: ["PRE_MATCH"],
+  READY: ["PRE_MATCH"],
+  LIVE: ["FIRST_HALF", "SECOND_HALF"],
+  HALFTIME: ["HALF_TIME"],
+  FULL_TIME: ["ENDED"],
+  CONFIRMED: ["ENDED"],
+  PUBLISHED: ["ENDED"],
+};
+
+export function assertValidMatchTransition(from: MatchStatus, to: MatchStatus): void {
+  if (!canTransition(from, to)) {
+    throw new Error(`Transisi ${from} → ${to} tidak diizinkan.`);
+  }
+}
+
+export function assertMatchStatusConsistency(status: MatchStatus, period: MatchPeriod): void {
+  if (!VALID_PERIODS_BY_STATUS[status].includes(period)) {
+    throw new Error(`Status pertandingan ${status} tidak konsisten dengan periode ${period}.`);
+  }
+}
+
 export const MATCH_STATUS_LABEL: Record<MatchStatus, string> = {
   SCHEDULED: "Terjadwal",
   CHECK_IN: "Check-in",

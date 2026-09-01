@@ -1,4 +1,8 @@
-import { canTransition } from "@/domain/match-state";
+import {
+  assertMatchStatusConsistency,
+  assertValidMatchTransition,
+  canTransition,
+} from "@/domain/match-state";
 import {
   deriveScore,
   periodForStatus,
@@ -10,6 +14,9 @@ import {
 import { computeStandings } from "@/domain/standings";
 import { can } from "@/domain/permissions";
 import {
+  GUEST_ACTOR,
+  assertParticipantRegistrationTransition,
+  assertRegistrationTransition,
   canTransitionRegistration,
   canTransitionParticipantRegistration,
   DOCUMENT_TYPES,
@@ -146,6 +153,13 @@ function assertTeamAccess(
 
 function assertActor(actor: ActorContext | undefined): asserts actor is ActorContext {
   if (!actor) throw new Error("ActorContext diperlukan.");
+}
+
+function assertAuthenticatedActor(actor: ActorContext | undefined): asserts actor is ActorContext {
+  assertActor(actor);
+  if (actor.role === "PUBLIC" || actor.userId === "guest") {
+    throw new Error("Akun publik tidak dapat mengajukan atau mengelola permintaan peran.");
+  }
 }
 
 function assertRead(actor: ActorContext, permission: Parameters<typeof can>[1]) {
@@ -375,7 +389,12 @@ export const inMemoryRepository: CompetitionRepository = {
   },
 
   /* ------------------------------- Mutations ------------------------------ */
-  async recordMatchEvent(input: NewMatchEventInput) {
+  async recordMatchEvent(input: NewMatchEventInput & { actor?: ActorContext }) {
+    const actor = input.actor ?? GUEST_ACTOR;
+    assertActor(actor);
+    if (!actor.permissions.includes("match.record_event")) {
+      throw new Error("Akses pertandingan ditolak.");
+    }
     const match = requireMatch(input.match_id);
     const id = commandId(input.command_id);
     const replay = fx.matchEvents.find(
@@ -429,25 +448,33 @@ export const inMemoryRepository: CompetitionRepository = {
     to,
     operator_id,
     command_id,
+    actor,
     expected_version,
   }: {
     match_id: UUID;
     to: MatchStatus;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("match.manage")) {
+      throw new Error("Akses pertandingan ditolak.");
+    }
     const match = requireMatch(match_id);
     const id = commandId(command_id);
     const previous = commandResults.get(id);
     if (previous && !Array.isArray(previous)) return clone(previous);
     assertVersion(match, expected_version);
-    if (!canTransition(match.status, to)) {
-      throw new Error(`Transisi ${match.status} → ${to} tidak diizinkan.`);
-    }
+    assertMatchStatusConsistency(match.status, match.period);
+    assertValidMatchTransition(match.status, to);
     const from = match.status;
+    const nextPeriod = periodForStatus(to, match.period);
+    assertMatchStatusConsistency(to, nextPeriod);
     match.status = to;
-    match.period = periodForStatus(to, match.period);
+    match.period = nextPeriod;
     if (to === "LIVE" && from === "READY") match.clock_seconds = 0;
     if (to === "LIVE" && from === "HALFTIME") match.clock_seconds = 0;
 
@@ -492,19 +519,27 @@ export const inMemoryRepository: CompetitionRepository = {
     clock_seconds,
     operator_id,
     command_id,
+    actor,
     expected_version,
   }: {
     match_id: UUID;
     clock_seconds: number;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("match.operate_clock")) {
+      throw new Error("Akses pertandingan ditolak.");
+    }
     const match = requireMatch(match_id);
     const id = commandId(command_id);
     const previous = commandResults.get(id);
     if (previous && !Array.isArray(previous)) return clone(previous);
     assertVersion(match, expected_version);
+    assertMatchStatusConsistency(match.status, match.period);
     if (!Number.isFinite(clock_seconds) || clock_seconds < 0 || clock_seconds > 1200)
       throw new Error("Jam pertandingan tidak valid.");
     if (match.status !== "LIVE" && match.status !== "HALFTIME")
@@ -528,6 +563,7 @@ export const inMemoryRepository: CompetitionRepository = {
     match_id,
     operator_id,
     command_id,
+    actor,
     expected_version,
     kickoff_at,
     venue_id,
@@ -535,12 +571,18 @@ export const inMemoryRepository: CompetitionRepository = {
   }: {
     match_id: UUID;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
     kickoff_at?: string;
     venue_id?: UUID;
     court?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("schedule.manage")) {
+      throw new Error("Akses jadwal ditolak.");
+    }
     const match = requireMatch(match_id);
     const id = commandId(command_id);
     const previous = commandResults.get(id);
@@ -591,15 +633,22 @@ export const inMemoryRepository: CompetitionRepository = {
     user_id,
     operator_id,
     command_id,
+    actor,
     expected_version,
   }: {
     match_id: UUID;
     role: MatchOfficialRole;
     user_id: UUID;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("official.manage")) {
+      throw new Error("Akses perangkat pertandingan ditolak.");
+    }
     const match = requireMatch(match_id);
     const id = commandId(command_id);
     const previous = commandResults.get(id);
@@ -879,8 +928,7 @@ export const inMemoryRepository: CompetitionRepository = {
           : fx.teamOfficials.find((item) => item.id === entityId);
       if (!participant) throw new Error("Data registrasi tidak ditemukan.");
       const current = participant.registration_status ?? "DRAFT";
-      if (!canTransitionParticipantRegistration(current, "SUBMITTED"))
-        throw new Error("Transisi registrasi tidak diizinkan.");
+      assertParticipantRegistrationTransition(current, "SUBMITTED");
       participant.registration_status = "SUBMITTED";
       audit(
         operator_id ?? "system",
@@ -896,8 +944,7 @@ export const inMemoryRepository: CompetitionRepository = {
     if (!profile) throw new Error("Registrasi tidak ditemukan.");
     const summary = await this.getTeamRegistration(entityId, actor);
     if (!summary.is_ready) throw new Error("Registrasi belum memenuhi persyaratan.");
-    if (!canTransitionRegistration(profile.registration_status, "SUBMITTED"))
-      throw new Error("Transisi registrasi tidak diizinkan.");
+    assertRegistrationTransition(profile.registration_status, "SUBMITTED");
     const previous = profile.registration_status;
     profile.registration_status = "SUBMITTED";
     profile.updated_at = new Date().toISOString();
@@ -1023,7 +1070,7 @@ export const inMemoryRepository: CompetitionRepository = {
     return clone(fx.roleRequests);
   },
   async listMyRoleRequests(actor: ActorContext) {
-    assertActor(actor);
+    assertAuthenticatedActor(actor);
     return clone(fx.roleRequests.filter((r) => r.user_id === actor.userId));
   },
   async createRoleRequest({
@@ -1035,7 +1082,7 @@ export const inMemoryRepository: CompetitionRepository = {
     team_id,
     actor,
   }) {
-    assertActor(actor);
+    assertAuthenticatedActor(actor);
     if (
       !SELF_REQUESTABLE_ROLES.includes(requested_role as (typeof SELF_REQUESTABLE_ROLES)[number])
     ) {
@@ -1068,7 +1115,7 @@ export const inMemoryRepository: CompetitionRepository = {
     return clone(req);
   },
   async cancelRoleRequest({ id, actor }) {
-    assertActor(actor);
+    assertAuthenticatedActor(actor);
     const req = fx.roleRequests.find((r) => r.id === id);
     if (!req) throw new Error("Permintaan peran tidak ditemukan.");
     if (req.user_id !== actor.userId) throw new Error("Anda tidak memiliki izin ini.");

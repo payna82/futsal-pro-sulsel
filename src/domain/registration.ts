@@ -188,6 +188,12 @@ export function canTransitionRegistration(from: RegistrationStatus, to: Registra
   return REGISTRATION_TRANSITIONS[from].includes(to);
 }
 
+export function assertRegistrationTransition(from: RegistrationStatus, to: RegistrationStatus): void {
+  if (!canTransitionRegistration(from, to)) {
+    throw new Error(`Transisi registrasi ${from} → ${to} tidak diizinkan.`);
+  }
+}
+
 export const PARTICIPANT_REGISTRATION_TRANSITIONS: Record<
   RegistrationStatus,
   RegistrationStatus[]
@@ -202,6 +208,15 @@ export function canTransitionParticipantRegistration(
   to: RegistrationStatus,
 ) {
   return PARTICIPANT_REGISTRATION_TRANSITIONS[from].includes(to);
+}
+
+export function assertParticipantRegistrationTransition(
+  from: RegistrationStatus,
+  to: RegistrationStatus,
+): void {
+  if (!canTransitionParticipantRegistration(from, to)) {
+    throw new Error(`Transisi registrasi peserta ${from} → ${to} tidak diizinkan.`);
+  }
 }
 
 export function isRegistrationLocked(status: RegistrationStatus) {

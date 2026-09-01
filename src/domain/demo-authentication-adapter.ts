@@ -8,6 +8,7 @@ import type {
   TeamMembership,
 } from "@/domain/authentication";
 import type { AuthenticationAdapter } from "@/domain/authentication-service";
+import { isDemoAuthEnabled } from "@/domain/authentication-runtime";
 import { repository } from "@/data";
 
 /**
@@ -25,6 +26,9 @@ export class DemoAuthenticationAdapter implements AuthenticationAdapter {
   private memberships: Map<UUID, TeamMembership[]> = new Map();
 
   constructor() {
+    if (!isDemoAuthEnabled()) {
+      throw new Error("Demo authentication is disabled by default");
+    }
     this.initializeDemoData();
   }
 

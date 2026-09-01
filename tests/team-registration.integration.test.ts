@@ -1,8 +1,11 @@
 import { assertEquals, assertRejects, assertStringIncludes } from "jsr:@std/assert@1";
-import { inMemoryRepository } from "@/data/in-memory-repository.ts";
-import { PERMISSIONS } from "@/domain/permissions.ts";
-import type { ActorContext } from "@/domain/registration.ts";
-import { canTransitionRegistration } from "@/domain/registration.ts";
+import { inMemoryRepository } from "../src/data/in-memory-repository.ts";
+import { PERMISSIONS } from "../src/domain/permissions.ts";
+import type { ActorContext } from "../src/domain/registration.ts";
+import {
+  assertRegistrationTransition,
+  canTransitionRegistration,
+} from "../src/domain/registration.ts";
 
 const admin: ActorContext = { userId: "usr-1", role: "SUPER_ADMIN", permissions: [...PERMISSIONS] };
 const teamActor = (teamId: string): ActorContext => ({
@@ -25,6 +28,16 @@ const teamActor = (teamId: string): ActorContext => ({
     "submission.submit",
     "report.view",
   ],
+});
+
+Deno.test("registration transition guard rejects invalid state changes", async () => {
+  assertRegistrationTransition("DRAFT", "READY_FOR_SUBMISSION");
+  await assertRejects(async () => {
+    assertRegistrationTransition("APPROVED", "SUBMITTED");
+  }, Error);
+  await assertRejects(async () => {
+    assertRegistrationTransition("DRAFT", "APPROVED");
+  }, Error);
 });
 
 Deno.test(
@@ -368,6 +381,7 @@ Deno.test(
         contact_phone: "08120000",
         contact_email: "qa@team.demo",
         address: "Makassar",
+        registration_status: "DRAFT",
       },
       actor: team,
     });

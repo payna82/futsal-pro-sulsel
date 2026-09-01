@@ -1,5 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { canTransition } from "@/domain/match-state";
+import {
+  assertMatchStatusConsistency,
+  assertValidMatchTransition,
+  canTransition,
+} from "@/domain/match-state";
 import {
   deriveScore,
   periodForStatus,
@@ -34,6 +38,8 @@ import type {
 import {
   SELF_REQUESTABLE_ROLES,
   DOCUMENT_TYPES,
+  assertParticipantRegistrationTransition,
+  assertRegistrationTransition,
   canTransitionParticipantRegistration,
   canTransitionRegistration,
   isRegistrationLocked,
@@ -312,6 +318,13 @@ function assertActor(actor: ActorContext | undefined): asserts actor is ActorCon
   if (!actor) throw new Error("ActorContext diperlukan.");
 }
 
+function assertAuthenticatedActor(actor: ActorContext | undefined): asserts actor is ActorContext {
+  assertActor(actor);
+  if (actor.role === "PUBLIC" || actor.userId === "guest") {
+    throw new Error("Akun publik tidak dapat mengajukan atau mengelola permintaan peran.");
+  }
+}
+
 function assertRead(actor: ActorContext, permission: PermissionKey) {
   assertActor(actor);
   if (!actor.permissions.includes(permission)) throw new Error("Akses data ditolak.");
@@ -584,7 +597,12 @@ export const supabaseRepository: CompetitionRepository = {
 
   /* ------------------------------- Mutations ------------------------------ */
 
-  async recordMatchEvent(input: NewMatchEventInput) {
+  async recordMatchEvent(input: NewMatchEventInput & { actor?: ActorContext }) {
+    const actor = input.actor ?? GUEST_ACTOR;
+    assertActor(actor);
+    if (!actor.permissions.includes("match.record_event")) {
+      throw new Error("Akses pertandingan ditolak.");
+    }
     const match = await requireMatch(input.match_id);
     const id = input.command_id ?? nextId("cmd");
     const existing = await eventsOf(match.id);
@@ -636,22 +654,29 @@ export const supabaseRepository: CompetitionRepository = {
     to,
     operator_id,
     command_id,
+    actor,
     expected_version,
   }: {
     match_id: UUID;
     to: MatchStatus;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("match.manage")) {
+      throw new Error("Akses pertandingan ditolak.");
+    }
     const match = await requireMatch(match_id);
     const id = command_id ?? nextId("cmd");
     assertVersion(match, expected_version);
-    if (!canTransition(match.status, to)) {
-      throw new Error(`Transisi ${match.status} → ${to} tidak diizinkan.`);
-    }
+    assertMatchStatusConsistency(match.status, match.period);
+    assertValidMatchTransition(match.status, to);
     const from = match.status;
     const period = periodForStatus(to, match.period);
+    assertMatchStatusConsistency(to, period);
     const resetClock = to === "LIVE" && (from === "READY" || from === "HALFTIME");
     const type = statusTransitionEvent(to);
     if (type) {
@@ -695,16 +720,24 @@ export const supabaseRepository: CompetitionRepository = {
     clock_seconds,
     operator_id,
     command_id,
+    actor,
     expected_version,
   }: {
     match_id: UUID;
     clock_seconds: number;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("match.operate_clock")) {
+      throw new Error("Akses pertandingan ditolak.");
+    }
     const match = await requireMatch(match_id);
     assertVersion(match, expected_version);
+    assertMatchStatusConsistency(match.status, match.period);
     if (!Number.isFinite(clock_seconds) || clock_seconds < 0 || clock_seconds > 1200) {
       throw new Error("Jam pertandingan tidak valid.");
     }
@@ -724,6 +757,7 @@ export const supabaseRepository: CompetitionRepository = {
     match_id,
     operator_id,
     command_id,
+    actor,
     expected_version,
     kickoff_at,
     venue_id,
@@ -731,12 +765,18 @@ export const supabaseRepository: CompetitionRepository = {
   }: {
     match_id: UUID;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
     expected_version?: number;
     kickoff_at?: string;
     venue_id?: UUID;
     court?: number;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("schedule.manage")) {
+      throw new Error("Akses jadwal ditolak.");
+    }
     const match = await requireMatch(match_id);
     assertVersion(match, expected_version);
     if (match.status !== "SCHEDULED" && match.status !== "CHECK_IN") {
@@ -764,13 +804,20 @@ export const supabaseRepository: CompetitionRepository = {
     user_id,
     operator_id,
     command_id,
+    actor,
   }: {
     match_id: UUID;
     role: MatchOfficialRole;
     user_id: UUID;
     operator_id?: UUID;
+    actor?: ActorContext;
     command_id?: UUID;
   }) {
+    const currentActor = actor ?? GUEST_ACTOR;
+    assertActor(currentActor);
+    if (!currentActor.permissions.includes("official.manage")) {
+      throw new Error("Akses perangkat pertandingan ditolak.");
+    }
     await requireMatch(match_id);
     const rows = await selectAll("match_officials");
     const current = rows.map(toMatchOfficial).filter((item) => item.match_id === match_id);
@@ -818,7 +865,7 @@ export const supabaseRepository: CompetitionRepository = {
   /* -------------------------- Role Requests (RBAC) ------------------------- */
 
   async listRoleRequests(actor: ActorContext): Promise<RoleRequest[]> {
-    void actor;
+    assertAdmin(actor, "role.manage");
     const result = await db
       .from("role_requests")
       .select("*")
@@ -828,6 +875,7 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async listMyRoleRequests(actor: ActorContext): Promise<RoleRequest[]> {
+    assertActor(actor);
     const result = await db
       .from("role_requests")
       .select("*")
@@ -854,7 +902,7 @@ export const supabaseRepository: CompetitionRepository = {
     team_id?: UUID;
     actor: ActorContext;
   }): Promise<RoleRequest> {
-    void actor;
+    assertActor(actor);
     if (
       !SELF_REQUESTABLE_ROLES.includes(requested_role as (typeof SELF_REQUESTABLE_ROLES)[number])
     ) {
@@ -884,11 +932,20 @@ export const supabaseRepository: CompetitionRepository = {
   },
 
   async cancelRoleRequest({ id, actor }: { id: UUID; actor: ActorContext }): Promise<RoleRequest> {
-    void actor;
+    assertActor(actor);
+    const existing = unwrapRow(
+      await db.from("role_requests").select("*").eq("id", id).maybeSingle(),
+    );
+    if ((existing["user_id"] as UUID) !== actor.userId) {
+      throw new Error("Anda tidak memiliki izin ini.");
+    }
+    if ((existing["status"] as string) !== "PENDING") {
+      throw new Error("Hanya permintaan yang masih menunggu yang dapat dibatalkan.");
+    }
     const row = unwrapRow(
       await db
         .from("role_requests")
-        .update({ status: "CANCELLED" })
+        .update({ status: "CANCELLED", updated_at: new Date().toISOString() })
         .eq("id", id)
         .select("*")
         .single(),
@@ -911,7 +968,7 @@ export const supabaseRepository: CompetitionRepository = {
     team_id?: UUID;
     actor: ActorContext;
   }): Promise<RoleRequest> {
-    void actor;
+    assertAdmin(actor, "role.manage");
     const { data, error } = await (
       supabase.rpc as unknown as (
         fn: string,
@@ -938,7 +995,7 @@ export const supabaseRepository: CompetitionRepository = {
     decision_note: string;
     actor: ActorContext;
   }): Promise<RoleRequest> {
-    void actor;
+    assertAdmin(actor, "role.manage");
     if (!decision_note.trim() || decision_note.trim().length < 6) {
       throw new Error("Catatan penolakan terlalu singkat.");
     }
@@ -967,7 +1024,7 @@ export const supabaseRepository: CompetitionRepository = {
     reason?: string;
     actor: ActorContext;
   }): Promise<boolean> {
-    void actor;
+    assertAdmin(actor, "role.manage");
     if (role === "PUBLIC") throw new Error("Peran PUBLIC tidak dapat dicabut.");
     const { data, error } = await (
       supabase.rpc as unknown as (
@@ -998,7 +1055,7 @@ export const supabaseRepository: CompetitionRepository = {
     team_id?: UUID;
     actor: ActorContext;
   }): Promise<boolean> {
-    void actor;
+    assertAdmin(actor, "role.manage");
     const existing = await db
       .from("role_requests")
       .select("*")
@@ -1493,8 +1550,7 @@ export const supabaseRepository: CompetitionRepository = {
       const row = unwrapRow(await db.from(table).select("*").eq("id", entityId).single());
       const current = ((row["registration_status"] as RegistrationStatus | null) ??
         "DRAFT") as RegistrationStatus;
-      if (!canTransitionParticipantRegistration(current, "SUBMITTED"))
-        throw new Error("Transisi registrasi tidak diizinkan.");
+      assertParticipantRegistrationTransition(current, "SUBMITTED");
       const result = await db
         .from(table)
         .update({ registration_status: "SUBMITTED" })
@@ -1514,8 +1570,7 @@ export const supabaseRepository: CompetitionRepository = {
     const summary = await this.getTeamRegistration(entityId, actor);
     if (!summary.is_ready) throw new Error("Registrasi belum memenuhi persyaratan.");
     const previous = summary.profile.registration_status;
-    if (!canTransitionRegistration(previous, "SUBMITTED"))
-      throw new Error("Transisi registrasi tidak diizinkan.");
+    assertRegistrationTransition(previous, "SUBMITTED");
     await saveTeamProfile({
       ...summary.profile,
       registration_status: "SUBMITTED",

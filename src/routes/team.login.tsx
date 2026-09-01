@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,14 +10,21 @@ export const Route = createFileRoute("/team/login")({ component: TeamLoginPage }
 
 function TeamLoginPage() {
   const navigate = useNavigate();
-  const { signIn } = useSession();
+  const { signIn, isAuthenticated, isLoading } = useSession();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: "/team", replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       await signIn({ email, password });
@@ -27,7 +34,7 @@ function TeamLoginPage() {
       toast.error(error instanceof Error ? error.message : "Email atau kata sandi tidak valid.");
       console.error("Login failed:", error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -64,7 +71,7 @@ function TeamLoginPage() {
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
               required
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
           </div>
           <div className="space-y-2">
@@ -75,11 +82,11 @@ function TeamLoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Memeriksa…" : "Masuk"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Memeriksa…" : "Masuk"}
           </Button>
           <p className="text-xs text-muted-foreground">Gunakan email dan kata sandi akun tim Anda.</p>
         </form>

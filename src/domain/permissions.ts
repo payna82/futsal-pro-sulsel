@@ -133,3 +133,39 @@ export function can(role: RoleKey, permission: PermissionKey): boolean {
 export function canAny(role: RoleKey, permissions: PermissionKey[]): boolean {
   return permissions.some((p) => can(role, p));
 }
+
+export function getAdminRedirectRoute(role: RoleKey, permission: PermissionKey): string | null {
+  return can(role, permission) ? null : "/admin";
+}
+
+export function getAdminRoutePermission(pathname: string): PermissionKey | null {
+  const normalized = pathname.replace(/\/+$/, "") || "/admin";
+  const routeMap: Record<string, PermissionKey> = {
+    "/admin/users": "user.manage",
+    "/admin/roles": "role.manage",
+    "/admin/permissions": "role.manage",
+    "/admin/audit-logs": "audit.view",
+    "/admin/tournaments": "tournament.manage",
+    "/admin/competitions": "competition.manage",
+    "/admin/groups": "group.manage",
+    "/admin/venues": "venue.manage",
+    "/admin/contingents": "contingent.manage",
+    "/admin/teams": "team.manage",
+    "/admin/teams/new": "team.create",
+    "/admin/players": "player.manage",
+    "/admin/officials": "official.manage",
+    "/admin/match-officials": "official.manage",
+    "/admin/matches": "match.manage",
+    "/admin/schedule": "schedule.manage",
+    "/admin/verification": "player.verify",
+    "/admin/reports": "report.view",
+    "/admin/statistics": "statistic.view",
+  };
+
+  if (normalized.startsWith("/admin/teams/")) {
+    if (normalized.endsWith("/new")) return "team.create";
+    return "team.read";
+  }
+
+  return routeMap[normalized] ?? null;
+}

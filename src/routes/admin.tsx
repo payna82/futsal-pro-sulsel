@@ -1,7 +1,8 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { can, getAdminRoutePermission } from "@/domain/permissions";
 import { useSession } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/admin")({
@@ -26,14 +27,25 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminRouteLayout() {
-  const { isAuthenticated, isLoading } = useSession();
+  const { isAuthenticated, isLoading, user } = useSession();
   const navigate = useNavigate();
+  const location = useLocation();
+  const requiredPermission = getAdminRoutePermission(location.pathname);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) navigate({ to: "/masuk", replace: true });
-  }, [isAuthenticated, isLoading, navigate]);
+    if (isLoading) return;
 
-  if (isLoading || !isAuthenticated) {
+    if (!isAuthenticated) {
+      navigate({ to: "/masuk", replace: true });
+      return;
+    }
+
+    if (requiredPermission && user && !can(user.role, requiredPermission)) {
+      navigate({ to: "/admin", replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, requiredPermission, user]);
+
+  if (isLoading || !isAuthenticated || (requiredPermission && user && !can(user.role, requiredPermission))) {
     return (
       <div className="space-y-3 p-8">
         <Skeleton className="h-10 w-64" />

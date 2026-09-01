@@ -4,7 +4,11 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { deriveScore, validateMatchEvent } from "../src/domain/match-operations.ts";
-import { canTransition } from "../src/domain/match-state.ts";
+import {
+  assertMatchStatusConsistency,
+  assertValidMatchTransition,
+  canTransition,
+} from "../src/domain/match-state.ts";
 import type { MatchEvent } from "../src/domain/types.ts";
 
 const base = {
@@ -86,4 +90,11 @@ Deno.test("illegal status transition is rejected", () => {
     Error,
     "illegal transition",
   );
+  assertThrows(() => assertValidMatchTransition("READY", "HALFTIME"), Error);
+});
+
+Deno.test("status and period must remain internally consistent", () => {
+  assertEquals(assertMatchStatusConsistency("LIVE", "FIRST_HALF"), undefined);
+  assertThrows(() => assertMatchStatusConsistency("LIVE", "PRE_MATCH"), Error);
+  assertThrows(() => assertMatchStatusConsistency("FULL_TIME", "FIRST_HALF"), Error);
 });

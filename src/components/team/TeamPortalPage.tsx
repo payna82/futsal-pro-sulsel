@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TeamCrest } from "@/components/common/TeamCrest";
@@ -45,7 +45,17 @@ type PortalView =
   "overview" | "profile" | "players" | "new-player" | "officials" | "documents" | "submission";
 
 export function TeamPortalPage({ view }: { view: PortalView }) {
-  const teamId = useSession().user?.team_id ?? "";
+  const navigate = useNavigate();
+  const session = useSession();
+  const teamId = session.user?.team_id ?? "";
+
+  useEffect(() => {
+    if (session.isLoading) return;
+    if (!session.isAuthenticated || !teamId) {
+      navigate({ to: "/team/login", replace: true });
+    }
+  }, [navigate, session.isAuthenticated, session.isLoading, teamId]);
+
   const data = useCompetitionData();
   const actor = useActor();
   const registration = useQuery({
@@ -57,7 +67,24 @@ export function TeamPortalPage({ view }: { view: PortalView }) {
   const officials = useQuery(teamOfficialsQuery(actor));
   const documents = useQuery(registrationDocumentsQuery(actor));
   const team = data.teams.find((item) => item.id === teamId);
-  if (!teamId || !team || !registration.data || !profile.data)
+
+  if (session.isLoading) {
+    return (
+      <TeamLayout>
+        <p className="py-16 text-center text-muted-foreground">Memuat portal tim…</p>
+      </TeamLayout>
+    );
+  }
+
+  if (!session.isAuthenticated || !teamId) {
+    return (
+      <TeamLayout>
+        <p className="py-16 text-center text-muted-foreground">Mengalihkan ke halaman masuk tim…</p>
+      </TeamLayout>
+    );
+  }
+
+  if (!team || !registration.data || !profile.data)
     return (
       <TeamLayout>
         <p className="py-16 text-center text-muted-foreground">Sesi akun tim tidak ditemukan.</p>
