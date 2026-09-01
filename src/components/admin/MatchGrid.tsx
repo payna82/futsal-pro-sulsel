@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/common/EmptyState";
 import { MatchCard } from "@/components/match/MatchCard";
 import type { Match } from "@/domain/types";
 import { useCompetitionData } from "@/hooks/use-competition-data";
@@ -14,9 +15,10 @@ export function MatchGrid({
 
   if (matches.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-        {emptyMessage}
-      </p>
+      <EmptyState
+        title={emptyMessage}
+        description="Data pertandingan belum tersedia untuk kondisi saat ini. Silakan cek kembali nanti."
+      />
     );
   }
 

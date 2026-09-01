@@ -78,25 +78,37 @@ function AdminRouteLayout() {
   }
 
   if (requiredPermission && user && !can(user.role, requiredPermission)) {
+    const isTeamAccount = user.account_type === "TEAM";
+
     return (
       <div className="flex min-h-[60vh] items-center justify-center p-6">
         <div className="w-full max-w-lg rounded-xl border border-destructive/30 bg-card p-8 text-center shadow-sm">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-red-100 text-red-700">
             <AlertTriangle className="size-6" />
           </div>
-          <h1 className="mt-5 text-2xl font-bold">Akses dibatasi</h1>
+          <h1 className="mt-5 text-2xl font-bold">Akses panel dibatasi</h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Akun Anda saat ini belum memiliki izin untuk membuka halaman ini. Hubungi admin atau
-            gunakan akun dengan peran yang sesuai.
+            Akun Anda saat ini menggunakan peran <span className="font-semibold text-foreground">{user.role}</span>,
+            namun halaman ini membutuhkan izin <span className="font-mono text-foreground">{requiredPermission}</span>.
           </p>
+          <div className="mt-4 rounded-md border border-border bg-muted/40 p-3 text-left text-sm text-muted-foreground">
+            {isTeamAccount ? (
+              <p>Sepertinya akun Anda masuk sebagai tim. Gunakan portal tim untuk mengelola data peserta dan dokumen tim.</p>
+            ) : (
+              <p>Untuk membuka bagian ini, Anda perlu masuk dengan akun petugas resmi atau minta akses dari admin turnamen.</p>
+            )}
+          </div>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild>
-              <Link to="/admin">
-                <ArrowLeft className="size-4" /> Kembali ke dasbor
+              <Link to={isTeamAccount ? "/team" : "/admin"}>
+                <ArrowLeft className="size-4" /> {isTeamAccount ? "Ke portal tim" : "Kembali ke dasbor"}
               </Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to={isTeamAccount ? "/team/login" : "/masuk"}>Pilih akun lain</Link>
+            </Button>
             <Button variant="outline" onClick={() => navigate({ to: "/", replace: true })}>
-              <LogOut className="size-4" /> Keluar ke beranda
+              <LogOut className="size-4" /> Beranda
             </Button>
           </div>
         </div>

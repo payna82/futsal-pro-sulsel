@@ -109,6 +109,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useSession();
+  const accountMode = user?.account_type === "TEAM" ? "Akses Tim" : "Akses Panitia";
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,6 +157,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             <Button asChild variant="outline" size="sm">
               <Link to="/">Situs Publik</Link>
             </Button>
+            <div className="hidden items-center gap-2 rounded-full border border-border bg-muted/40 px-2.5 py-1 sm:flex">
+              <span className="size-2 rounded-full bg-success" aria-hidden />
+              <div className="text-left">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  {accountMode}
+                </p>
+                <p className="text-xs font-medium">{ROLE_LABEL[user?.role ?? "PUBLIC"]}</p>
+              </div>
+            </div>
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium">{user?.full_name ?? "Tamu"}</p>
               <p className="label-caps text-muted-foreground">

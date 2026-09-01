@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TeamCrest } from "@/components/common/TeamCrest";
@@ -71,7 +72,10 @@ export function TeamPortalPage({ view }: { view: PortalView }) {
   if (session.isLoading) {
     return (
       <TeamLayout>
-        <p className="py-16 text-center text-muted-foreground">Memuat portal tim…</p>
+        <EmptyState
+          title="Memuat portal tim"
+          description="Sedang mengambil data akun, profil, dan status registrasi tim Anda."
+        />
       </TeamLayout>
     );
   }
@@ -79,7 +83,15 @@ export function TeamPortalPage({ view }: { view: PortalView }) {
   if (!session.isAuthenticated || !teamId) {
     return (
       <TeamLayout>
-        <p className="py-16 text-center text-muted-foreground">Mengalihkan ke halaman masuk tim…</p>
+        <EmptyState
+          title="Silakan masuk ke portal tim"
+          description="Akses tim memerlukan login akun yang terhubung ke tim Anda."
+          action={
+            <Link to="/team/login" className="text-sm font-medium text-primary hover:underline">
+              Ke halaman masuk tim
+            </Link>
+          }
+        />
       </TeamLayout>
     );
   }
@@ -87,7 +99,15 @@ export function TeamPortalPage({ view }: { view: PortalView }) {
   if (!team || !registration.data || !profile.data)
     return (
       <TeamLayout>
-        <p className="py-16 text-center text-muted-foreground">Sesi akun tim tidak ditemukan.</p>
+        <EmptyState
+          title="Sesi akun tim tidak tersedia"
+          description="Data tim tidak ditemukan untuk akun saat ini. Silakan masuk kembali atau hubungi panitia."
+          action={
+            <Link to="/team/login" className="text-sm font-medium text-primary hover:underline">
+              Masuk ulang
+            </Link>
+          }
+        />
       </TeamLayout>
     );
   const summary = registration.data;

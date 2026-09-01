@@ -77,39 +77,51 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="mt-8 grid gap-4 lg:grid-cols-3">
-        <Link
-          to="/jadwal"
-          className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
-        >
-          <p className="label-caps text-primary">Pengunjung</p>
-          <h2 className="mt-2 text-xl font-bold">Lihat pertandingan</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Cek jadwal, hasil, dan skor langsung dari seluruh venue pertandingan.
-          </p>
-        </Link>
+      <section className="mt-8">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="label-caps text-primary">Pilih akses sesuai peran</p>
+            <h2 className="mt-1 text-2xl font-bold">Mulai dari pintu masuk yang tepat</h2>
+          </div>
+          <Link to="/masuk" className="hidden text-sm font-medium text-primary hover:underline sm:inline-flex">
+            Lihat semua akses masuk
+          </Link>
+        </div>
 
-        <Link
-          to="/team/login"
-          className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
-        >
-          <p className="label-caps text-primary">Tim</p>
-          <h2 className="mt-2 text-xl font-bold">Portal manajemen tim</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Kelola profil tim, pemain, ofisial, dokumen, dan status registrasi.
-          </p>
-        </Link>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Link
+            to="/jadwal"
+            className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
+          >
+            <p className="label-caps text-primary">Saya pengunjung</p>
+            <h3 className="mt-2 text-xl font-bold">Lihat jadwal & hasil</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Cek pertandingan, hasil terkini, klasemen, dan rundown venue tanpa masuk ke sistem.
+            </p>
+          </Link>
 
-        <Link
-          to="/masuk"
-          className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
-        >
-          <p className="label-caps text-primary">Panitia</p>
-          <h2 className="mt-2 text-xl font-bold">Masuk panel operasional</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Akses jadwal, verifikasi peserta, pengelolaan hasil, dan log audit resmi.
-          </p>
-        </Link>
+          <Link
+            to="/team/login"
+            className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
+          >
+            <p className="label-caps text-primary">Saya tim</p>
+            <h3 className="mt-2 text-xl font-bold">Kelola tim & registrasi</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Profil, pemain, ofisial, dokumen resmi, dan persetujuan status tim di satu portal.
+            </p>
+          </Link>
+
+          <Link
+            to="/masuk"
+            className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
+          >
+            <p className="label-caps text-primary">Saya panitia</p>
+            <h3 className="mt-2 text-xl font-bold">Operasikan kompetisi</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Verifikasi peserta, kelola jadwal, hasil pertandingan, dan audit aktivitas resmi.
+            </p>
+          </Link>
+        </div>
       </section>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

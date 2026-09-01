@@ -17,6 +17,7 @@ const NAV = [
 export function TeamLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useSession();
+  const accountMode = user?.account_type === "TEAM" ? "Akses Tim" : "Akun Tim";
   const navigation = (
     <nav className="flex flex-col gap-1 p-3">
       {NAV.map(([to, label]) => (
@@ -64,9 +65,15 @@ export function TeamLayout({ children }: { children: ReactNode }) {
             <p className="truncate text-sm font-semibold">Portal Registrasi Tim</p>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-sm font-medium sm:block">
-              {user?.full_name ?? "Akun Tim"}
-            </span>
+            <div className="hidden items-center gap-2 rounded-full border border-border bg-muted/40 px-2.5 py-1 sm:flex">
+              <span className="size-2 rounded-full bg-success" aria-hidden />
+              <div className="text-left">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  {accountMode}
+                </p>
+                <p className="text-xs font-medium">{user?.full_name ?? "Akun Tim"}</p>
+              </div>
+            </div>
             <Button size="sm" variant="outline" onClick={signOut}>
               <LogOut className="size-4" /> Keluar
             </Button>

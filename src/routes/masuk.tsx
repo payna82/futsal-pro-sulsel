@@ -26,7 +26,7 @@ export const Route = createFileRoute("/masuk")({
 });
 
 function LoginPage() {
-  const { signIn, signUp, isAuthenticated } = useSession();
+  const { signIn, signUp, isAuthenticated, isLoading: sessionLoading, user } = useSession();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<"PANITIA" | "TEAM">("PANITIA");
   const [mode, setMode] = useState<"SIGN_IN" | "SIGN_UP">("SIGN_IN");
@@ -36,8 +36,11 @@ function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) navigate({ to: "/admin", replace: true });
-  }, [isAuthenticated, navigate]);
+    if (!sessionLoading && isAuthenticated) {
+      const target = user?.account_type === "TEAM" || user?.role === "TEAM_OFFICIAL" ? "/team" : "/admin";
+      navigate({ to: target, replace: true });
+    }
+  }, [isAuthenticated, navigate, sessionLoading, user]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();

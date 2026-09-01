@@ -63,7 +63,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               variant="outline"
               className="hidden border-white/30 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground sm:inline-flex"
             >
-              <Link to="/team/login">Portal Tim</Link>
+              <Link to="/team/login">Akses Tim</Link>
             </Button>
             <Button
               asChild
@@ -71,7 +71,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               variant="outline"
               className="hidden border-white/30 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground sm:inline-flex"
             >
-              <Link to="/masuk">Masuk Panel</Link>
+              <Link to="/masuk">Panel Panitia</Link>
             </Button>
 
             <Sheet open={open} onOpenChange={setOpen}>
@@ -103,14 +103,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                     onClick={() => setOpen(false)}
                     className="mt-2 rounded-sm bg-muted px-3 py-2.5 text-sm font-medium text-foreground"
                   >
-                    Portal Tim
+                    Akses Tim
                   </Link>
                   <Link
                     to="/masuk"
                     onClick={() => setOpen(false)}
                     className="mt-2 rounded-sm bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground"
                   >
-                    Masuk Panel
+                    Panel Panitia
                   </Link>
                 </nav>
               </SheetContent>

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AdminPage } from "@/components/admin/AdminPage";
 import { MatchGrid } from "@/components/admin/MatchGrid";
+import { EmptyState } from "@/components/common/EmptyState";
 import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -130,9 +131,10 @@ function AdminDashboardRoute() {
       <section className="mt-8 space-y-3">
         <h2 className="text-lg font-bold">Peringatan Operasional</h2>
         {alerts.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Tidak ada peringatan operasional.
-          </p>
+          <EmptyState
+            title="Tidak ada peringatan operasional"
+            description="Semua jalur pertandingan, venue, dan jadwal terlihat dalam kondisi normal saat ini."
+          />
         ) : (
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
             {alerts.map((alert) => (
@@ -163,8 +165,12 @@ function AdminDashboardRoute() {
         <h2 className="text-lg font-bold">Agenda Hari Ini</h2>
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {today.length === 0 ? (
-            <li className="p-6 text-center text-sm text-muted-foreground">
-              Tidak ada pertandingan pada tanggal hari ini.
+            <li className="p-0">
+              <EmptyState
+                title="Tidak ada pertandingan hari ini"
+                description="Belum ada jadwal yang masuk untuk tanggal saat ini. Silakan cek agenda lain atau jadwal berikutnya."
+                className="rounded-none border-0 bg-transparent py-8"
+              />
             </li>
           ) : (
             today.map((m) => (

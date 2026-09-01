@@ -10,13 +10,14 @@ export const Route = createFileRoute("/team/login")({ component: TeamLoginPage }
 
 function TeamLoginPage() {
   const navigate = useNavigate();
-  const { signIn, isAuthenticated, isLoading } = useSession();
+  const { signIn, isAuthenticated, isLoading, user } = useSession();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate({ to: "/team", replace: true });
+      const target = user?.account_type === "TEAM" || user?.role === "TEAM_OFFICIAL" ? "/team" : "/admin";
+      navigate({ to: target, replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, user]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,7 +68,9 @@ function TeamLoginPage() {
           </div>
 
           <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-            <Link to="/masuk" className="font-medium text-primary hover:underline">
+            <p className="font-medium text-foreground">Portal khusus tim</p>
+            <p className="mt-1">Gunakan akun tim yang sudah terdaftar dan disetujui oleh panitia.</p>
+            <Link to="/masuk" className="mt-2 inline-flex font-medium text-primary hover:underline">
               Masuk sebagai panitia
             </Link>
           </div>

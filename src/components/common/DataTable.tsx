@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { EmptyState } from "@/components/common/EmptyState";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -88,11 +89,14 @@ export function DataTable<T>({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="py-10 text-center text-sm text-muted-foreground"
-                >
-                  {emptyMessage}
+                <TableCell colSpan={columns.length} className="p-0">
+                  <div className="px-4 py-8">
+                    <EmptyState
+                      title={emptyMessage}
+                      description="Coba sesuaikan filter atau kembali lagi nanti untuk melihat data terbaru."
+                      className="border-0 bg-transparent py-8"
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
