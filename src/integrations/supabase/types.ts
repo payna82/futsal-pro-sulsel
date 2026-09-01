@@ -540,6 +540,79 @@ export type Database = {
           },
         ]
       }
+      role_requests: {
+        Row: {
+          contingent_id: string | null
+          created_at: string
+          decision_note: string | null
+          id: string
+          request_reason: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          supporting_docs: Json
+          team_id: string | null
+          updated_at: string
+          user_id: string
+          venue_id: string | null
+        }
+        Insert: {
+          contingent_id?: string | null
+          created_at?: string
+          decision_note?: string | null
+          id?: string
+          request_reason?: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          supporting_docs?: Json
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+          venue_id?: string | null
+        }
+        Update: {
+          contingent_id?: string | null
+          created_at?: string
+          decision_note?: string | null
+          id?: string
+          request_reason?: string
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          supporting_docs?: Json
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_requests_contingent_id_fkey"
+            columns: ["contingent_id"]
+            isOneToOne: false
+            referencedRelation: "contingents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_requests_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_accounts: {
         Row: {
           account_status: string
@@ -830,6 +903,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_role_request: {
+        Args: {
+          _contingent_id?: string
+          _decision_note?: string
+          _request_id: string
+          _team_id?: string
+          _venue_id?: string
+        }
+        Returns: {
+          contingent_id: string | null
+          created_at: string
+          decision_note: string | null
+          id: string
+          request_reason: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          supporting_docs: Json
+          team_id: string | null
+          updated_at: string
+          user_id: string
+          venue_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "role_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -840,6 +944,39 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       my_team_id: { Args: never; Returns: string }
+      reject_role_request: {
+        Args: { _decision_note: string; _request_id: string }
+        Returns: {
+          contingent_id: string | null
+          created_at: string
+          decision_note: string | null
+          id: string
+          request_reason: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          supporting_docs: Json
+          team_id: string | null
+          updated_at: string
+          user_id: string
+          venue_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "role_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      revoke_user_role: {
+        Args: {
+          _reason?: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
