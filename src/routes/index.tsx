@@ -77,6 +77,41 @@ function HomePage() {
         </div>
       </section>
 
+      <section className="mt-8 grid gap-4 lg:grid-cols-3">
+        <Link
+          to="/jadwal"
+          className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
+        >
+          <p className="label-caps text-primary">Pengunjung</p>
+          <h2 className="mt-2 text-xl font-bold">Lihat pertandingan</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Cek jadwal, hasil, dan skor langsung dari seluruh venue pertandingan.
+          </p>
+        </Link>
+
+        <Link
+          to="/team/login"
+          className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
+        >
+          <p className="label-caps text-primary">Tim</p>
+          <h2 className="mt-2 text-xl font-bold">Portal manajemen tim</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Kelola profil tim, pemain, ofisial, dokumen, dan status registrasi.
+          </p>
+        </Link>
+
+        <Link
+          to="/masuk"
+          className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary"
+        >
+          <p className="label-caps text-primary">Panitia</p>
+          <h2 className="mt-2 text-xl font-bold">Masuk panel operasional</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Akses jadwal, verifikasi peserta, pengelolaan hasil, dan log audit resmi.
+          </p>
+        </Link>
+      </section>
+
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Pertandingan Berlangsung" value={live.length} icon={Radio} tone="live" />
         <StatCard label="Tim Peserta" value={teams.length} icon={Users} />

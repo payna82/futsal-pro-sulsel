@@ -63,6 +63,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               variant="outline"
               className="hidden border-white/30 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground sm:inline-flex"
             >
+              <Link to="/team/login">Portal Tim</Link>
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="hidden border-white/30 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground sm:inline-flex"
+            >
               <Link to="/masuk">Masuk Panel</Link>
             </Button>
 
@@ -90,6 +98,13 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                       {item.label}
                     </Link>
                   ))}
+                  <Link
+                    to="/team/login"
+                    onClick={() => setOpen(false)}
+                    className="mt-2 rounded-sm bg-muted px-3 py-2.5 text-sm font-medium text-foreground"
+                  >
+                    Portal Tim
+                  </Link>
                   <Link
                     to="/masuk"
                     onClick={() => setOpen(false)}

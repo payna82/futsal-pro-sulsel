@@ -28,6 +28,7 @@ export const Route = createFileRoute("/masuk")({
 function LoginPage() {
   const { signIn, signUp, isAuthenticated } = useSession();
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<"PANITIA" | "TEAM">("PANITIA");
   const [mode, setMode] = useState<"SIGN_IN" | "SIGN_UP">("SIGN_IN");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,95 +66,154 @@ function LoginPage() {
         <div>
           <span className="label-caps text-gold">Sulawesi Selatan • 2026</span>
           <h1 className="mt-3 text-5xl leading-none font-bold">
-            SISTEM MANAJEMEN
+            PILIH
             <br />
-            PERTANDINGAN FUTSAL
+            AKSES SISTEM
           </h1>
           <p className="mt-4 max-w-md text-sm text-pitch-muted">
-            Panel operasional resmi panitia pelaksana: penjadwalan, verifikasi peserta, pengendalian
-            pertandingan, dan pengesahan hasil.
+            Akses masuk diatur berdasarkan peran: panitia pelaksana atau tim peserta. Setiap aktivitas
+            pada panel resmi dicatat dalam log audit.
           </p>
         </div>
-        <p className="text-xs text-pitch-muted">
-          Seluruh aktivitas pada panel ini tercatat pada log audit.
-        </p>
+        <div className="space-y-3 text-sm text-pitch-muted">
+          <p>• Panel Panitia: jadwal, verifikasi, hasil, dan pengelolaan kompetisi</p>
+          <p>• Portal Tim: data pemain, ofisial, dokumen, dan pengajuan registrasi</p>
+        </div>
       </div>
 
       <div className="flex items-center justify-center p-6">
-        <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
+        <div className="w-full max-w-md space-y-5">
           <div>
             <p className="label-caps text-primary">PORPROV Sulsel 2026</p>
-            <h2 className="mt-1 text-3xl font-bold">
-              {mode === "SIGN_IN" ? "Masuk Panel Panitia" : "Daftar Akun Petugas"}
-            </h2>
+            <h2 className="mt-1 text-3xl font-bold">Pilih peran masuk</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Gunakan akun petugas yang diterbitkan panitia pelaksana.
+              Pilih akses yang sesuai dengan tugas Anda di turnamen.
             </p>
           </div>
 
-          {mode === "SIGN_UP" ? (
-            <div className="space-y-2">
-              <Label htmlFor="full-name">Nama Lengkap</Label>
-              <Input
-                id="full-name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                autoComplete="name"
-                required
-                disabled={isLoading}
-              />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedRole("PANITIA");
+                setMode("SIGN_IN");
+              }}
+              className={
+                selectedRole === "PANITIA"
+                  ? "rounded-xl border border-primary bg-primary/10 p-4 text-left shadow-sm"
+                  : "rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/50"
+              }
+            >
+              <p className="label-caps text-primary">Panel</p>
+              <h3 className="mt-2 text-lg font-bold">Panitia</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Petugas resmi, wasit, dan pengelola pertandingan
+              </p>
+            </button>
+
+            <Link
+              to="/team/login"
+              onClick={() => setSelectedRole("TEAM")}
+              className={
+                selectedRole === "TEAM"
+                  ? "rounded-xl border border-primary bg-primary/10 p-4 text-left shadow-sm"
+                  : "rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/50"
+              }
+            >
+              <p className="label-caps text-primary">Portal</p>
+              <h3 className="mt-2 text-lg font-bold">Tim</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Pemain, ofisial, dokumen, dan status registrasi tim
+              </p>
+            </Link>
+          </div>
+
+          {selectedRole === "PANITIA" ? (
+            <form onSubmit={onSubmit} className="space-y-5">
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                Akses untuk panitia pelaksana, admin kompetisi, wasit, dan petugas pertandingan.
+              </div>
+
+              {mode === "SIGN_UP" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="full-name">Nama Lengkap</Label>
+                  <Input
+                    id="full-name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    autoComplete="name"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Petugas</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nama@porprovsulsel.id"
+                  autoComplete="email"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Kata Sandi</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete={mode === "SIGN_IN" ? "current-password" : "new-password"}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Memproses…" : mode === "SIGN_IN" ? "Masuk panel panitia" : "Daftar akun panitia"}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setMode(mode === "SIGN_IN" ? "SIGN_UP" : "SIGN_IN")}
+                className="w-full text-sm text-primary hover:underline"
+              >
+                {mode === "SIGN_IN" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+              </button>
+
+              <p className="text-xs text-muted-foreground">
+                Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh perubahan
+                status pertandingan dicatat atas nama akun yang sedang masuk.
+              </p>
+            </form>
+          ) : (
+            <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+              <p className="text-sm text-muted-foreground">
+                Portal tim digunakan untuk mengelola profil, pemain, ofisial, dokumen, dan pengajuan
+                registrasi.
+              </p>
+              <Button asChild className="w-full">
+                <Link to="/team/login">Masuk ke portal tim</Link>
+              </Button>
+              <Link to="/" className="block text-center text-sm text-primary hover:underline">
+                Kembali ke situs publik
+              </Link>
             </div>
+          )}
+
+          {selectedRole === "PANITIA" ? (
+            <Link to="/" className="block text-center text-sm text-primary hover:underline">
+              Kembali ke situs publik
+            </Link>
           ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Petugas</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@porprovsulsel.id"
-              autoComplete="email"
-              required
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Kata Sandi</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete={mode === "SIGN_IN" ? "current-password" : "new-password"}
-              required
-              disabled={isLoading}
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Memproses…" : mode === "SIGN_IN" ? "Masuk" : "Daftar"}
-          </Button>
-
-          <button
-            type="button"
-            onClick={() => setMode(mode === "SIGN_IN" ? "SIGN_UP" : "SIGN_IN")}
-            className="w-full text-sm text-primary hover:underline"
-          >
-            {mode === "SIGN_IN" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
-          </button>
-
-          <p className="text-xs text-muted-foreground">
-            Kredensial diverifikasi backend. Peran dan izin dibaca dari data akun; seluruh perubahan
-            status pertandingan dicatat atas nama akun yang sedang masuk.
-          </p>
-
-          <Link to="/" className="block text-center text-sm text-primary hover:underline">
-            Kembali ke situs publik
-          </Link>
-        </form>
+        </div>
       </div>
     </div>
   );

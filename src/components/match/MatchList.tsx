@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/common/EmptyState";
 import { MatchCard } from "@/components/match/MatchCard";
 import { useCompetitionData } from "@/hooks/use-competition-data";
 import type { Match } from "@/domain/types";
@@ -14,11 +15,7 @@ export function MatchList({
   const { teamById, venueName, groupName } = useCompetitionData();
 
   if (matches.length === 0) {
-    return (
-      <p className="rounded-lg border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-        {emptyMessage}
-      </p>
-    );
+    return <EmptyState title={emptyMessage} description="Cek kembali nanti untuk data pertandingan terbaru." />;
   }
 
   const byDate = new Map<string, Match[]>();

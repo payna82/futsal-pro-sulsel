@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,17 @@ function TeamLoginPage() {
           <div>
             <p className="label-caps text-primary">PORPROV Sulsel 2026</p>
             <h2 className="mt-1 text-3xl font-bold">Masuk Portal Tim</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Jika Anda petugas panitia, gunakan akses panel panitia di halaman masuk resmi.
+            </p>
           </div>
+
+          <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+            <Link to="/masuk" className="font-medium text-primary hover:underline">
+              Masuk sebagai panitia
+            </Link>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email Tim</Label>
             <Input

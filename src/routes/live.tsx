@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { Scoreboard } from "@/components/match/Scoreboard";
@@ -38,9 +39,17 @@ function LivePage() {
       />
 
       {live.length === 0 ? (
-        <p className="mt-8 rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-          Tidak ada pertandingan yang sedang berlangsung saat ini.
-        </p>
+        <div className="mt-8">
+          <EmptyState
+            title="Belum ada pertandingan live"
+            description="Saat ini tidak ada laga yang sedang berjalan. Cek jadwal atau tunggu pertandingan berikutnya dimulai."
+            action={
+              <Link to="/jadwal" className="text-sm font-medium text-primary hover:underline">
+                Lihat jadwal pertandingan
+              </Link>
+            }
+          />
+        </div>
       ) : (
         <div className="mt-6 space-y-6">
           {live.map((match) => (
