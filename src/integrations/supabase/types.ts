@@ -903,6 +903,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _role_rank: {
+        Args: { _r: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
       approve_role_request: {
         Args: {
           _contingent_id?: string
@@ -934,6 +938,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      gen_random_uuid_text: { Args: never; Returns: string }
+      has_permission: {
+        Args: { _actor_id: string; _permission: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -944,6 +953,39 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       my_team_id: { Args: never; Returns: string }
+      record_match_event: {
+        Args: {
+          _command_id: string
+          _expected_version?: number
+          _match_id: string
+          _metadata?: Json
+          _period: string
+          _player_id: string
+          _team_id: string
+          _timestamp: number
+          _type: string
+        }
+        Returns: {
+          command_id: string | null
+          created_at: string
+          id: string
+          match_id: string
+          metadata: Json
+          operator_id: string
+          period: string
+          player_id: string | null
+          sequence_no: number | null
+          team_id: string | null
+          timestamp: number
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "match_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       reject_role_request: {
         Args: { _decision_note: string; _request_id: string }
         Returns: {
@@ -976,6 +1018,72 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      transition_match_status: {
+        Args: {
+          _command_id: string
+          _expected_version?: number
+          _match_id: string
+          _to: string
+        }
+        Returns: {
+          away_score: number
+          away_team_id: string
+          category_id: string
+          clock_seconds: number
+          court: number
+          group_id: string | null
+          home_score: number
+          home_team_id: string
+          id: string
+          kickoff_at: string
+          match_number: number
+          period: string
+          stage: string
+          status: string
+          tournament_id: string
+          venue_id: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_match_clock: {
+        Args: {
+          _clock_seconds: number
+          _command_id: string
+          _expected_version?: number
+          _match_id: string
+        }
+        Returns: {
+          away_score: number
+          away_team_id: string
+          category_id: string
+          clock_seconds: number
+          court: number
+          group_id: string | null
+          home_score: number
+          home_team_id: string
+          id: string
+          kickoff_at: string
+          match_number: number
+          period: string
+          stage: string
+          status: string
+          tournament_id: string
+          venue_id: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
