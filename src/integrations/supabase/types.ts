@@ -939,6 +939,10 @@ export type Database = {
         }
       }
       gen_random_uuid_text: { Args: never; Returns: string }
+      has_permission: {
+        Args: { _actor_id: string; _permission: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
