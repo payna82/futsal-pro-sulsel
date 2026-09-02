@@ -119,10 +119,10 @@ BEGIN
 
   -- 2e. Isi kolom profil pendukung agar profile query admin tidak NULL
   UPDATE public.profiles
-     SET full_name  = COALESCE(NULLIF(full_name, ''), 'Super Administrator'),
-         email      = 'superadmin@porprovsulsel.id',
-         is_active  = true,
-         updated_at = now()
+     SET full_name    = COALESCE(NULLIF(full_name, ''), 'Super Administrator'),
+         email        = 'superadmin@porprovsulsel.id',
+         is_active    = true,
+         last_login_at = now()
    WHERE id = v_admin_id;
 
   RAISE NOTICE '========================================================';

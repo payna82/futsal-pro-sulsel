@@ -277,30 +277,32 @@ DECLARE
 BEGIN
   -- Fetch match to validate status
   SELECT * INTO match_rec FROM public.matches WHERE id = NEW.match_id;
-  
+
   IF match_rec IS NULL THEN
     RAISE EXCEPTION 'Pertandingan dengan ID % tidak ditemukan.', NEW.match_id;
   END IF;
-  
-  -- Match must be in_progress or not_started to record events
-  IF match_rec.match_status NOT IN ('in_progress', 'not_started') THEN
+
+  -- Match must be in active play window to accept event insertions.
+  IF match_rec.status NOT IN ('LIVE', 'HALFTIME') THEN
     RAISE EXCEPTION
-      'Tidak dapat merekam event pada pertandingan dengan status %. Status harus "in_progress" atau "not_started".',
-      match_rec.match_status;
+      'Tidak dapat merekam event pada pertandingan dengan status %. Status harus "LIVE" atau "HALFTIME".',
+      match_rec.status;
   END IF;
-  
-  -- Validate event_type matches expected transitions for current period
-  -- (Detailed validation would use MATCH_OPERATIONS.isValidEvent() logic)
-  -- For now, accept common event types: goal, correction, void_goal, period_end, etc.
-  IF NEW.event_type NOT IN ('goal', 'correction', 'void_goal', 'period_end', 'substitution', 'warning', 'foul') THEN
-    RAISE EXCEPTION 'Tipe event % tidak valid.', NEW.event_type;
+
+  -- Validate event type matches accepted match event list.
+  IF NEW.type NOT IN ('MATCH_START', 'PERIOD_START', 'GOAL', 'CARD', 'FOUL', 'SUBSTITUTION', 'TIMEOUT', 'PERIOD_END', 'HALFTIME', 'MATCH_END', 'MATCH_CORRECTION') THEN
+    RAISE EXCEPTION 'Tipe event % tidak valid.', NEW.type;
   END IF;
-  
-  -- Period must be valid for current status
-  IF match_rec.match_status = 'not_started' AND NEW.period IS NOT NULL AND NEW.period > 0 THEN
-    RAISE EXCEPTION 'Pertandingan belum dimulai, tidak boleh ada event dengan period > 0.';
+
+  -- Enforce period consistency for the current match state.
+  IF match_rec.status = 'LIVE' AND NEW.period NOT IN ('FIRST_HALF', 'SECOND_HALF') THEN
+    RAISE EXCEPTION 'Event pertandingan LIVE hanya dapat berada pada FIRST_HALF atau SECOND_HALF.';
   END IF;
-  
+
+  IF match_rec.status = 'HALFTIME' AND NEW.period <> 'HALF_TIME' THEN
+    RAISE EXCEPTION 'Event pertandingan HALFTIME hanya dapat berada pada HALF_TIME.';
+  END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -325,24 +327,25 @@ RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   team_profile_rec public.team_profiles;
+  profile_status text;
 BEGIN
   -- Check if player was already approved (ELIGIBLE)
   IF OLD.status = 'ELIGIBLE' THEN
     RAISE EXCEPTION 'Pemain yang telah disetujui tidak dapat diubah. Status: ELIGIBLE (locked).';
   END IF;
-  
-  -- Fetch team profile to check registration status
+
+  -- Fetch team profile to check registration status stored in JSON payload.
   SELECT * INTO team_profile_rec FROM public.team_profiles WHERE team_id = NEW.team_id;
-  
+
   IF team_profile_rec IS NOT NULL THEN
-    -- Check if registration is locked (APPROVED, REJECTED, LOCKED)
-    IF team_profile_rec.registration_status IN ('APPROVED', 'REJECTED', 'LOCKED') THEN
+    profile_status := COALESCE(team_profile_rec.data->>'registration_status', 'DRAFT');
+    IF profile_status IN ('APPROVED', 'REJECTED', 'LOCKED') THEN
       RAISE EXCEPTION
         'Pemain tidak dapat diubah: registrasi tim sudah %.',
-        team_profile_rec.registration_status;
+        profile_status;
     END IF;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$;
@@ -369,50 +372,38 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   old_status text;
   new_status text;
-  actor_id   uuid := auth.uid();
 BEGIN
-  old_status := (OLD.registration_status)::text;
-  new_status := (NEW.registration_status)::text;
-  
-  -- If status unchanged, allow the update
+  old_status := COALESCE((OLD.data->>'registration_status'), 'DRAFT');
+  new_status := COALESCE((NEW.data->>'registration_status'), 'DRAFT');
+
+  -- If status unchanged, allow the update.
   IF old_status = new_status THEN
     RETURN NEW;
   END IF;
-  
-  -- Validate state transition based on domain/registration.ts REGISTRATION_TRANSITIONS
-  -- Legal transitions:
-  --   DRAFT → READY_FOR_SUBMISSION, READY_FOR_SUBMISSION → SUBMITTED,
-  --   SUBMITTED → UNDER_REVIEW, UNDER_REVIEW → APPROVED/REVISION_REQUIRED/REJECTED,
-  --   Any status → LOCKED (final state)
-  --
-  -- Illegal transitions:
-  --   APPROVED → anything except LOCKED
-  --   REJECTED → anything except LOCKED
-  --   LOCKED → anything
-  
+
+  -- Validate state transition based on the app's registration state machine.
   IF old_status = 'APPROVED' AND new_status <> 'LOCKED' THEN
     RAISE EXCEPTION
       'Perubahan status registrasi tidak valid: APPROVED → %. Hanya dapat berubah ke LOCKED.',
       new_status;
   END IF;
-  
+
   IF old_status = 'REJECTED' AND new_status <> 'LOCKED' THEN
     RAISE EXCEPTION
       'Perubahan status registrasi tidak valid: REJECTED → %. Hanya dapat berubah ke LOCKED.',
       new_status;
   END IF;
-  
+
   IF old_status = 'LOCKED' THEN
     RAISE EXCEPTION 'Perubahan status registrasi tidak valid: LOCKED tidak dapat berubah.';
   END IF;
-  
-  -- Valid transitions allowed; audit will be inserted by app layer
+
   RETURN NEW;
 END;
 $$;
 
 CREATE TRIGGER tr_before_registration_state_update
-  BEFORE UPDATE OF registration_status ON public.team_profiles
+  BEFORE UPDATE ON public.team_profiles
   FOR EACH ROW
   EXECUTE FUNCTION public.before_registration_state_update();
 
@@ -431,23 +422,25 @@ RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   team_profile_rec public.team_profiles;
+  profile_status text;
 BEGIN
   -- Check if official was already approved
   IF OLD.registration_status = 'APPROVED' THEN
     RAISE EXCEPTION 'Ofisial yang telah disetujui tidak dapat diubah. Status: APPROVED (locked).';
   END IF;
-  
-  -- Fetch team profile to check registration status
+
+  -- Fetch team profile to check registration status stored in JSON payload.
   SELECT * INTO team_profile_rec FROM public.team_profiles WHERE team_id = NEW.team_id;
-  
+
   IF team_profile_rec IS NOT NULL THEN
-    IF team_profile_rec.registration_status IN ('APPROVED', 'REJECTED', 'LOCKED') THEN
+    profile_status := COALESCE(team_profile_rec.data->>'registration_status', 'DRAFT');
+    IF profile_status IN ('APPROVED', 'REJECTED', 'LOCKED') THEN
       RAISE EXCEPTION
         'Ofisial tidak dapat diubah: registrasi tim sudah %.',
-        team_profile_rec.registration_status;
+        profile_status;
     END IF;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$;

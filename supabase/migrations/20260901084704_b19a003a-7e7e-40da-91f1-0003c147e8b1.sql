@@ -46,6 +46,11 @@ GRANT ALL ON public.role_requests TO service_role;
 
 ALTER TABLE public.role_requests ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "role_requests_self_or_staff_read" ON public.role_requests;
+DROP POLICY IF EXISTS "role_requests_self_insert" ON public.role_requests;
+DROP POLICY IF EXISTS "role_requests_self_cancel" ON public.role_requests;
+DROP POLICY IF EXISTS "role_requests_admin_decide" ON public.role_requests;
+
 -- User bisa melihat permintaannya sendiri; staff bisa melihat semua
 CREATE POLICY "role_requests_self_or_staff_read" ON public.role_requests
   FOR SELECT TO authenticated

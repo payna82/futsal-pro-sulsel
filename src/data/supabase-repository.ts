@@ -17,6 +17,7 @@ import type {
   AuditLog,
   Category,
   Contingent,
+  ContingentStatus,
   Group,
   Match,
   MatchEvent,
@@ -36,6 +37,7 @@ import type {
   Venue,
 } from "@/domain/types";
 import {
+  GUEST_ACTOR,
   SELF_REQUESTABLE_ROLES,
   DOCUMENT_TYPES,
   assertParticipantRegistrationTransition,

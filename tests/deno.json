@@ -1,8 +1,14 @@
 {
   "imports": {
-    "@/": "../src/"
+    "@/": "../src/",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.112.4"
   },
   "tasks": {
     "test:team-registration": "deno test --sloppy-imports --config tests/deno.json tests/team-registration.integration.test.ts"
-  }
+  },
+  "compilerOptions": {
+    "lib": ["deno.window", "DOM", "DOM.Iterable", "ESNext"],
+    "types": ["../types/global.d.ts"]
+  },
+  "nodeModulesDir": "auto"
 }
