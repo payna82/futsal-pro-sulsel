@@ -903,6 +903,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _role_rank: {
+        Args: { _r: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
       approve_role_request: {
         Args: {
           _contingent_id?: string
@@ -934,6 +938,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      gen_random_uuid_text: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
